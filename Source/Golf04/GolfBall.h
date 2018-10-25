@@ -24,8 +24,6 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	float walkMaxDuration;
-
 	UWorld* world;
 
 public:	
@@ -43,7 +41,10 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Legs variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
+		float walkMaxDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
 		float walkTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level variable")
