@@ -26,6 +26,10 @@ void AGolfBall::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
 	}
+
+	walkMaxDuration = 30.f;
+
+	world = GetWorld();
 }
 
 // Called every frame
@@ -33,6 +37,10 @@ void AGolfBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (isWalking)
+	{
+		walkFunction(DeltaTime);
+	}
 
 }
 
@@ -50,5 +58,23 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	if (OtherActor->IsA(AGoal::StaticClass()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HIT GOAL"));
+		UGameplayStatics::OpenLevel(world, "GOFF2");
 	}
+	if (OtherActor->IsA(ALegsPUp::StaticClass()))
+	{
+
+		isWalking = true;
+		walkTimer = walkMaxDuration;
+		OtherActor->Destroy();
+	}
+}
+
+void AGolfBall::walkFunction(float deltaTime)
+{
+	if (walkTimer < 0)
+	{
+		isWalking = false;
+		return;
+	}
+	walkTimer = walkTimer - deltaTime;
 }
