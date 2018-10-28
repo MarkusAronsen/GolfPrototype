@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include "ClimbObject.h"
 #include "Goal.h"
 #include "LegsPUp.h"
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
@@ -26,6 +28,8 @@ protected:
 
 	UWorld* world;
 
+	FRotator LockedClimbRotation;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -35,6 +39,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		UShapeComponent * CollisionBox = nullptr;
+
+	UPROPERTY(EditAnywhere)
+		UStaticMeshComponent * Mesh = nullptr;
 
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -52,6 +59,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
 		bool isWalking = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
+		bool isClimbing = false;
 
 	void walkFunction(float deltaTime);
 

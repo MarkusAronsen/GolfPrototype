@@ -27,6 +27,18 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
 	}
 
+	Mesh = this->FindComponentByClass<UStaticMeshComponent>();
+
+	if (!Mesh)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Mesh not found"));
+	}
+
+	RootComponent = Mesh;
+
+	/*Mesh->BodyInstance.bLockRotation = true;
+	Mesh->BodyInstance.CreateDOFLock();*/
+
 	walkMaxDuration = 30.f;
 
 	world = GetWorld();
@@ -42,6 +54,13 @@ void AGolfBall::Tick(float DeltaTime)
 		walkFunction(DeltaTime);
 	}
 
+	if (isClimbing)
+	{
+		SetActorRotation(LockedClimbRotation);
+	}
+
+
+	//UE_LOG(LogTemp, Warning, TEXT("Rotation: %s"), *GetActorRotation().ToString());
 }
 
 // Called to bind functionality to input
@@ -66,6 +85,17 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 		isWalking = true;
 		walkTimer = walkMaxDuration;
 		OtherActor->Destroy();
+	}
+	if (OtherActor->IsA(AClimbObject::StaticClass()))
+	{
+
+		isClimbing = true;
+
+		LockedClimbRotation = GetActorRotation();
+
+		/*Mesh->BodyInstance.bLockXRotation = true;
+		Mesh->BodyInstance.bLockYRotation = true;
+		Mesh->BodyInstance.bLockZRotation = true;*/
 	}
 }
 
