@@ -58,7 +58,10 @@ void AGolfBall::Tick(float DeltaTime)
 	{
 		SetActorRotation(LockedClimbRotation);
 	}
-
+	if (climbingCanLaunch)
+	{
+		SetActorLocation(LockedClimbPosition);
+	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("Rotation: %s"), *GetActorRotation().ToString());
 }
@@ -92,6 +95,9 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 		isClimbing = true;
 
 		LockedClimbRotation = GetActorRotation();
+		LockedClimbPosition = GetActorLocation();
+		climbingCanLaunch = true;
+		Mesh->SetSimulatePhysics(false);
 
 		/*Mesh->BodyInstance.bLockXRotation = true;
 		Mesh->BodyInstance.bLockYRotation = true;

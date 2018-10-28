@@ -29,6 +29,8 @@ protected:
 	UWorld* world;
 
 	FRotator LockedClimbRotation;
+	FVector LockedClimbPosition;
+	
 
 public:	
 	// Called every frame
@@ -48,20 +50,23 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkMaxDuration;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkTimer;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level variable")
 		int strokeCounter = 0;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		bool isWalking = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool isClimbing = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
+		bool climbingCanLaunch = false;
 
 	void walkFunction(float deltaTime);
 
