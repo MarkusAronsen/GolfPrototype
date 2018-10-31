@@ -62,6 +62,10 @@ void AGolfBall::Tick(float DeltaTime)
 	{
 		SetActorLocation(LockedClimbPosition);
 	}
+	if (isSomersaulting)
+	{
+
+	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("Rotation: %s"), *GetActorRotation().ToString());
 }
@@ -102,6 +106,12 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 		/*Mesh->BodyInstance.bLockXRotation = true;
 		Mesh->BodyInstance.bLockYRotation = true;
 		Mesh->BodyInstance.bLockZRotation = true;*/
+	}
+	if (OtherActor->IsA(ASomersaultObject::StaticClass()))
+	{
+		isSomersaulting = true;
+		Mesh->SetSimulatePhysics(false);
+		SomersaultCenter = OtherActor->getActorLocation();
 	}
 }
 

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "ClimbObject.h"
+#include "SomersaultObject.h"
 #include "Goal.h"
 #include "LegsPUp.h"
 #include "Components/SphereComponent.h"
@@ -30,6 +31,7 @@ protected:
 
 	FRotator LockedClimbRotation;
 	FVector LockedClimbPosition;
+	FVector SomersaultCenter;
 	
 
 public:	
@@ -64,6 +66,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool isClimbing = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Somersault variable")
+		bool isSomersaulting = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool climbingCanLaunch = false;
