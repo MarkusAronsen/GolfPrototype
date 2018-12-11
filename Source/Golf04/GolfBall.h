@@ -9,6 +9,7 @@
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
@@ -32,6 +33,12 @@ protected:
 	FRotator LockedClimbRotation;
 	FVector LockedClimbPosition;
 	FVector SomersaultCenter;
+	FVector PrevPos;
+
+	float radius = 100.f;
+	float degree = PI * 1.5;
+	bool toLaunch = false;
+
 	
 
 public:	
@@ -74,6 +81,9 @@ public:
 		bool climbingCanLaunch = false;
 
 	void walkFunction(float deltaTime);
+	void launchBall();
+	void orbit();
+	void launchReady();
 
 	
 };

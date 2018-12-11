@@ -3,6 +3,7 @@
 #include "GolfBall.h"
 
 
+
 // Sets default values
 AGolfBall::AGolfBall()
 {
@@ -64,7 +65,10 @@ void AGolfBall::Tick(float DeltaTime)
 	}
 	if (isSomersaulting)
 	{
-
+		orbit();
+		if (toLaunch)
+			launchBall();
+		PrevPos = GetActorLocation();
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("Rotation: %s"), *GetActorRotation().ToString());
@@ -74,6 +78,8 @@ void AGolfBall::Tick(float DeltaTime)
 void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::launchReady);
 
 }
 
@@ -111,7 +117,9 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	{
 		isSomersaulting = true;
 		Mesh->SetSimulatePhysics(false);
-		SomersaultCenter = OtherActor->getActorLocation();
+		SomersaultCenter = OtherActor->GetActorLocation();
+		SetActorLocation(OtherActor->GetActorLocation() + FVector(0, 0, -100));
+
 	}
 }
 
@@ -123,4 +131,27 @@ void AGolfBall::walkFunction(float deltaTime)
 		return;
 	}
 	walkTimer = walkTimer - deltaTime;
+}
+
+void AGolfBall::launchBall()
+{
+	isSomersaulting = false;
+	toLaunch = false;
+	Mesh->SetSimulatePhysics(true);
+	Mesh->SetPhysicsLinearVelocity((GetActorLocation() - PrevPos) * 500);
+
+}
+
+void AGolfBall::orbit()
+{
+	if (degree > PI * 1.5 + 2 * PI)
+		degree = PI * 1.5;
+	SetActorLocation(SomersaultCenter + FVector(0.f, cos(degree) * radius, sin(degree) * radius));
+	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), SomersaultCenter));
+	degree += 0.08f;
+}
+
+void AGolfBall::launchReady()
+{
+	toLaunch = true;
 }
