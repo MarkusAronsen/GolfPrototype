@@ -70,6 +70,10 @@ void AGolfBall::Tick(float DeltaTime)
 			launchBall();
 		PrevPos = GetActorLocation();
 	}
+	if (isFlying)
+	{
+		flying(DeltaTime);
+	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("Rotation: %s"), *GetActorRotation().ToString());
 }
@@ -80,6 +84,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::launchReady);
+	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::flappyAscend);
 
 }
 
@@ -119,7 +124,13 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 		Mesh->SetSimulatePhysics(false);
 		SomersaultCenter = OtherActor->GetActorLocation();
 		SetActorLocation(OtherActor->GetActorLocation() + FVector(0, 0, -100));
+	}
 
+	if (OtherActor->IsA(AWingsPUp::StaticClass()))
+	{
+		isFlying = true;
+		Mesh->SetSimulatePhysics(false);
+		OtherActor->Destroy();
 	}
 }
 
@@ -138,7 +149,7 @@ void AGolfBall::launchBall()
 	isSomersaulting = false;
 	toLaunch = false;
 	Mesh->SetSimulatePhysics(true);
-	Mesh->SetPhysicsLinearVelocity((GetActorLocation() - PrevPos) * 500);
+	Mesh->SetPhysicsLinearVelocity((GetActorLocation() - PrevPos) * 400);
 
 }
 
@@ -148,10 +159,31 @@ void AGolfBall::orbit()
 		degree = PI * 1.5;
 	SetActorLocation(SomersaultCenter + FVector(0.f, cos(degree) * radius, sin(degree) * radius));
 	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), SomersaultCenter));
-	degree += 0.08f;
+	degree += 0.05f;
 }
 
 void AGolfBall::launchReady()
 {
-	toLaunch = true;
+	if(isSomersaulting)
+		toLaunch = true;
+}
+
+void AGolfBall::flying(float deltaTime)
+{
+	Acceleration = Acceleration - 0.4f;
+	FlyingVector = FVector(0.f, -7.f, Gravity + Ascend + Acceleration);
+	SetActorLocation(GetActorLocation() + FlyingVector * 100 * deltaTime);
+	if (Ascend > 0.f)
+	{
+		Ascend = Ascend - 3.f;
+	}
+}
+
+void AGolfBall::flappyAscend()
+{
+	if (isFlying)
+	{
+		Ascend = 40.f;
+		Acceleration = 0.f;
+	}
 }

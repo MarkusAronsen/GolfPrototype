@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "LegsPUp.h"
+#include "WingsPUp.h"
 
 
 // Sets default values
-ALegsPUp::ALegsPUp()
+AWingsPUp::AWingsPUp()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -12,15 +12,16 @@ ALegsPUp::ALegsPUp()
 }
 
 // Called when the game starts or when spawned
-void ALegsPUp::BeginPlay()
+void AWingsPUp::BeginPlay()
 {
 	Super::BeginPlay();
 	
 }
 
 // Called every frame
-void ALegsPUp::Tick(float DeltaTime)
+void AWingsPUp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
+

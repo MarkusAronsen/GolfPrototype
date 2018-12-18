@@ -6,6 +6,7 @@
 #include "SomersaultObject.h"
 #include "Goal.h"
 #include "LegsPUp.h"
+#include "WingsPUp.h"
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
@@ -34,6 +35,10 @@ protected:
 	FVector LockedClimbPosition;
 	FVector SomersaultCenter;
 	FVector PrevPos;
+	FVector FlyingVector;
+	float Gravity = -1.f;
+	float Ascend = 0.f;
+	float Acceleration = 0.f;
 
 	float radius = 100.f;
 	float degree = PI * 1.5;
@@ -77,13 +82,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Somersault variable")
 		bool isSomersaulting = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flying variable")
+		bool isFlying = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool climbingCanLaunch = false;
+
 
 	void walkFunction(float deltaTime);
 	void launchBall();
 	void orbit();
 	void launchReady();
+	void flying(float deltaTime);
+	void flappyAscend();
 
 	
 };

@@ -2,20 +2,18 @@
 
 #pragma once
 
-#include "Components/SphereComponent.h"
-
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "LegsPUp.generated.h"
+#include "FlyingObstacle.generated.h"
 
 UCLASS()
-class GOLF04_API ALegsPUp : public AActor
+class GOLF04_API AFlyingObstacle : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ALegsPUp();
+	AFlyingObstacle();
 
 protected:
 	// Called when the game starts or when spawned
