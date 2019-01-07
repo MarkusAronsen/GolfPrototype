@@ -40,9 +40,13 @@ void AGolfBall::BeginPlay()
 	/*Mesh->BodyInstance.bLockRotation = true;
 	Mesh->BodyInstance.CreateDOFLock();*/
 
+	Mesh->SetSimulatePhysics(true);
+
 	walkMaxDuration = 30.f;
 
 	world = GetWorld();
+
+	state = GOLF;
 }
 
 // Called every frame
@@ -50,7 +54,7 @@ void AGolfBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (isWalking)
+	/*if (isWalking)
 	{
 		walkFunction(DeltaTime);
 	}
@@ -73,9 +77,35 @@ void AGolfBall::Tick(float DeltaTime)
 	if (isFlying)
 	{
 		flying(DeltaTime);
-	}
+	}*/
 
-	//UE_LOG(LogTemp, Warning, TEXT("Rotation: %s"), *GetActorRotation().ToString());
+	switch (state)
+	{
+		case GOLF:
+			//Setting gravityforce
+			//Mesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, -20.f), true);
+			if (currentLaunchPower > maxLaunchPower)
+				currentLaunchPower = maxLaunchPower;
+			else if (LMBPressed)
+				currentLaunchPower = currentLaunchPower + launchPowerIncrement;
+			
+			if (Mesh->GetPhysicsLinearVelocity().Size() < 100.f)
+			{
+				Mesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
+				canLaunch = true;
+			}
+			else
+				canLaunch = false;
+
+
+			break;
+		case WALKING:
+			break;
+		case CLIMBING:
+			break;
+		case FLYING:
+			break;
+	};
 }
 
 // Called to bind functionality to input
@@ -83,9 +113,19 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
-	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::launchReady);
+	//InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::launchReady);
 	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::flappyAscend);
+	InputComponent->BindAction("W", IE_Pressed, this, &AGolfBall::setW);
+	InputComponent->BindAction("W", IE_Released, this, &AGolfBall::setW);
+	InputComponent->BindAction("A", IE_Pressed, this, &AGolfBall::setA);
+	InputComponent->BindAction("A", IE_Released, this, &AGolfBall::setA);
+	InputComponent->BindAction("S", IE_Pressed, this, &AGolfBall::setS);
+	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::setS);
+	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::setD);
+	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::setD);
 
+	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
+	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
 }
 
 void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -120,7 +160,7 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	}
 	if (OtherActor->IsA(ASomersaultObject::StaticClass()))
 	{
-		isSomersaulting = true;
+		//isSomersaulting = true;
 		Mesh->SetSimulatePhysics(false);
 		SomersaultCenter = OtherActor->GetActorLocation();
 		SetActorLocation(OtherActor->GetActorLocation() + FVector(0, 0, -100));
@@ -144,29 +184,29 @@ void AGolfBall::walkFunction(float deltaTime)
 	walkTimer = walkTimer - deltaTime;
 }
 
-void AGolfBall::launchBall()
+/*void AGolfBall::launchBall()
 {
 	isSomersaulting = false;
 	toLaunch = false;
 	Mesh->SetSimulatePhysics(true);
 	Mesh->SetPhysicsLinearVelocity((GetActorLocation() - PrevPos) * 400);
 
-}
+}*/
 
-void AGolfBall::orbit()
+/*void AGolfBall::orbit()
 {
 	if (degree > PI * 1.5 + 2 * PI)
 		degree = PI * 1.5;
 	SetActorLocation(SomersaultCenter + FVector(0.f, cos(degree) * radius, sin(degree) * radius));
 	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), SomersaultCenter));
 	degree += 0.05f;
-}
+}*/
 
-void AGolfBall::launchReady()
+/*void AGolfBall::launchReady()
 {
 	if(isSomersaulting)
 		toLaunch = true;
-}
+}*/
 
 void AGolfBall::flying(float deltaTime)
 {
@@ -185,5 +225,42 @@ void AGolfBall::flappyAscend()
 	{
 		Ascend = 40.f;
 		Acceleration = 0.f;
+	}
+}
+
+void AGolfBall::setW()
+{
+	WPressed = !WPressed;
+}
+
+void AGolfBall::setA()
+{
+	APressed = !APressed;
+}
+
+void AGolfBall::setS()
+{
+	SPressed = !SPressed;
+}
+
+void AGolfBall::setD()
+{
+	DPressed = !DPressed;
+}
+
+void AGolfBall::setLMBPressed()
+{
+	UE_LOG(LogTemp, Warning, TEXT("LMBPressed"));
+	LMBPressed = true;
+}
+
+void AGolfBall::setLMBReleased()
+{
+	LMBPressed = false;
+
+	if (canLaunch)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%b"), canLaunch);
+		Mesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
 	}
 }

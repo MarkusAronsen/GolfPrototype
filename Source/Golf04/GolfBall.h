@@ -11,6 +11,7 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+#include "Runtime/Core/Public/Math/Rotator.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
@@ -79,8 +80,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool isClimbing = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Somersault variable")
-		bool isSomersaulting = false;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Somersault variable")
+		//bool isSomersaulting = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flying variable")
 		bool isFlying = false;
@@ -88,13 +89,39 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool climbingCanLaunch = false;
 
+	enum states
+	{
+		GOLF = 0,
+		WALKING = 1,
+		CLIMBING = 2,
+		FLYING = 3
+	};
+	int state;
+
+	float currentLaunchPower = 0.f;
+	float maxLaunchPower = 7000.f;
+	bool isCharging = false;
+	bool canLaunch = true;
+	float launchPowerIncrement = 30.f;
 
 	void walkFunction(float deltaTime);
-	void launchBall();
-	void orbit();
-	void launchReady();
+	//void launchBall();
+	//void orbit();
+	//void launchReady();
 	void flying(float deltaTime);
 	void flappyAscend();
 
-	
+	void setW();
+	void setA();
+	void setS();
+	void setD();
+	void setLMBPressed();
+	void setLMBReleased();
+
+	bool WPressed = false;
+	bool APressed = false;
+	bool SPressed = false;
+	bool DPressed = false;
+	bool LMBPressed = false;
+
 };
