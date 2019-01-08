@@ -11,7 +11,9 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
-#include "Runtime/Core/Public/Math/Rotator.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
+#include "DrawDebugHelpers.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
@@ -31,6 +33,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	UWorld* world;
+	UCameraComponent* mCamera = nullptr;
+	USpringArmComponent* mSpringArm = nullptr;
 
 	FRotator LockedClimbRotation;
 	FVector LockedClimbPosition;
@@ -97,12 +101,13 @@ public:
 		FLYING = 3
 	};
 	int state;
-
-	float currentLaunchPower = 0.f;
-	float maxLaunchPower = 7000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
+		float currentLaunchPower = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
+		float maxLaunchPower = 7000.f;
 	bool isCharging = false;
 	bool canLaunch = true;
-	float launchPowerIncrement = 30.f;
+	float launchPowerIncrement = 45.f;
 
 	void walkFunction(float deltaTime);
 	//void launchBall();
@@ -124,4 +129,7 @@ public:
 	bool DPressed = false;
 	bool LMBPressed = false;
 
+	bool sphereTrace();
+	TArray<FHitResult> hitResults;
+	bool onGround = false;
 };

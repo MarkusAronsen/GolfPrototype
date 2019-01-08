@@ -35,6 +35,11 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Mesh not found"));
 	}
 
+	mCamera = FindComponentByClass<UCameraComponent>();
+	if (!mCamera)
+		UE_LOG(LogTemp, Warning, TEXT("Camera not found!"));
+	mSpringArm = FindComponentByClass<USpringArmComponent>();
+
 	RootComponent = Mesh;
 
 	/*Mesh->BodyInstance.bLockRotation = true;
@@ -79,11 +84,13 @@ void AGolfBall::Tick(float DeltaTime)
 		flying(DeltaTime);
 	}*/
 
+	onGround = sphereTrace();
+	if(onGround)
+		UE_LOG(LogTemp, Warning, TEXT("IN ON GROUND!"));
+
 	switch (state)
 	{
 		case GOLF:
-			//Setting gravityforce
-			//Mesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, -20.f), true);
 			if (currentLaunchPower > maxLaunchPower)
 				currentLaunchPower = maxLaunchPower;
 			else if (LMBPressed)
@@ -91,7 +98,6 @@ void AGolfBall::Tick(float DeltaTime)
 			
 			if (Mesh->GetPhysicsLinearVelocity().Size() < 100.f)
 			{
-				Mesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 				canLaunch = true;
 			}
 			else
@@ -104,6 +110,10 @@ void AGolfBall::Tick(float DeltaTime)
 		case CLIMBING:
 			break;
 		case FLYING:
+			mCamera->SetComponentToWorld(
+				FTransform(GetActorRotation() + FRotator(0.f, -90.f, 0.f),
+				GetActorLocation() + (GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 0.f, 1.f)) * 2000.f,
+				FVector::OneVector)));
 			break;
 	};
 }
@@ -168,6 +178,7 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
 	{
+		state = FLYING;
 		isFlying = true;
 		Mesh->SetSimulatePhysics(false);
 		OtherActor->Destroy();
@@ -250,17 +261,30 @@ void AGolfBall::setD()
 
 void AGolfBall::setLMBPressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("LMBPressed"));
-	LMBPressed = true;
+	if(canLaunch)
+		LMBPressed = true;
 }
 
 void AGolfBall::setLMBReleased()
 {
 	LMBPressed = false;
 
-	if (canLaunch)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%b"), canLaunch);
-		Mesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
-	}
+	Mesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
+
+	currentLaunchPower = 0.f;
+}
+
+bool AGolfBall::sphereTrace()
+{
+	DrawDebugSphere(world, Mesh->GetComponentToWorld().GetLocation(), CollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
+
+	world->SweepMultiByChannel(
+		hitResults,
+		Mesh->GetComponentToWorld().GetLocation(),
+		Mesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
+		FQuat::Identity,
+		ECC_Visibility,
+		CollisionBox->GetCollisionShape());
+
+	return hitResults.Num() > 2;
 }
