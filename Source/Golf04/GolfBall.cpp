@@ -7,8 +7,69 @@
 // Sets default values
 AGolfBall::AGolfBall()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	//RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+
+	mSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"), true);
+	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"), true);
+	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
+	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/StaticMesh/BaseGolfMesh.BaseGolfMesh"));
+	if (FoundMesh.Succeeded())
+		mMesh->SetStaticMesh(FoundMesh.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character."));
+	RootComponent = mMesh;
+	mCollisionBox->SetupAttachment(mMesh);
+	mSpringArm->SetupAttachment(RootComponent);
+	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
+
+	mMesh->SetLinearDamping(0.6f);
+	mMesh->SetAngularDamping(0.3f);
+
+	mMesh->BodyInstance.SetMassOverride(100.f);
+	mMesh->BodyInstance.bEnableGravity = true;
+
+	mMesh->SetSimulatePhysics(true);
+	mMesh->BodyInstance.bUseCCD = true;
+
+
+
+	//mCollisionBox->SetupAttachment(mMesh);
+
+	mCollisionBox->SetSphereRadius(45.f);
+
+	mCollisionBox->SetLinearDamping(0.1f);
+	mCollisionBox->SetAngularDamping(0.1f);
+
+	mCollisionBox->BodyInstance.SetMassOverride(100.f);
+	mCollisionBox->BodyInstance.bEnableGravity = true;
+
+	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
+
+
+	//mSpringArm->SetupAttachment(RootComponent);
+
+	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
+
+	mSpringArm->TargetArmLength = 500.f;
+
+	mSpringArm->bEnableCameraLag = true;
+	mSpringArm->bEnableCameraRotationLag = true;
+	mSpringArm->CameraRotationLagSpeed = 10.f;
+	mSpringArm->CameraLagSpeed = 10.f;
+	mSpringArm->CameraLagMaxDistance = 100.f;
+
+	mSpringArm->bUsePawnControlRotation = true;
+	mSpringArm->bInheritPitch = false;
+	mSpringArm->bInheritYaw = true;
+	mSpringArm->bInheritRoll = false;
+
+	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
 
 }
 
@@ -17,41 +78,28 @@ void AGolfBall::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CollisionBox = this->FindComponentByClass<USphereComponent>();
-
-	if (CollisionBox)
+	if (mCollisionBox)
 	{
-		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnOverlap);
+		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnOverlap);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
 	}
 
-	Mesh = this->FindComponentByClass<UStaticMeshComponent>();
-
-	if (!Mesh)
+	if (PowerBarWidget_BP)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Mesh not found"));
+		PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
+		if (PowerBarWidget)
+			PowerBarWidget->AddToViewport();
 	}
-
-	mCamera = FindComponentByClass<UCameraComponent>();
-	if (!mCamera)
-		UE_LOG(LogTemp, Warning, TEXT("Camera not found!"));
-	mSpringArm = FindComponentByClass<USpringArmComponent>();
-
-	RootComponent = Mesh;
-
-	/*Mesh->BodyInstance.bLockRotation = true;
-	Mesh->BodyInstance.CreateDOFLock();*/
-
-	Mesh->SetSimulatePhysics(true);
 
 	walkMaxDuration = 30.f;
 
 	world = GetWorld();
 
 	state = GOLF;
+
 }
 
 // Called every frame
@@ -59,62 +107,36 @@ void AGolfBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*if (isWalking)
-	{
-		walkFunction(DeltaTime);
-	}
-
-	if (isClimbing)
-	{
-		SetActorRotation(LockedClimbRotation);
-	}
-	if (climbingCanLaunch)
-	{
-		SetActorLocation(LockedClimbPosition);
-	}
-	if (isSomersaulting)
-	{
-		orbit();
-		if (toLaunch)
-			launchBall();
-		PrevPos = GetActorLocation();
-	}
-	if (isFlying)
-	{
-		flying(DeltaTime);
-	}*/
-
 	onGround = sphereTrace();
-	if(onGround)
-		UE_LOG(LogTemp, Warning, TEXT("IN ON GROUND!"));
 
 	switch (state)
 	{
-		case GOLF:
-			if (currentLaunchPower > maxLaunchPower)
-				currentLaunchPower = maxLaunchPower;
-			else if (LMBPressed)
-				currentLaunchPower = currentLaunchPower + launchPowerIncrement;
-			
-			if (Mesh->GetPhysicsLinearVelocity().Size() < 100.f)
-			{
-				canLaunch = true;
-			}
-			else
-				canLaunch = false;
+	case GOLF:
+		if (currentLaunchPower > maxLaunchPower)
+			currentLaunchPower = maxLaunchPower;
+		else if (LMBPressed)
+			currentLaunchPower = currentLaunchPower + launchPowerIncrement;
+
+		if (mMesh->GetPhysicsLinearVelocity().Size() < 100.f)
+			canLaunch = true;
+		else
+			canLaunch = false;
 
 
-			break;
-		case WALKING:
-			break;
-		case CLIMBING:
-			break;
-		case FLYING:
-			mCamera->SetComponentToWorld(
-				FTransform(GetActorRotation() + FRotator(0.f, -90.f, 0.f),
+		break;
+	case WALKING:
+		break;
+	case CLIMBING:
+		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
+		mCamera->SetWorldLocation(climbingCameraPosition * 1000.f + GetActorLocation());
+
+		break;
+	case FLYING:
+		mCamera->SetComponentToWorld(
+			FTransform(GetActorRotation() + FRotator(0.f, -90.f, 0.f),
 				GetActorLocation() + (GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 0.f, 1.f)) * 2000.f,
-				FVector::OneVector)));
-			break;
+					FVector::OneVector)));
+		break;
 	};
 }
 
@@ -145,42 +167,34 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	if (OtherActor->IsA(AGoal::StaticClass()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HIT GOAL"));
-		UGameplayStatics::OpenLevel(world, "GOFF2");
+		UGameplayStatics::OpenLevel(GetWorld(), "Level0");
 	}
 	if (OtherActor->IsA(ALegsPUp::StaticClass()))
 	{
 
-		isWalking = true;
+		state = WALKING;
 		walkTimer = walkMaxDuration;
 		OtherActor->Destroy();
 	}
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-
-		isClimbing = true;
-
+		state = CLIMBING;
+		world->GetFirstPlayerController()->bShowMouseCursor = true;
 		LockedClimbRotation = GetActorRotation();
 		LockedClimbPosition = GetActorLocation();
 		climbingCanLaunch = true;
-		Mesh->SetSimulatePhysics(false);
+		mMesh->SetSimulatePhysics(false);
 
-		/*Mesh->BodyInstance.bLockXRotation = true;
-		Mesh->BodyInstance.bLockYRotation = true;
-		Mesh->BodyInstance.bLockZRotation = true;*/
-	}
-	if (OtherActor->IsA(ASomersaultObject::StaticClass()))
-	{
-		//isSomersaulting = true;
-		Mesh->SetSimulatePhysics(false);
-		SomersaultCenter = OtherActor->GetActorLocation();
-		SetActorLocation(OtherActor->GetActorLocation() + FVector(0, 0, -100));
+		mCamera->AttachTo(RootComponent, NAME_None, EAttachLocation::KeepWorldPosition);
+		climbingCameraPosition = OtherActor->GetActorLocation().ForwardVector;
+		climbingCameraRotation = OtherActor->GetActorRotation() + FRotator(0.f, 180.f, 0.f);
+		mCamera->SetRelativeRotation(climbingCameraRotation);
 	}
 
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
 	{
 		state = FLYING;
-		isFlying = true;
-		Mesh->SetSimulatePhysics(false);
+		mMesh->SetSimulatePhysics(false);
 		OtherActor->Destroy();
 	}
 }
@@ -189,35 +203,11 @@ void AGolfBall::walkFunction(float deltaTime)
 {
 	if (walkTimer < 0)
 	{
-		isWalking = false;
+		state = GOLF;
 		return;
 	}
 	walkTimer = walkTimer - deltaTime;
 }
-
-/*void AGolfBall::launchBall()
-{
-	isSomersaulting = false;
-	toLaunch = false;
-	Mesh->SetSimulatePhysics(true);
-	Mesh->SetPhysicsLinearVelocity((GetActorLocation() - PrevPos) * 400);
-
-}*/
-
-/*void AGolfBall::orbit()
-{
-	if (degree > PI * 1.5 + 2 * PI)
-		degree = PI * 1.5;
-	SetActorLocation(SomersaultCenter + FVector(0.f, cos(degree) * radius, sin(degree) * radius));
-	SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), SomersaultCenter));
-	degree += 0.05f;
-}*/
-
-/*void AGolfBall::launchReady()
-{
-	if(isSomersaulting)
-		toLaunch = true;
-}*/
 
 void AGolfBall::flying(float deltaTime)
 {
@@ -225,14 +215,12 @@ void AGolfBall::flying(float deltaTime)
 	FlyingVector = FVector(0.f, -7.f, Gravity + Ascend + Acceleration);
 	SetActorLocation(GetActorLocation() + FlyingVector * 100 * deltaTime);
 	if (Ascend > 0.f)
-	{
 		Ascend = Ascend - 3.f;
-	}
 }
 
 void AGolfBall::flappyAscend()
 {
-	if (isFlying)
+	if (state == FLYING)
 	{
 		Ascend = 40.f;
 		Acceleration = 0.f;
@@ -261,30 +249,43 @@ void AGolfBall::setD()
 
 void AGolfBall::setLMBPressed()
 {
-	if(canLaunch)
-		LMBPressed = true;
+	LMBPressed = true;
+	if (state == CLIMBING && !mMesh->IsSimulatingPhysics())
+		world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionClicked, oneDirection);
 }
-
 void AGolfBall::setLMBReleased()
 {
 	LMBPressed = false;
 
-	Mesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
+	if (state == GOLF)
+	{
+		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
+		currentLaunchPower = 0.f;
+	}
 
-	currentLaunchPower = 0.f;
+	if (state == CLIMBING && !mMesh->IsSimulatingPhysics())
+	{
+		world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionReleased, oneDirection);
+		mMesh->SetSimulatePhysics(true);
+		UE_LOG(LogTemp, Warning, TEXT("%f,   %f,   %f"), mousePositionClicked.X, mousePositionClicked.Y, mousePositionClicked.Z);
+		UE_LOG(LogTemp, Warning, TEXT("%f,   %f,   %f"), mousePositionReleased.X, mousePositionReleased.Y, mousePositionReleased.Z);
+		mMesh->SetPhysicsLinearVelocity((mousePositionReleased - mousePositionClicked) * 1000.f, false);
+	}
 }
 
 bool AGolfBall::sphereTrace()
 {
-	DrawDebugSphere(world, Mesh->GetComponentToWorld().GetLocation(), CollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
+	DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
 
-	world->SweepMultiByChannel(
-		hitResults,
-		Mesh->GetComponentToWorld().GetLocation(),
-		Mesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
-		FQuat::Identity,
-		ECC_Visibility,
-		CollisionBox->GetCollisionShape());
+	if (world && mMesh)
+		world->SweepMultiByChannel(
+			hitResults,
+			mMesh->GetComponentToWorld().GetLocation(),
+			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
+			FQuat::Identity,
+			ECC_Visibility,
+			mCollisionBox->GetCollisionShape());
+
 
 	return hitResults.Num() > 2;
 }
