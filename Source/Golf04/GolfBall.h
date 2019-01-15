@@ -128,13 +128,18 @@ public:
 	void walkFunction(float deltaTime);
 	void flying(float deltaTime);
 	void flappyAscend();
+	void jump();
 
 	void setW();
 	void setA();
 	void setS();
 	void setD();
+	void spacebarPressed();
 	void setLMBPressed();
 	void setLMBReleased();
+	void mouseCameraPitch();
+	void mouseCameraYaw();
+	void leftShiftPressed();
 
 	bool WPressed = false;
 	bool APressed = false;
@@ -145,4 +150,13 @@ public:
 	bool sphereTrace();
 	TArray<FHitResult> hitResults;
 	bool onGround = false;
+
+	void tickWalking();
+
+	FVector ADirection;
+	FVector DDirection;
+	FVector SDirection;
+	FVector WDirection;
+
+	float movementSpeed;
 };
