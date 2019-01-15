@@ -137,6 +137,7 @@ void AGolfBall::Tick(float DeltaTime)
 	case CLIMBING:
 
 		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
+		DrawDebugLine(GetWorld(), GetActorLocation(), (GetActorLocation() + (mousePositionClicked - mousePositionReleased)) * 10.f, FColor(255.f, 0.f, 0.f, 1.f), true, 1.f, (uint8)'\000', 10.f);
 		break;
 
 	case FLYING:
@@ -167,6 +168,8 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
+	InputComponent->BindAction("Wheel Up", IE_Pressed, this, &AGolfBall::zoomIn);
+	InputComponent->BindAction("Wheel Down", IE_Pressed, this, &AGolfBall::zoomOut);
 }
 
 void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -334,8 +337,23 @@ void AGolfBall::leftShiftPressed()
 {
 	if(!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-	state = WALKING;
+	if (state != WALKING)
+		state = WALKING;
+	else
+		state = GOLF;
 	walkTimer = walkMaxDuration;
+}
+
+void AGolfBall::zoomOut()
+{
+	if(mSpringArm->TargetArmLength < 1500.f)
+		mSpringArm->TargetArmLength += zoomSpeed;
+}
+
+void AGolfBall::zoomIn()
+{
+	if(mSpringArm->TargetArmLength > 300.f)
+		mSpringArm->TargetArmLength -= zoomSpeed;
 }
 
 bool AGolfBall::sphereTrace()

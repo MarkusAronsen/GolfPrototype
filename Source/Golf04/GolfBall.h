@@ -119,8 +119,9 @@ public:
 	float launchPowerIncrement = 45.f;
 	float mouseX;
 	float mouseY;
-	FVector mousePositionClicked;
-	FVector mousePositionReleased;
+	float zoomSpeed = 20.f;
+	FVector mousePositionClicked = FVector::OneVector;
+	FVector mousePositionReleased = FVector::OneVector;
 	FVector oneDirection;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
@@ -140,6 +141,8 @@ public:
 	void mouseCameraPitch();
 	void mouseCameraYaw();
 	void leftShiftPressed();
+	void zoomOut();
+	void zoomIn();
 
 	bool WPressed = false;
 	bool APressed = false;
