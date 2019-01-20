@@ -136,8 +136,11 @@ void AGolfBall::Tick(float DeltaTime)
 	
 	case CLIMBING:
 
+		if(world)
 		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
-		DrawDebugLine(GetWorld(), GetActorLocation(), (GetActorLocation() + (mousePositionClicked - mousePositionReleased)) * 10.f, FColor(255.f, 0.f, 0.f, 1.f), true, 1.f, (uint8)'\000', 10.f);
+
+		SetActorRotation(LockedClimbRotation);
+		UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f"), mouseX, mouseY);
 		break;
 
 	case FLYING:
@@ -148,6 +151,10 @@ void AGolfBall::Tick(float DeltaTime)
 					FVector::OneVector)));
 		break;
 	};
+
+	if(world)
+	drawDebugObjectsTick();
+
 }
 
 // Called to bind functionality to input
@@ -168,8 +175,6 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
-	InputComponent->BindAction("Wheel Up", IE_Pressed, this, &AGolfBall::zoomIn);
-	InputComponent->BindAction("Wheel Down", IE_Pressed, this, &AGolfBall::zoomOut);
 }
 
 void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -178,8 +183,7 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 {
 	if (OtherActor->IsA(AGoal::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HIT GOAL"));
-		UGameplayStatics::OpenLevel(GetWorld(), "Level0");
+		UGameplayStatics::OpenLevel(GetWorld(), "GOFF2");
 	}
 	if (OtherActor->IsA(ALegsPUp::StaticClass()))
 	{
@@ -190,23 +194,34 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	}
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		state = CLIMBING;
-		world->GetFirstPlayerController()->bShowMouseCursor = true;
-		LockedClimbRotation = GetActorRotation();
-		LockedClimbPosition = GetActorLocation();
-		mMesh->SetSimulatePhysics(false);
-		climbingCanLaunch = true;
+		if (lastVisitedClimbObject != OtherActor)
+		{
+			lastVisitedClimbObject = OtherActor;
 
-		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
-		SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
-		mSpringArm->bInheritYaw = false;
-		mSpringArm->CameraLagSpeed = 5.f;
-		mSpringArm->SetRelativeRotation(FRotator(-170.f, 0.f, 180.f));
-		mSpringArm->TargetArmLength = 1500.f;
+			state = CLIMBING;
+			world->GetFirstPlayerController()->bShowMouseCursor = true;
+			//LockedClimbPosition = GetActorLocation();
+			mMesh->SetSimulatePhysics(false);
+			climbingCanLaunch = true;
 
-		mMesh->BodyInstance.CustomDOFPlaneNormal = GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
-		mMesh->SetConstraintMode(EDOFMode::CustomPlane);
-		mMesh->BodyInstance.bLockRotation = true;
+			//SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
+			SetActorLocation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetComponentLocation() + OtherActor->GetActorUpVector() * 50);
+
+			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
+			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GetActorLocation() + (OtherActor->GetActorForwardVector() * -1)));
+
+			LockedClimbRotation = GetActorRotation();
+
+			mSpringArm->bInheritYaw = false;
+			mSpringArm->CameraLagSpeed = 5.f;
+			mSpringArm->SetRelativeRotation(FRotator(-170.f, 0.f, 180.f));
+			mSpringArm->TargetArmLength = 1500.f;
+
+			mMesh->BodyInstance.CustomDOFPlaneNormal = GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
+			mMesh->SetConstraintMode(EDOFMode::CustomPlane);
+			mMesh->BodyInstance.bLockRotation = true;
+			//mMesh->BodyInstance.SetDOFLock(EDOFMode::CustomPlane);
+		}
 	}
 
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
@@ -290,7 +305,22 @@ void AGolfBall::setLMBPressed()
 		break;
 	case CLIMBING:
 		if (!mMesh->IsSimulatingPhysics())
+		{
 			world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionClicked, oneDirection);
+			mousePositionClickedAfterTrace = FMath::LinePlaneIntersection(
+				mousePositionClicked,
+				GetActorLocation() + oneDirection * 5000,
+				GetActorLocation(),
+				GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)));
+			
+			if (world)
+			{
+				DrawDebugSphere(world, mousePositionClickedAfterTrace, 40, 32, FColor::Yellow, true, 20);
+				//DrawDebugSphere(GetWorld(), mousePositionClicked, 40, 32, FColor::Red, true, 20);
+				DrawDebugLine(world, mousePositionClicked, mousePositionClicked + oneDirection * 200, FColor::Magenta, true, 20.f, (uint8)'\000', 6.f);
+			}
+
+		}
 		break;
 	case FLYING:
 		break;
@@ -312,8 +342,23 @@ void AGolfBall::setLMBReleased()
 		if (!mMesh->IsSimulatingPhysics())
 		{
 			world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionReleased, oneDirection);
+
+			mousePositionReleasedAfterTrace = FMath::LinePlaneIntersection(
+				mousePositionReleased, 
+				GetActorLocation() + oneDirection * 5000, 
+				GetActorLocation(), 
+				GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)));
+
 			mMesh->SetSimulatePhysics(true);
-			mMesh->SetPhysicsLinearVelocity((mousePositionClicked - mousePositionReleased) * 1000.f, false);
+			mMesh->SetPhysicsLinearVelocity((mousePositionClickedAfterTrace - mousePositionReleasedAfterTrace) * 10.f, false);
+
+			if (world)
+			{
+				DrawDebugSphere(world, mousePositionReleasedAfterTrace, 40, 32, FColor::Yellow, true, 20);
+				//DrawDebugSphere(GetWorld(), mousePositionReleased, 40, 32, FColor::Red, true, 20);
+				DrawDebugLine(world, mousePositionReleased, mousePositionReleased + oneDirection * 200, FColor::Orange, true, 20.f, (uint8)'\000', 6.f);
+			}
+			UE_LOG(LogTemp, Warning, TEXT("x-diff: %f"), fabs(mousePositionClickedAfterTrace.X - mousePositionReleasedAfterTrace.X));
 		}
 		break;
 	case FLYING:
@@ -337,27 +382,13 @@ void AGolfBall::leftShiftPressed()
 {
 	if(!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-	if (state != WALKING)
-		state = WALKING;
-	else
-		state = GOLF;
+	state = WALKING;
 	walkTimer = walkMaxDuration;
-}
-
-void AGolfBall::zoomOut()
-{
-	if(mSpringArm->TargetArmLength < 1500.f)
-		mSpringArm->TargetArmLength += zoomSpeed;
-}
-
-void AGolfBall::zoomIn()
-{
-	if(mSpringArm->TargetArmLength > 300.f)
-		mSpringArm->TargetArmLength -= zoomSpeed;
 }
 
 bool AGolfBall::sphereTrace()
 {
+	if(world)
 	DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
 
 	if (world && mMesh)
@@ -408,4 +439,40 @@ void AGolfBall::tickWalking()
 		mMesh->SetPhysicsLinearVelocity(FVector(newVelocity.X * 0.9f, newVelocity.Y * 0.9f, newVelocity.Z));
 	}
 
+}
+
+void AGolfBall::drawDebugObjectsTick()
+{
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetForwardVector() * 200, FColor::Magenta, true, 1.f, (uint8)'\000', 6.f);
+
+
+	/*FVector DebugPosition;
+	FVector DebugDirection;
+
+	world->GetFirstPlayerController()->DeprojectMousePositionToWorld(DebugPosition, DebugDirection);
+
+	FVector DebugIntersection;
+	DebugIntersection = FMath::LinePlaneIntersection(
+		DebugPosition,
+		GetActorLocation() + DebugDirection * 5000,
+		GetActorLocation(),
+		GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)));
+
+	DrawDebugSphere(GetWorld(), DebugIntersection, 20, 10, FColor::Purple, false, 1);*/
+
+	/*UKismetSystemLibrary::DrawDebugPlane(
+	this,
+	FPlane(GetActorLocation(), GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f))),
+	GetActorLocation(),
+	200,
+	FLinearColor::Blue,
+	0.1f); */
+
+	//DrawDebugLine(GetWorld(), mousePositionClickedAfterTrace, mousePositionReleasedAfterTrace, FColor::Emerald, true, 1.f, (uint8)'\000', 6.f);
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)), FColor::Magenta, true, 1.f, (uint8)'\000', 6.f);
+
+
+	//FPlane debug = FPlane(FVector(0, 0, 100), FVector(3000, 0, 100), FVector(0, 540, 100));
+
+	//UKismetSystemLibrary::DrawDebugPlane(this, debug, GetActorLocation(), 100, FLinearColor::Blue, 1);
 }

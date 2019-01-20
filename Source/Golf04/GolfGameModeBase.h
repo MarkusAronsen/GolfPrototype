@@ -30,8 +30,8 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	TArray<AActor*> laserGrid;
-	float gridTimer = 0.f;
+	//TArray<AActor*> laserGrid;
+	//float gridTimer = 0.f;
 
 	
 };
