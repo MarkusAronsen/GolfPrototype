@@ -100,7 +100,6 @@ void AGolfBall::BeginPlay()
 	walkMaxDuration = 30.f;
 	movementSpeed = 150.f;
 	world = GetWorld();
-
 	state = WALKING;
 
 }
@@ -204,10 +203,10 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 			mMesh->SetSimulatePhysics(false);
 			climbingCanLaunch = true;
 
-			//SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
-			SetActorLocation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetComponentLocation() + OtherActor->GetActorUpVector() * 50);
+			SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
+			//SetActorLocation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetComponentLocation() + OtherActor->GetActorUpVector() * 50);
 
-			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
+			SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
 			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GetActorLocation() + (OtherActor->GetActorForwardVector() * -1)));
 
 			LockedClimbRotation = GetActorRotation();
@@ -443,7 +442,9 @@ void AGolfBall::tickWalking()
 
 void AGolfBall::drawDebugObjectsTick()
 {
-	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetForwardVector() * 200, FColor::Magenta, true, 1.f, (uint8)'\000', 6.f);
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetForwardVector() * 200, FColor::Red, false, 0, (uint8)'\000', 6.f);
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
 
 
 	/*FVector DebugPosition;
