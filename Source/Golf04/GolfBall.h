@@ -19,6 +19,7 @@
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
+#include "Engine/GameEngine.h"
 
 
 #include "CoreMinimal.h"
@@ -120,17 +121,13 @@ public:
 	float launchPowerIncrement = 45.f;
 	float mouseX;
 	float mouseY;
+	float frameX = 1206.f;
+	float frameY = 572.f;
+	FVector OActorForwardVector;
 	FVector mousePositionClicked;
 	FVector mousePositionReleased;
-
-	FVector mousePositionClickedAfterTrace;
-	FVector mousePositionReleasedAfterTrace;
-
-	FVector oneDirection;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
-
-	AActor* lastVisitedClimbObject;
 
 	void walkFunction(float deltaTime);
 	void flying(float deltaTime);
@@ -147,6 +144,8 @@ public:
 	void mouseCameraPitch();
 	void mouseCameraYaw();
 	void leftShiftPressed();
+	void scrollUp();
+	void scrollDown();
 
 	bool WPressed = false;
 	bool APressed = false;
@@ -167,6 +166,10 @@ public:
 
 	float movementSpeed;
 
-
+	//Debug purposes
+	FVector debugV;
+	FString debugMouseX;
+	FString debugMouseY;
+	void debugMouse();
 	void drawDebugObjectsTick();
 };

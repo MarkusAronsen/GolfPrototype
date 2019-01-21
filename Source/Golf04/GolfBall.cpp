@@ -101,7 +101,7 @@ void AGolfBall::BeginPlay()
 	movementSpeed = 150.f;
 	world = GetWorld();
 	state = WALKING;
-
+	debugV = FVector(1000.f, 0.f, 50.f);
 }
 
 // Called every frame
@@ -135,11 +135,6 @@ void AGolfBall::Tick(float DeltaTime)
 	
 	case CLIMBING:
 
-		if(world)
-		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
-
-		SetActorRotation(LockedClimbRotation);
-		UE_LOG(LogTemp, Warning, TEXT("X: %f, Y: %f"), mouseX, mouseY);
 		break;
 
 	case FLYING:
@@ -152,8 +147,11 @@ void AGolfBall::Tick(float DeltaTime)
 	};
 
 	if(world)
-	drawDebugObjectsTick();
+		drawDebugObjectsTick();
+	debugMouse();
 
+	DrawDebugLine(world, FVector(0.f, 0.f, 50.f), debugV, FColor::Red, true, 3.f, 100.f);
+	debugV = debugV.RotateAngleAxis(1.f, FVector(0.f, 0.f, 1.f));
 }
 
 // Called to bind functionality to input
@@ -171,6 +169,8 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::setS);
 	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::setD);
 	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::setD);
+	InputComponent->BindAction("ScrollUp", IE_Pressed, this, &AGolfBall::scrollUp);
+	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
@@ -193,34 +193,18 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	}
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		if (lastVisitedClimbObject != OtherActor)
-		{
-			lastVisitedClimbObject = OtherActor;
+		state = CLIMBING;
+		mMesh->SetSimulatePhysics(false);
+		world->GetFirstPlayerController()->bShowMouseCursor = true;
+		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
+		OActorForwardVector = OtherActor->GetActorForwardVector();
+		SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
 
-			state = CLIMBING;
-			world->GetFirstPlayerController()->bShowMouseCursor = true;
-			//LockedClimbPosition = GetActorLocation();
-			mMesh->SetSimulatePhysics(false);
-			climbingCanLaunch = true;
-
-			SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
-			//SetActorLocation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetComponentLocation() + OtherActor->GetActorUpVector() * 50);
-
-			SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
-			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GetActorLocation() + (OtherActor->GetActorForwardVector() * -1)));
-
-			LockedClimbRotation = GetActorRotation();
-
-			mSpringArm->bInheritYaw = false;
-			mSpringArm->CameraLagSpeed = 5.f;
-			mSpringArm->SetRelativeRotation(FRotator(-170.f, 0.f, 180.f));
-			mSpringArm->TargetArmLength = 1500.f;
-
-			mMesh->BodyInstance.CustomDOFPlaneNormal = GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
-			mMesh->SetConstraintMode(EDOFMode::CustomPlane);
-			mMesh->BodyInstance.bLockRotation = true;
-			//mMesh->BodyInstance.SetDOFLock(EDOFMode::CustomPlane);
-		}
+		mSpringArm->bInheritYaw = false;
+		mSpringArm->CameraLagSpeed = 5.f;
+		mSpringArm->SetRelativeRotation(GetActorRotation());
+		mSpringArm->TargetArmLength = 1500.f;
+		mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 	}
 
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
@@ -305,20 +289,7 @@ void AGolfBall::setLMBPressed()
 	case CLIMBING:
 		if (!mMesh->IsSimulatingPhysics())
 		{
-			world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionClicked, oneDirection);
-			mousePositionClickedAfterTrace = FMath::LinePlaneIntersection(
-				mousePositionClicked,
-				GetActorLocation() + oneDirection * 5000,
-				GetActorLocation(),
-				GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)));
-			
-			if (world)
-			{
-				DrawDebugSphere(world, mousePositionClickedAfterTrace, 40, 32, FColor::Yellow, true, 20);
-				//DrawDebugSphere(GetWorld(), mousePositionClicked, 40, 32, FColor::Red, true, 20);
-				DrawDebugLine(world, mousePositionClicked, mousePositionClicked + oneDirection * 200, FColor::Magenta, true, 20.f, (uint8)'\000', 6.f);
-			}
-
+			mousePositionClicked = FVector(0.f, mouseX, mouseY);
 		}
 		break;
 	case FLYING:
@@ -340,24 +311,12 @@ void AGolfBall::setLMBReleased()
 	case CLIMBING:
 		if (!mMesh->IsSimulatingPhysics())
 		{
-			world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionReleased, oneDirection);
-
-			mousePositionReleasedAfterTrace = FMath::LinePlaneIntersection(
-				mousePositionReleased, 
-				GetActorLocation() + oneDirection * 5000, 
-				GetActorLocation(), 
-				GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)));
-
+			mousePositionReleased = FVector(0.f, mouseX, mouseY);
 			mMesh->SetSimulatePhysics(true);
-			mMesh->SetPhysicsLinearVelocity((mousePositionClickedAfterTrace - mousePositionReleasedAfterTrace) * 10.f, false);
-
-			if (world)
-			{
-				DrawDebugSphere(world, mousePositionReleasedAfterTrace, 40, 32, FColor::Yellow, true, 20);
-				//DrawDebugSphere(GetWorld(), mousePositionReleased, 40, 32, FColor::Red, true, 20);
-				DrawDebugLine(world, mousePositionReleased, mousePositionReleased + oneDirection * 200, FColor::Orange, true, 20.f, (uint8)'\000', 6.f);
-			}
-			UE_LOG(LogTemp, Warning, TEXT("x-diff: %f"), fabs(mousePositionClickedAfterTrace.X - mousePositionReleasedAfterTrace.X));
+			mousePositionReleased = mousePositionReleased - mousePositionClicked;
+			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + mousePositionReleased, FColor::Blue, true, 15.f);
+			mMesh->SetPhysicsLinearVelocity(mousePositionReleased * 5.f, false);
 		}
 		break;
 	case FLYING:
@@ -383,6 +342,18 @@ void AGolfBall::leftShiftPressed()
 		mMesh->SetSimulatePhysics(true);
 	state = WALKING;
 	walkTimer = walkMaxDuration;
+}
+
+void AGolfBall::scrollUp()
+{
+	if (mSpringArm->TargetArmLength > 500.f)
+		mSpringArm->TargetArmLength -= 100.f;
+}
+
+void AGolfBall::scrollDown()
+{
+	if (mSpringArm->TargetArmLength < 2000.f)
+		mSpringArm->TargetArmLength += 100.f;
 }
 
 bool AGolfBall::sphereTrace()
@@ -438,6 +409,15 @@ void AGolfBall::tickWalking()
 		mMesh->SetPhysicsLinearVelocity(FVector(newVelocity.X * 0.9f, newVelocity.Y * 0.9f, newVelocity.Z));
 	}
 
+}
+
+void AGolfBall::debugMouse()
+{
+	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
+	debugMouseX = FString::SanitizeFloat(mouseX);
+    debugMouseY = FString::SanitizeFloat(572.f - mouseY);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
 }
 
 void AGolfBall::drawDebugObjectsTick()
