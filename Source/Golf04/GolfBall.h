@@ -41,7 +41,6 @@ protected:
 	UWorld* world;
 
 	FRotator LockedClimbRotation;
-	FVector LockedClimbPosition;
 	FVector FlyingVector;
 	float Gravity = -1.f;
 	float Ascend = 0.f;

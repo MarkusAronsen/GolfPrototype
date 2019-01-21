@@ -18,7 +18,7 @@ AGolfBall::AGolfBall()
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"), true);
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/StaticMesh/BaseGolfMesh.BaseGolfMesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
@@ -154,6 +154,7 @@ void AGolfBall::Tick(float DeltaTime)
 	if(world)
 	drawDebugObjectsTick();
 
+
 }
 
 // Called to bind functionality to input
@@ -176,9 +177,8 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
 }
 
-void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
-	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
-	bool bFromSweep, const FHitResult &SweepResult)
+void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComponent, 
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	if (OtherActor->IsA(AGoal::StaticClass()))
 	{
@@ -199,15 +199,21 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 
 			state = CLIMBING;
 			world->GetFirstPlayerController()->bShowMouseCursor = true;
-			//LockedClimbPosition = GetActorLocation();
 			mMesh->SetSimulatePhysics(false);
 			climbingCanLaunch = true;
 
 			SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
 			//SetActorLocation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetComponentLocation() + OtherActor->GetActorUpVector() * 50);
 
-			SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
+			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
 			//SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), GetActorLocation() + (OtherActor->GetActorForwardVector() * -1)));
+
+			//SetActorRotation(OtherActor->GetActorForwardVector().Rotation());
+			//SetActorRotation(OtherActor->GetActorUpVector().Rotation());
+
+			SetActorRotation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetForwardVector().Rotation());
+			SetActorRotation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetUpVector().Rotation());
+			//SetActorRotation(OtherActor->FindComponentByClass<UStaticMeshComponent>()->GetRightVector().Rotation());
 
 			LockedClimbRotation = GetActorRotation();
 
@@ -388,7 +394,7 @@ void AGolfBall::leftShiftPressed()
 bool AGolfBall::sphereTrace()
 {
 	if(world)
-	DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
+	//DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
 
 	if (world && mMesh)
 		world->SweepMultiByChannel(
@@ -407,7 +413,7 @@ void AGolfBall::tickWalking()
 {
 	mMesh->SetWorldRotation(GetControlRotation());
 
-	if (onGround && (WPressed || APressed || SPressed || DPressed))
+	if ((WPressed || APressed || SPressed || DPressed))
 	{
 		if (APressed)
 			ADirection = UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw - 90, 0));
@@ -422,12 +428,20 @@ void AGolfBall::tickWalking()
 		Direction.Normalize();
 		Direction *= movementSpeed;
 
-		mMesh->SetPhysicsLinearVelocity(Direction, true);
+		if (onGround)
+		{
+			mMesh->SetPhysicsLinearVelocity(Direction, true);
+		}
+		else
+		{
+			//mMesh->SetPhysicsLinearVelocity(Direction * 0.01, true);
+		}
 
 		ADirection = FVector::ZeroVector;
 		DDirection = FVector::ZeroVector;
 		SDirection = FVector::ZeroVector;
 		WDirection = FVector::ZeroVector;
+
 
 		if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 			mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.9f);
