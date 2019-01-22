@@ -218,27 +218,13 @@ void AGolfBall::walkFunction(float deltaTime)
 	walkTimer = walkTimer - deltaTime;
 }
 
-void AGolfBall::flying(float deltaTime)
-{
-	Acceleration = Acceleration - 0.4f;
-	FlyingVector = FVector(0.f, -7.f, Gravity + Ascend + Acceleration);
-	SetActorLocation(GetActorLocation() + FlyingVector * 100 * deltaTime);
-	if (Ascend > 0.f)
-		Ascend = Ascend - 3.f;
-}
-
-void AGolfBall::flappyAscend()
-{
-	if (state == FLYING)
-	{
-		Ascend = 40.f;
-		Acceleration = 0.f;
-	}
-}
-
 void AGolfBall::jump()
 {
 	mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() + FVector(0, 0, 1500), true);
+}
+
+void AGolfBall::upForce()
+{
 }
 
 void AGolfBall::spacebarPressed()
@@ -419,34 +405,4 @@ void AGolfBall::drawDebugObjectsTick()
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
 
-
-	/*FVector DebugPosition;
-	FVector DebugDirection;
-
-	world->GetFirstPlayerController()->DeprojectMousePositionToWorld(DebugPosition, DebugDirection);
-
-	FVector DebugIntersection;
-	DebugIntersection = FMath::LinePlaneIntersection(
-		DebugPosition,
-		GetActorLocation() + DebugDirection * 5000,
-		GetActorLocation(),
-		GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)));
-
-	DrawDebugSphere(GetWorld(), DebugIntersection, 20, 10, FColor::Purple, false, 1);*/
-
-	/*UKismetSystemLibrary::DrawDebugPlane(
-	this,
-	FPlane(GetActorLocation(), GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f))),
-	GetActorLocation(),
-	200,
-	FLinearColor::Blue,
-	0.1f); */
-
-	//DrawDebugLine(GetWorld(), mousePositionClickedAfterTrace, mousePositionReleasedAfterTrace, FColor::Emerald, true, 1.f, (uint8)'\000', 6.f);
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f)), FColor::Magenta, true, 1.f, (uint8)'\000', 6.f);
-
-
-	//FPlane debug = FPlane(FVector(0, 0, 100), FVector(3000, 0, 100), FVector(0, 540, 100));
-
-	//UKismetSystemLibrary::DrawDebugPlane(this, debug, GetActorLocation(), 100, FLinearColor::Blue, 1);
 }

@@ -41,19 +41,6 @@ protected:
 
 	UWorld* world;
 
-	FRotator LockedClimbRotation;
-	FVector LockedClimbPosition;
-	FVector FlyingVector;
-	float Gravity = -1.f;
-	float Ascend = 0.f;
-	float Acceleration = 0.f;
-
-	float radius = 100.f;
-	float degree = PI * 1.5;
-	bool toLaunch = false;
-
-	
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -130,9 +117,8 @@ public:
 	FRotator climbingCameraRotation;
 
 	void walkFunction(float deltaTime);
-	void flying(float deltaTime);
-	void flappyAscend();
 	void jump();
+	void upForce();
 
 	void setW();
 	void setA();
