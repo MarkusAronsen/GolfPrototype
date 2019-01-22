@@ -36,30 +36,8 @@ AGolfBall::AGolfBall()
 	mMesh->SetSimulatePhysics(true);
 	mMesh->BodyInstance.bUseCCD = true;
 
-
-
-	//mCollisionBox->SetupAttachment(mMesh);
 	mCollisionBox->SetSphereRadius(45.f);
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
-
-
-	//mSpringArm->SetupAttachment(RootComponent);
-	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
-
-	mSpringArm->TargetArmLength = 500.f;
-
-	mSpringArm->bEnableCameraLag = true;
-	mSpringArm->bEnableCameraRotationLag = true;
-	mSpringArm->CameraRotationLagSpeed = 10.f;
-	mSpringArm->CameraLagSpeed = 10.f;
-	mSpringArm->CameraLagMaxDistance = 100.f;
-
-	mSpringArm->bUsePawnControlRotation = true;
-	mSpringArm->bInheritPitch = false;
-	mSpringArm->bInheritYaw = true;
-	mSpringArm->bInheritRoll = false;
-
-	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
 
 }
 
@@ -87,9 +65,12 @@ void AGolfBall::BeginPlay()
 		}
 	}
 
+	defaultViewSettings();
+
 	walkMaxDuration = 30.f;
 	movementSpeed = 150.f;
 	world = GetWorld();
+	
 	state = WALKING;
 	debugV = FVector(1000.f, 0.f, 50.f);
 }
@@ -208,6 +189,28 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	}
 }
 
+void AGolfBall::defaultViewSettings()
+{
+	mSpringArm->TargetArmLength = 500.f;
+
+	mSpringArm->bEnableCameraLag = true;
+	mSpringArm->bEnableCameraRotationLag = true;
+	mSpringArm->CameraRotationLagSpeed = 10.f;
+	mSpringArm->CameraLagSpeed = 10.f;
+	mSpringArm->CameraLagMaxDistance = 100.f;
+
+	mSpringArm->bUsePawnControlRotation = true;
+	mSpringArm->bInheritPitch = false;
+	mSpringArm->bInheritYaw = true;
+	mSpringArm->bInheritRoll = false;
+
+	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
+	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
+
+	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
+	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+}
+
 void AGolfBall::walkFunction(float deltaTime)
 {
 	if (walkTimer < 0)
@@ -230,7 +233,7 @@ void AGolfBall::upForce()
 void AGolfBall::spacebarPressed()
 {
 	if (state == FLYING)
-		flappyAscend();
+		upForce();
 	if (state == WALKING && onGround)
 		jump();
 }
@@ -320,6 +323,8 @@ void AGolfBall::leftShiftPressed()
 	if(!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
 	state = WALKING;
+	defaultViewSettings();
+
 	walkTimer = walkMaxDuration;
 }
 
@@ -337,9 +342,6 @@ void AGolfBall::scrollDown()
 
 bool AGolfBall::sphereTrace()
 {
-	//if(world)
-	//DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
-
 	if (world && mMesh)
 		world->SweepMultiByChannel(
 			hitResults,

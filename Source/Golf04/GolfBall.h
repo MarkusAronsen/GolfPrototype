@@ -103,6 +103,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float maxLaunchPower = 7000.f;
 
+	void defaultViewSettings();
+
 	bool isCharging = false;
 	bool canLaunch = true;
 	float launchPowerIncrement = 45.f;
