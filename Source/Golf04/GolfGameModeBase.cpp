@@ -22,7 +22,7 @@ void AGolfGameModeBase::BeginPlay()
 		}
 	}
 	*/
-
+	
 }
 
 void AGolfGameModeBase::Tick(float DeltaTime)

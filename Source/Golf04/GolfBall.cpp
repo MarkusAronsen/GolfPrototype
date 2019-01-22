@@ -18,7 +18,7 @@ AGolfBall::AGolfBall()
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"), true);
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/StaticMesh/BaseGolfMesh.BaseGolfMesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
@@ -31,7 +31,6 @@ AGolfBall::AGolfBall()
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.3f);
 
-	mMesh->BodyInstance.SetMassOverride(100.f);
 	mMesh->BodyInstance.bEnableGravity = true;
 
 	mMesh->SetSimulatePhysics(true);
@@ -40,20 +39,11 @@ AGolfBall::AGolfBall()
 
 
 	//mCollisionBox->SetupAttachment(mMesh);
-
 	mCollisionBox->SetSphereRadius(45.f);
-
-	mCollisionBox->SetLinearDamping(0.1f);
-	mCollisionBox->SetAngularDamping(0.1f);
-
-	mCollisionBox->BodyInstance.SetMassOverride(100.f);
-	mCollisionBox->BodyInstance.bEnableGravity = true;
-
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
 
 
 	//mSpringArm->SetupAttachment(RootComponent);
-
 	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
 
 	mSpringArm->TargetArmLength = 500.f;
@@ -138,11 +128,7 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case FLYING:
-
-		mCamera->SetComponentToWorld(
-			FTransform(GetActorRotation() + FRotator(0.f, -90.f, 0.f),
-				GetActorLocation() + (GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 0.f, 1.f)) * 2000.f,
-					FVector::OneVector)));
+		
 		break;
 	};
 
@@ -211,6 +197,13 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	{
 		state = FLYING;
 		mMesh->SetSimulatePhysics(false);
+		SetActorLocation(OtherActor->GetActorLocation());
+		SetActorRotation(OtherActor->GetActorRotation());
+
+		mSpringArm->bInheritYaw = false;
+		mSpringArm->SetRelativeRotation(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f));
+		mSpringArm->TargetArmLength = 2000.f;
+		mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 		OtherActor->Destroy();
 	}
 }
@@ -358,8 +351,8 @@ void AGolfBall::scrollDown()
 
 bool AGolfBall::sphereTrace()
 {
-	if(world)
-	DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
+	//if(world)
+	//DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
 
 	if (world && mMesh)
 		world->SweepMultiByChannel(
