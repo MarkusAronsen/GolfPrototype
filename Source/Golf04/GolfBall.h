@@ -18,6 +18,8 @@
 #include "DrawDebugHelpers.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
+#include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
+#include "Engine/GameEngine.h"
 
 
 #include "CoreMinimal.h"
@@ -38,19 +40,6 @@ protected:
 	virtual void BeginPlay() override;
 
 	UWorld* world;
-
-	FRotator LockedClimbRotation;
-	FVector LockedClimbPosition;
-	FVector FlyingVector;
-	float Gravity = -1.f;
-	float Ascend = 0.f;
-	float Acceleration = 0.f;
-
-	float radius = 100.f;
-	float degree = PI * 1.5;
-	bool toLaunch = false;
-
-	
 
 public:	
 	// Called every frame
@@ -114,22 +103,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float maxLaunchPower = 7000.f;
 
+	void defaultViewSettings();
+
 	bool isCharging = false;
 	bool canLaunch = true;
 	float launchPowerIncrement = 45.f;
 	float mouseX;
 	float mouseY;
-	float zoomSpeed = 20.f;
-	FVector mousePositionClicked = FVector::OneVector;
-	FVector mousePositionReleased = FVector::OneVector;
-	FVector oneDirection;
+	float frameX = 1206.f;
+	float frameY = 572.f;
+	FVector OActorForwardVector;
+	FVector mousePositionClicked;
+	FVector mousePositionReleased;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
 
 	void walkFunction(float deltaTime);
-	void flying(float deltaTime);
-	void flappyAscend();
 	void jump();
+	void upForce();
 
 	void setW();
 	void setA();
@@ -141,8 +132,8 @@ public:
 	void mouseCameraPitch();
 	void mouseCameraYaw();
 	void leftShiftPressed();
-	void zoomOut();
-	void zoomIn();
+	void scrollUp();
+	void scrollDown();
 
 	bool WPressed = false;
 	bool APressed = false;
@@ -162,4 +153,11 @@ public:
 	FVector WDirection;
 
 	float movementSpeed;
+
+	//Debug purposes
+	FVector debugV;
+	FString debugMouseX;
+	FString debugMouseY;
+	void debugMouse();
+	void drawDebugObjectsTick();
 };

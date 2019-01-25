@@ -18,7 +18,7 @@ AGolfBall::AGolfBall()
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"), true);
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/StaticMesh/BaseGolfMesh.BaseGolfMesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
@@ -31,45 +31,13 @@ AGolfBall::AGolfBall()
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.3f);
 
-	mMesh->BodyInstance.SetMassOverride(100.f);
 	mMesh->BodyInstance.bEnableGravity = true;
 
 	mMesh->SetSimulatePhysics(true);
 	mMesh->BodyInstance.bUseCCD = true;
 
-
-
-	//mCollisionBox->SetupAttachment(mMesh);
-
 	mCollisionBox->SetSphereRadius(45.f);
-
-	mCollisionBox->SetLinearDamping(0.1f);
-	mCollisionBox->SetAngularDamping(0.1f);
-
-	mCollisionBox->BodyInstance.SetMassOverride(100.f);
-	mCollisionBox->BodyInstance.bEnableGravity = true;
-
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
-
-
-	//mSpringArm->SetupAttachment(RootComponent);
-
-	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
-
-	mSpringArm->TargetArmLength = 500.f;
-
-	mSpringArm->bEnableCameraLag = true;
-	mSpringArm->bEnableCameraRotationLag = true;
-	mSpringArm->CameraRotationLagSpeed = 10.f;
-	mSpringArm->CameraLagSpeed = 10.f;
-	mSpringArm->CameraLagMaxDistance = 100.f;
-
-	mSpringArm->bUsePawnControlRotation = true;
-	mSpringArm->bInheritPitch = false;
-	mSpringArm->bInheritYaw = true;
-	mSpringArm->bInheritRoll = false;
-
-	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
 
 }
 
@@ -97,12 +65,14 @@ void AGolfBall::BeginPlay()
 		}
 	}
 
+	defaultViewSettings();
+
 	walkMaxDuration = 30.f;
 	movementSpeed = 150.f;
 	world = GetWorld();
-
-	state = WALKING;
-
+	
+	state = GOLF;
+	debugV = FVector(1000.f, 0.f, 50.f);
 }
 
 // Called every frame
@@ -136,18 +106,19 @@ void AGolfBall::Tick(float DeltaTime)
 	
 	case CLIMBING:
 
-		UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetMousePosition(mouseX, mouseY);
-		DrawDebugLine(GetWorld(), GetActorLocation(), (GetActorLocation() + (mousePositionClicked - mousePositionReleased)) * 10.f, FColor(255.f, 0.f, 0.f, 1.f), true, 1.f, (uint8)'\000', 10.f);
 		break;
 
 	case FLYING:
-
-		mCamera->SetComponentToWorld(
-			FTransform(GetActorRotation() + FRotator(0.f, -90.f, 0.f),
-				GetActorLocation() + (GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 0.f, 1.f)) * 2000.f,
-					FVector::OneVector)));
+		
 		break;
 	};
+
+	if(world)
+		drawDebugObjectsTick();
+	debugMouse();
+
+	DrawDebugLine(world, FVector(0.f, 0.f, 50.f), debugV, FColor::Red, true, 3.f, 100.f);
+	debugV = debugV.RotateAngleAxis(1.f, FVector(0.f, 0.f, 1.f));
 }
 
 // Called to bind functionality to input
@@ -165,11 +136,11 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::setS);
 	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::setD);
 	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::setD);
+	InputComponent->BindAction("ScrollUp", IE_Pressed, this, &AGolfBall::scrollUp);
+	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
-	InputComponent->BindAction("Wheel Up", IE_Pressed, this, &AGolfBall::zoomIn);
-	InputComponent->BindAction("Wheel Down", IE_Pressed, this, &AGolfBall::zoomOut);
 }
 
 void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -178,8 +149,7 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 {
 	if (OtherActor->IsA(AGoal::StaticClass()))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HIT GOAL"));
-		UGameplayStatics::OpenLevel(GetWorld(), "Level0");
+		UGameplayStatics::OpenLevel(GetWorld(), "GOFF2");
 	}
 	if (OtherActor->IsA(ALegsPUp::StaticClass()))
 	{
@@ -191,30 +161,54 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
 		state = CLIMBING;
-		world->GetFirstPlayerController()->bShowMouseCursor = true;
-		LockedClimbRotation = GetActorRotation();
-		LockedClimbPosition = GetActorLocation();
 		mMesh->SetSimulatePhysics(false);
-		climbingCanLaunch = true;
+		world->GetFirstPlayerController()->bShowMouseCursor = true;
+		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
+		OActorForwardVector = OtherActor->GetActorForwardVector();
+		SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
 
-		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorUpVector() * 50.f);
-		SetActorRotation(UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), OtherActor->GetActorLocation()));
 		mSpringArm->bInheritYaw = false;
 		mSpringArm->CameraLagSpeed = 5.f;
-		mSpringArm->SetRelativeRotation(FRotator(-170.f, 0.f, 180.f));
+		mSpringArm->SetRelativeRotation(GetActorRotation());
 		mSpringArm->TargetArmLength = 1500.f;
-
-		mMesh->BodyInstance.CustomDOFPlaneNormal = GetActorForwardVector().RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
-		mMesh->SetConstraintMode(EDOFMode::CustomPlane);
-		mMesh->BodyInstance.bLockRotation = true;
+		mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 	}
 
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
 	{
 		state = FLYING;
 		mMesh->SetSimulatePhysics(false);
+		SetActorLocation(OtherActor->GetActorLocation());
+		SetActorRotation(OtherActor->GetActorRotation());
+
+		mSpringArm->bInheritYaw = false;
+		mSpringArm->SetRelativeRotation(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f));
+		mSpringArm->TargetArmLength = 2000.f;
+		mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 		OtherActor->Destroy();
 	}
+}
+
+void AGolfBall::defaultViewSettings()
+{
+	mSpringArm->TargetArmLength = 500.f;
+
+	mSpringArm->bEnableCameraLag = true;
+	mSpringArm->bEnableCameraRotationLag = true;
+	mSpringArm->CameraRotationLagSpeed = 10.f;
+	mSpringArm->CameraLagSpeed = 10.f;
+	mSpringArm->CameraLagMaxDistance = 100.f;
+
+	mSpringArm->bUsePawnControlRotation = true;
+	mSpringArm->bInheritPitch = false;
+	mSpringArm->bInheritYaw = true;
+	mSpringArm->bInheritRoll = false;
+
+	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
+	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
+
+	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
+	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -227,33 +221,19 @@ void AGolfBall::walkFunction(float deltaTime)
 	walkTimer = walkTimer - deltaTime;
 }
 
-void AGolfBall::flying(float deltaTime)
-{
-	Acceleration = Acceleration - 0.4f;
-	FlyingVector = FVector(0.f, -7.f, Gravity + Ascend + Acceleration);
-	SetActorLocation(GetActorLocation() + FlyingVector * 100 * deltaTime);
-	if (Ascend > 0.f)
-		Ascend = Ascend - 3.f;
-}
-
-void AGolfBall::flappyAscend()
-{
-	if (state == FLYING)
-	{
-		Ascend = 40.f;
-		Acceleration = 0.f;
-	}
-}
-
 void AGolfBall::jump()
 {
 	mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() + FVector(0, 0, 1500), true);
 }
 
+void AGolfBall::upForce()
+{
+}
+
 void AGolfBall::spacebarPressed()
 {
 	if (state == FLYING)
-		flappyAscend();
+		upForce();
 	if (state == WALKING && onGround)
 		jump();
 }
@@ -290,7 +270,9 @@ void AGolfBall::setLMBPressed()
 		break;
 	case CLIMBING:
 		if (!mMesh->IsSimulatingPhysics())
-			world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionClicked, oneDirection);
+		{
+			mousePositionClicked = FVector(0.f, mouseX, mouseY);
+		}
 		break;
 	case FLYING:
 		break;
@@ -311,9 +293,12 @@ void AGolfBall::setLMBReleased()
 	case CLIMBING:
 		if (!mMesh->IsSimulatingPhysics())
 		{
-			world->GetFirstPlayerController()->DeprojectMousePositionToWorld(mousePositionReleased, oneDirection);
+			mousePositionReleased = FVector(0.f, mouseX, mouseY);
 			mMesh->SetSimulatePhysics(true);
-			mMesh->SetPhysicsLinearVelocity((mousePositionClicked - mousePositionReleased) * 1000.f, false);
+			mousePositionReleased = mousePositionReleased - mousePositionClicked;
+			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + mousePositionReleased, FColor::Blue, true, 15.f);
+			mMesh->SetPhysicsLinearVelocity(mousePositionReleased * 5.f, false);
 		}
 		break;
 	case FLYING:
@@ -337,29 +322,31 @@ void AGolfBall::leftShiftPressed()
 {
 	if(!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-	if (state != WALKING)
+	if(state == CLIMBING)
 		state = WALKING;
-	else
+	if (state == WALKING)
 		state = GOLF;
+	if (state == GOLF)
+		state = WALKING;
+	defaultViewSettings();
+
 	walkTimer = walkMaxDuration;
 }
 
-void AGolfBall::zoomOut()
+void AGolfBall::scrollUp()
 {
-	if(mSpringArm->TargetArmLength < 1500.f)
-		mSpringArm->TargetArmLength += zoomSpeed;
+	if (mSpringArm->TargetArmLength > 500.f)
+		mSpringArm->TargetArmLength -= 100.f;
 }
 
-void AGolfBall::zoomIn()
+void AGolfBall::scrollDown()
 {
-	if(mSpringArm->TargetArmLength > 300.f)
-		mSpringArm->TargetArmLength -= zoomSpeed;
+	if (mSpringArm->TargetArmLength < 2000.f)
+		mSpringArm->TargetArmLength += 100.f;
 }
 
 bool AGolfBall::sphereTrace()
 {
-	DrawDebugSphere(GetWorld(), mMesh->GetComponentToWorld().GetLocation(), mCollisionBox->GetCollisionShape().Sphere.Radius, 32, FColor::Cyan);
-
 	if (world && mMesh)
 		world->SweepMultiByChannel(
 			hitResults,
@@ -407,5 +394,22 @@ void AGolfBall::tickWalking()
 		FVector newVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->SetPhysicsLinearVelocity(FVector(newVelocity.X * 0.9f, newVelocity.Y * 0.9f, newVelocity.Z));
 	}
+
+}
+
+void AGolfBall::debugMouse()
+{
+	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
+	debugMouseX = FString::SanitizeFloat(mouseX);
+    debugMouseY = FString::SanitizeFloat(572.f - mouseY);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
+}
+
+void AGolfBall::drawDebugObjectsTick()
+{
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetForwardVector() * 200, FColor::Red, false, 0, (uint8)'\000', 6.f);
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
+	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
 
 }
