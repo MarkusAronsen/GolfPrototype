@@ -95,7 +95,8 @@ public:
 		GOLF = 0,
 		WALKING = 1,
 		CLIMBING = 2,
-		FLYING = 3
+		FLYING = 3,
+		LEVEL_SELECT = 4
 	};
 	int state;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
@@ -103,7 +104,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float maxLaunchPower = 7000.f;
 
+	UCameraComponent* topDownCamera;
+
 	void defaultViewSettings();
+	void levelInit();
 
 	bool isCharging = false;
 	bool canLaunch = true;

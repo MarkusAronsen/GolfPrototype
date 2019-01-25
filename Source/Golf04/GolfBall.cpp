@@ -39,6 +39,9 @@ AGolfBall::AGolfBall()
 	mCollisionBox->SetSphereRadius(45.f);
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
 
+	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
+	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
+
 }
 
 // Called when the game starts or when spawned
@@ -71,11 +74,10 @@ void AGolfBall::BeginPlay()
 	movementSpeed = 150.f;
 	world = GetWorld();
 	
-<<<<<<< HEAD
-	state = GOLF;
-=======
 	state = WALKING;
->>>>>>> c270ccb276abf43ed180acfc432ef440240a5eb1
+	
+	//levelInit();
+
 	debugV = FVector(1000.f, 0.f, 50.f);
 }
 
@@ -115,6 +117,10 @@ void AGolfBall::Tick(float DeltaTime)
 	case FLYING:
 		
 		break;
+
+	case LEVEL_SELECT:
+		topDownCamera->SetWorldLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 2500));
+		break;
 	};
 
 	if(world)
@@ -151,13 +157,8 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(AGoal::StaticClass()))
-	{
-		UGameplayStatics::OpenLevel(GetWorld(), "GOFF2");
-	}
 	if (OtherActor->IsA(ALegsPUp::StaticClass()))
 	{
-
 		state = WALKING;
 		walkTimer = walkMaxDuration;
 		OtherActor->Destroy();
@@ -213,6 +214,33 @@ void AGolfBall::defaultViewSettings()
 
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+}
+
+void AGolfBall::levelInit()
+{
+	FString levelName = UGameplayStatics::GetCurrentLevelName(this);
+
+	if (levelName == "LevelSelect")
+	{
+		state = LEVEL_SELECT;
+	}
+	else if (levelName == "Golf1")
+	{
+		state = GOLF;
+	}
+	else if (levelName == "Walking1")
+	{
+		state = WALKING;
+	}
+	else if (levelName == "Climbing1")
+	{
+		state = CLIMBING;
+	}
+	else if (levelName == "Flying1")
+	{
+		state = FLYING;
+	}
+
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -326,16 +354,13 @@ void AGolfBall::leftShiftPressed()
 {
 	if(!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-<<<<<<< HEAD
-	if(state == CLIMBING)
+	else if(state == CLIMBING)
 		state = WALKING;
-	if (state == WALKING)
+	else if (state == WALKING)
 		state = GOLF;
-	if (state == GOLF)
+	else if (state == GOLF)
 		state = WALKING;
-=======
-	state = WALKING;
->>>>>>> c270ccb276abf43ed180acfc432ef440240a5eb1
+
 	defaultViewSettings();
 
 	walkTimer = walkMaxDuration;

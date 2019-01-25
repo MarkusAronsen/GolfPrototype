@@ -7,16 +7,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Goal.generated.h"
+#include "LevelSelecter.generated.h"
 
 UCLASS()
-class GOLF04_API AGoal : public AActor
+class GOLF04_API ALevelSelecter : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AGoal();
+	ALevelSelecter();
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,12 +26,16 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere)
-		UShapeComponent * CollisionBox = nullptr;
-
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
-			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
+			UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
-	
+
+
+	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class USphereComponent* mCollisionBox = nullptr;
+
+	UPROPERTY(EditAnywhere)
+		FName levelName;
+
 };
