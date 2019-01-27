@@ -79,6 +79,8 @@ void AGolfBall::BeginPlay()
 	//levelInit();
 
 	debugV = FVector(1000.f, 0.f, 50.f);
+
+	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), 2.5f);
 }
 
 // Called every frame
@@ -395,7 +397,7 @@ bool AGolfBall::sphereTrace()
 
 void AGolfBall::tickWalking()
 {
-	mMesh->SetWorldRotation(GetControlRotation());
+	/*mMesh->SetWorldRotation(GetControlRotation());
 
 	if (onGround && (WPressed || APressed || SPressed || DPressed))
 	{
@@ -426,6 +428,43 @@ void AGolfBall::tickWalking()
 	{
 		FVector newVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->SetPhysicsLinearVelocity(FVector(newVelocity.X * 0.9f, newVelocity.Y * 0.9f, newVelocity.Z));
+	}*/
+
+	mMesh->SetWorldRotation(FRotator(0, GetActorRotation().Yaw, 0));
+
+	
+
+	if (onGround && (WPressed || APressed || SPressed || DPressed))
+	{
+		if (WPressed)
+		{
+			if (movespeed < 0)
+			{
+				movespeed = 0;
+			}
+			movespeed += 10.f;
+		}
+		if (DPressed)
+		{
+			SetActorRotation(GetActorRotation() + FRotator(0, 3, 0));
+		}
+		if (SPressed)
+		{
+			//mMesh->SetPhysicsLinearVelocity(GetActorForwardVector() * 10 * -1, true);
+		}
+		if (APressed)
+		{
+			SetActorRotation(GetActorRotation() + FRotator(0, -3, 0));
+		}
+
+		mMesh->SetPhysicsLinearVelocity(GetActorForwardVector() * movespeed, true);
+	}
+	else
+	{
+		if (movespeed > 0)
+		{
+			movespeed -= 100;
+		}
 	}
 
 }

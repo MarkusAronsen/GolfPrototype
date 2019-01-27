@@ -164,4 +164,11 @@ public:
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
+
+
+
+
+
+	float movespeed = 0.f;
+	float maxspeed = 200.f;
 };
