@@ -106,8 +106,10 @@ public:
 
 	UCameraComponent* topDownCamera;
 
-	void defaultViewSettings();
 	void levelInit();
+	void golfInit();
+	void climbingInit(AActor *OtherActor);
+	void flyingInit(AActor *OtherActor);
 
 	bool isCharging = false;
 	bool canLaunch = true;
