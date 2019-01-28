@@ -105,6 +105,7 @@ public:
 		float maxLaunchPower = 7000.f;
 
 	UCameraComponent* topDownCamera;
+	AController* mController;
 
 	void levelInit();
 	void golfInit();
@@ -123,10 +124,15 @@ public:
 	FVector mousePositionReleased;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
+	FVector position;
+	FVector velocity;
+	FVector acceleration;
+	FVector gravity = FVector(0, 0, -1.5f);
 
 	void walkFunction(float deltaTime);
 	void jump();
-	void upForce();
+	void applyForce(FVector Force);
+	void updatePosition();
 
 	void setW();
 	void setA();
@@ -152,11 +158,6 @@ public:
 	bool onGround = false;
 
 	void tickWalking();
-
-	FVector ADirection;
-	FVector DDirection;
-	FVector SDirection;
-	FVector WDirection;
 
 	float movementSpeed;
 

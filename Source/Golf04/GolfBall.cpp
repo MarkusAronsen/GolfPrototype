@@ -29,7 +29,7 @@ AGolfBall::AGolfBall()
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 
 	mMesh->SetLinearDamping(0.6f);
-	mMesh->SetAngularDamping(10.f);
+	mMesh->SetAngularDamping(0.f);
 
 	mMesh->BodyInstance.bEnableGravity = true;
 
@@ -76,6 +76,7 @@ void AGolfBall::BeginPlay()
 	golfInit();
 	debugV = FVector(1000.f, 0.f, 50.f);
 
+	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), 2.5f);
 }
 
@@ -113,7 +114,8 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case FLYING:
-		
+		applyForce(gravity);
+		updatePosition();
 		break;
 
 	case LEVEL_SELECT:
@@ -265,14 +267,30 @@ void AGolfBall::jump()
 	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 1500), false);
 }
 
-void AGolfBall::upForce()
+void AGolfBall::applyForce(FVector force)
 {
+	acceleration += force;
 }
 
+void AGolfBall::updatePosition()
+{
+	velocity += acceleration;
+
+	position += velocity;
+	position += FVector(GetActorForwardVector() * 10);
+	acceleration = FVector::ZeroVector;
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *velocity.ToString());
+
+	SetActorLocation(position);
+}
 void AGolfBall::spacebarPressed()
 {
-	if (state == FLYING)
-		upForce();
+	if (state == FLYING) 
+	{ 
+		velocity = FVector::ZeroVector;
+		applyForce(FVector(0.f, 0.f, 30.f)); 
+	}
 	if (state == WALKING && onGround)
 		jump();
 }
@@ -400,33 +418,26 @@ bool AGolfBall::sphereTrace()
 
 void AGolfBall::tickWalking()
 {
-	mMesh->SetWorldRotation(world->GetFirstPlayerController()->GetControlRotation());
+	mMesh->SetWorldRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
 
 	if (WPressed || SPressed || APressed || DPressed)
 	{
 		if (WPressed)
-			WDirection = GetActorForwardVector();
+			mMesh->SetWorldRotation(mController->GetControlRotation());
 		if (SPressed)
-			SDirection = GetActorForwardVector() * -1;
+			mMesh->SetWorldRotation(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f));
 		if (APressed)
-			ADirection = GetActorRightVector() * -1;
+			mMesh->SetWorldRotation(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f));
 		if (DPressed)
-			DDirection = GetActorRightVector();
+			mMesh->SetWorldRotation(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f));
 
-		FVector Direction = WDirection + SDirection + ADirection + DDirection;
-		Direction.Normalize();
-		mMesh->SetPhysicsLinearVelocity(Direction * movementSpeed, true);
+		mMesh->SetPhysicsLinearVelocity(GetActorForwardVector() * movementSpeed, true);
 	}
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
 
 	if (onGround)
 		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
-
-	WDirection = FVector::ZeroVector;
-	SDirection = FVector::ZeroVector;
-	ADirection = FVector::ZeroVector;
-	DDirection = FVector::ZeroVector;
 }
 
 void AGolfBall::debugMouse()
