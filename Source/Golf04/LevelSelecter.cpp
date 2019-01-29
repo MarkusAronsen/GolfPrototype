@@ -26,6 +26,15 @@ void ALevelSelecter::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Level selecter no collision box"));
 	}
 
+	if (LevelSelectWidget_BP)
+	{
+		LevelSelectWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), LevelSelectWidget_BP);
+		if (LevelSelectWidget)
+		{
+			LevelSelectWidget->AddToViewport();
+			LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
 
 }
 
@@ -41,6 +50,7 @@ void ALevelSelecter::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
-		UGameplayStatics::OpenLevel(GetWorld(), levelName);
+		LevelSelectWidget->SetVisibility(ESlateVisibility::Visible);
+		//UGameplayStatics::OpenLevel(GetWorld(), levelName);
 	}
 }

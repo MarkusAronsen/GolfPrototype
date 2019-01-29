@@ -29,7 +29,7 @@ AGolfBall::AGolfBall()
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 
 	mMesh->SetLinearDamping(0.6f);
-	mMesh->SetAngularDamping(0.f);
+	mMesh->SetAngularDamping(0.1f);
 
 	mMesh->BodyInstance.bEnableGravity = true;
 
@@ -71,7 +71,7 @@ void AGolfBall::BeginPlay()
 	walkMaxDuration = 30.f;
 	movementSpeed = 150.f;
 	world = GetWorld();
-	
+
 	state = GOLF;
 	golfInit();
 	debugV = FVector(1000.f, 0.f, 50.f);
@@ -108,7 +108,7 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		tickWalking();
 		break;
-	
+
 	case CLIMBING:
 
 		break;
@@ -123,7 +123,7 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 	};
 
-	if(world)
+	if (world)
 		drawDebugObjectsTick();
 	debugMouse();
 
@@ -138,14 +138,14 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::spacebarPressed);
 	InputComponent->BindAction("Left Shift", IE_Pressed, this, &AGolfBall::leftShiftPressed);
-	InputComponent->BindAction("W", IE_Pressed, this, &AGolfBall::setW);
-	InputComponent->BindAction("W", IE_Released, this, &AGolfBall::setW);
-	InputComponent->BindAction("A", IE_Pressed, this, &AGolfBall::setA);
-	InputComponent->BindAction("A", IE_Released, this, &AGolfBall::setA);
-	InputComponent->BindAction("S", IE_Pressed, this, &AGolfBall::setS);
-	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::setS);
-	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::setD);
-	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::setD);
+	InputComponent->BindAction("W", IE_Pressed, this, &AGolfBall::WClicked);
+	InputComponent->BindAction("W", IE_Released, this, &AGolfBall::WReleased);
+	InputComponent->BindAction("A", IE_Pressed, this, &AGolfBall::AClicked);
+	InputComponent->BindAction("A", IE_Released, this, &AGolfBall::AReleased);
+	InputComponent->BindAction("S", IE_Pressed, this, &AGolfBall::SClicked);
+	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::SReleased);
+	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::DClicked);
+	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::DReleased);
 	InputComponent->BindAction("ScrollUp", IE_Pressed, this, &AGolfBall::scrollUp);
 	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
 
@@ -286,33 +286,53 @@ void AGolfBall::updatePosition()
 }
 void AGolfBall::spacebarPressed()
 {
-	if (state == FLYING) 
-	{ 
+	if (state == FLYING)
+	{
 		velocity = FVector::ZeroVector;
-		applyForce(FVector(0.f, 0.f, 30.f)); 
+		applyForce(FVector(0.f, 0.f, 30.f));
 	}
 	if (state == WALKING && onGround)
 		jump();
 }
 
-void AGolfBall::setW()
+void AGolfBall::WClicked()
 {
-	WPressed = !WPressed;
+	WPressed = true;
 }
 
-void AGolfBall::setA()
+void AGolfBall::WReleased()
 {
-	APressed = !APressed;
+	WPressed = false;
 }
 
-void AGolfBall::setS()
+void AGolfBall::AClicked()
 {
-	SPressed = !SPressed;
+	APressed = true;
 }
 
-void AGolfBall::setD()
+void AGolfBall::AReleased()
 {
-	DPressed = !DPressed;
+	APressed = false;
+}
+
+void AGolfBall::SClicked()
+{
+	SPressed = true;
+}
+
+void AGolfBall::SReleased()
+{
+	SPressed = false;
+}
+
+void AGolfBall::DClicked()
+{
+	DPressed = true;
+}
+
+void AGolfBall::DReleased()
+{
+	DPressed = false;
 }
 
 void AGolfBall::setLMBPressed()
@@ -366,7 +386,7 @@ void AGolfBall::setLMBReleased()
 void AGolfBall::mouseCameraPitch()
 {
 	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
-	mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + mouseY, -20.f, 60.f);
+	mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + mouseY, -10.f, 30.f);
 }
 
 void AGolfBall::mouseCameraYaw()
@@ -377,9 +397,9 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
-	if(!mMesh->IsSimulatingPhysics())
+	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-	else if(state == CLIMBING)
+	else if (state == CLIMBING)
 		state = WALKING;
 	else if (state == WALKING)
 		state = GOLF;
@@ -418,21 +438,33 @@ bool AGolfBall::sphereTrace()
 
 void AGolfBall::tickWalking()
 {
-	mMesh->SetWorldRotation(FRotator(0.f, GetActorRotation().Yaw, 0.f));
+	mMesh->SetWorldRotation(currentRotation);
 
-	if (WPressed || SPressed || APressed || DPressed)
+	if (WPressed)
 	{
-		if (WPressed)
-			mMesh->SetWorldRotation(mController->GetControlRotation());
-		if (SPressed)
-			mMesh->SetWorldRotation(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f));
-		if (APressed)
-			mMesh->SetWorldRotation(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f));
-		if (DPressed)
-			mMesh->SetWorldRotation(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f));
-
-		mMesh->SetPhysicsLinearVelocity(GetActorForwardVector() * movementSpeed, true);
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime));
+		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * movementSpeed, true);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime);
 	}
+	if (SPressed)
+	{
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime));
+		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f).Vector() * movementSpeed, true);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime);
+	}
+	if (APressed)
+	{
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime));
+		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f).Vector() * movementSpeed, true);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime);
+	}
+	if (DPressed)
+	{
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime));
+		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f).Vector() * movementSpeed, true);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime);
+	}
+
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
 
@@ -444,7 +476,7 @@ void AGolfBall::debugMouse()
 {
 	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 	debugMouseX = FString::SanitizeFloat(mouseX);
-    debugMouseY = FString::SanitizeFloat(572.f - mouseY);
+	debugMouseY = FString::SanitizeFloat(572.f - mouseY);
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
 }

@@ -134,10 +134,14 @@ public:
 	void applyForce(FVector Force);
 	void updatePosition();
 
-	void setW();
-	void setA();
-	void setS();
-	void setD();
+	void WClicked();
+	void WReleased();
+	void AClicked();
+	void AReleased();
+	void SClicked();
+	void SReleased();
+	void DClicked();
+	void DReleased();
 	void spacebarPressed();
 	void setLMBPressed();
 	void setLMBReleased();
@@ -158,6 +162,8 @@ public:
 	bool onGround = false;
 
 	void tickWalking();
+	float lerpTime = 0.1f;
+	FRotator currentRotation;
 
 	float movementSpeed;
 
