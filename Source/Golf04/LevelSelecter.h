@@ -44,4 +44,8 @@ public:
 	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<class UUserWidget> LevelSelectWidget_BP;
 
+
+	//Move to level data read/write class
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level performance")
+		int levelPerformance = 0;
 };
