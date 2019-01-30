@@ -3,7 +3,6 @@
 #pragma once
 
 #include "ClimbObject.h"
-#include "SomersaultObject.h"
 #include "Goal.h"
 #include "LegsPUp.h"
 #include "WingsPUp.h"

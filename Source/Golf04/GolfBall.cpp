@@ -171,6 +171,7 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
 	{
 		flyingInit(OtherActor);
+		OtherActor->Destroy();
 	}
 }
 
@@ -238,18 +239,19 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 }
 
-void AGolfBall::flyingInit(AActor * OtherActor)
+void AGolfBall::flyingInit(AActor *OtherActor)
 {
 	state = FLYING;
 	mMesh->SetSimulatePhysics(false);
 	SetActorLocation(OtherActor->GetActorLocation());
 	SetActorRotation(OtherActor->GetActorRotation());
 
+	position = OtherActor->GetActorLocation();
+
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->SetRelativeRotation(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f));
 	mSpringArm->TargetArmLength = 2000.f;
 	mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
-	OtherActor->Destroy();
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -400,7 +402,10 @@ void AGolfBall::leftShiftPressed()
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
 	else if (state == CLIMBING)
+	{
 		state = WALKING;
+		golfInit();
+	}
 	else if (state == WALKING)
 		state = GOLF;
 	else if (state == GOLF)
