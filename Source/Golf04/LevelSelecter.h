@@ -31,11 +31,20 @@ public:
 			UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-
 	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USphereComponent* mCollisionBox = nullptr;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BluePrintReadOnly, Category = "Level Name")
 		FName levelName;
 
+	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
+		UUserWidget* LevelSelectWidget = nullptr;
+
+	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
+		TSubclassOf<class UUserWidget> LevelSelectWidget_BP;
+
+
+	//Move to file read/write system
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		int levelPerformance = 0;
 };
