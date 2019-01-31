@@ -161,22 +161,16 @@ public:
 	bool onGround = false;
 
 	void tickWalking();
+	void lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime);
+	float lerpTimer = 0.f;
 	float lerpTime = 0.1f;
 	FRotator currentRotation;
 
 	float movementSpeed;
 
 	//Debug purposes
-	FVector debugV;
 	FString debugMouseX;
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
-
-
-
-
-
-	float movespeed = 0.f;
-	float maxspeed = 200.f;
 };

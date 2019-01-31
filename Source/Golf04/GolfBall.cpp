@@ -90,6 +90,7 @@ void AGolfBall::Tick(float DeltaTime)
 	switch (state)
 	{
 	case GOLF:
+		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
@@ -104,16 +105,18 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case WALKING:
+		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking();
 		break;
 
 	case CLIMBING:
-
+		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		break;
 
 	case FLYING:
+		lerpPerspective(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f), 2000.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		applyForce(gravity);
 		updatePosition();
 		break;
@@ -126,9 +129,6 @@ void AGolfBall::Tick(float DeltaTime)
 	if (world)
 		drawDebugObjectsTick();
 	debugMouse();
-
-	DrawDebugLine(world, FVector(0.f, 0.f, 50.f), debugV, FColor::Red, true, 3.f, 100.f);
-	debugV = debugV.RotateAngleAxis(1.f, FVector(0.f, 0.f, 1.f));
 }
 
 // Called to bind functionality to input
@@ -161,15 +161,18 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	{
 		state = WALKING;
 		walkTimer = walkMaxDuration;
+		lerpTimer = 0.f;
 		OtherActor->Destroy();
 	}
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
+		lerpTimer = 0.f;
 		climbingInit(OtherActor);
 	}
 
 	if (OtherActor->IsA(AWingsPUp::StaticClass()))
 	{
+		lerpTimer = 0.f;
 		flyingInit(OtherActor);
 		OtherActor->Destroy();
 	}
@@ -216,11 +219,10 @@ void AGolfBall::golfInit()
 	mSpringArm->bInheritYaw = true;
 	mSpringArm->bInheritRoll = false;
 
-	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
-	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
-
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+	mMesh->SetSimulatePhysics(true);
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -234,9 +236,6 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
-	mSpringArm->SetRelativeRotation(GetActorRotation());
-	mSpringArm->TargetArmLength = 1500.f;
-	mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 }
 
 void AGolfBall::flyingInit(AActor *OtherActor)
@@ -249,9 +248,17 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	position = OtherActor->GetActorLocation();
 
 	mSpringArm->bInheritYaw = false;
-	mSpringArm->SetRelativeRotation(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f));
-	mSpringArm->TargetArmLength = 2000.f;
-	mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
+}
+
+void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
+{
+	if (lerpTimer < lerpTime * 10.f)
+	{
+		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, lerpTime);
+		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, lerpTime);
+		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, lerpTime));
+		lerpTimer += DeltaTime;
+	}
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -266,7 +273,7 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 1500), false);
+	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 3000), false);
 }
 
 void AGolfBall::applyForce(FVector force)
@@ -399,6 +406,7 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
+	lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
 	else if (state == CLIMBING)

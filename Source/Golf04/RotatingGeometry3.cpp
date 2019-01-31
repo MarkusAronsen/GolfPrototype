@@ -22,8 +22,8 @@ void ARotatingGeometry3::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	SetActorRotation(FRotator(0, 0, angle));
-	angle++;
+	SetActorRotation(FRotator(0.f, 0.f, angle));
+	angle = angle + 0.2f;
 	if (angle > 360)
 		angle = 1;
 }

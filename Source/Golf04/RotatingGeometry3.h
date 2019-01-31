@@ -24,5 +24,5 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	FRotator LockedRotation;
-	int angle = 0;
+	float angle = 0;
 };
