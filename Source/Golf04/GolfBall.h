@@ -4,8 +4,6 @@
 
 #include "ClimbObject.h"
 #include "Goal.h"
-#include "LegsPUp.h"
-#include "WingsPUp.h"
 
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "Components/SphereComponent.h"
-#include "GolfBall.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"

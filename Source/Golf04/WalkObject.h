@@ -2,20 +2,21 @@
 
 #pragma once
 
-#include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
+#include "GolfBall.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "LegsPUp.generated.h"
+#include "WalkObject.generated.h"
 
 UCLASS()
-class GOLF04_API ALegsPUp : public AActor
+class GOLF04_API AWalkObject : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ALegsPUp();
+	AWalkObject();
 
 protected:
 	// Called when the game starts or when spawned
@@ -25,6 +26,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
-	
+	UBoxComponent* CollisionBox = nullptr;
+
+	UFUNCTION()
+		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult &SweepResult);
+
 };

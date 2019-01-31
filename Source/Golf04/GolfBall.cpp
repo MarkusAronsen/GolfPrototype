@@ -74,7 +74,6 @@ void AGolfBall::BeginPlay()
 
 	state = GOLF;
 	golfInit();
-	debugV = FVector(1000.f, 0.f, 50.f);
 
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), 2.5f);
@@ -157,24 +156,10 @@ void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *Othe
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(ALegsPUp::StaticClass()))
-	{
-		state = WALKING;
-		walkTimer = walkMaxDuration;
-		lerpTimer = 0.f;
-		OtherActor->Destroy();
-	}
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
 		lerpTimer = 0.f;
 		climbingInit(OtherActor);
-	}
-
-	if (OtherActor->IsA(AWingsPUp::StaticClass()))
-	{
-		lerpTimer = 0.f;
-		flyingInit(OtherActor);
-		OtherActor->Destroy();
 	}
 }
 
