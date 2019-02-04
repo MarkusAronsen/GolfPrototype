@@ -99,7 +99,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
-		float maxLaunchPower = 7000.f;
+		float maxLaunchPower = 10000.f;
 
 	UCameraComponent* topDownCamera;
 	AController* mController;
@@ -111,7 +111,7 @@ public:
 
 	bool isCharging = false;
 	bool canLaunch = true;
-	float launchPowerIncrement = 45.f;
+	float launchPowerIncrement = 5000.f;
 	float mouseX;
 	float mouseY;
 	float frameX = 1206.f;
@@ -125,11 +125,14 @@ public:
 	FVector velocity;
 	FVector acceleration;
 	FVector gravity = FVector(0, 0, -1.5f);
+	FVector gravitation = FVector(0.f, 0.f, -400000.f);
 
 	void walkFunction(float deltaTime);
+	void tickWalking(float DeltaTime);
 	void jump();
 	void applyForce(FVector Force);
 	void updatePosition();
+	void stopStrike();
 
 	void WClicked();
 	void WReleased();
@@ -158,10 +161,9 @@ public:
 	TArray<FHitResult> hitResults;
 	bool onGround = false;
 
-	void tickWalking();
 	void lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime);
 	float lerpTimer = 0.f;
-	float lerpTime = 0.1f;
+	float lerpTime = 5.f;
 	FRotator currentRotation;
 
 	float movementSpeed;

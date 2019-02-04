@@ -74,6 +74,8 @@ void AGolfBall::BeginPlay()
 
 	state = GOLF;
 	golfInit();
+	GEngine->SetMaxFPS(60.f);
+	mMesh->SetEnableGravity(false);
 
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), 2.5f);
@@ -89,13 +91,14 @@ void AGolfBall::Tick(float DeltaTime)
 	switch (state)
 	{
 	case GOLF:
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
 		else if (LMBPressed)
-			currentLaunchPower = currentLaunchPower + launchPowerIncrement;
+			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 100.f)
 			canLaunch = true;
@@ -104,13 +107,16 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case WALKING:
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
-		tickWalking();
+		tickWalking(DeltaTime);
 		break;
 
 	case CLIMBING:
+		if(mMesh->IsSimulatingPhysics())
+			mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		break;
 
@@ -150,6 +156,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
+	InputComponent->BindAction("Right Mouse Button", IE_Pressed, this, &AGolfBall::stopStrike);
 }
 
 void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -237,11 +244,11 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
 {
-	if (lerpTimer < lerpTime * 10.f)
+	if (lerpTimer < 0.8f)
 	{
-		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, lerpTime);
-		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, lerpTime);
-		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, lerpTime));
+		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, lerpTime * DeltaTime);
+		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, lerpTime * DeltaTime);
+		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, lerpTime * DeltaTime));
 		lerpTimer += DeltaTime;
 	}
 }
@@ -277,6 +284,15 @@ void AGolfBall::updatePosition()
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *velocity.ToString());
 
 	SetActorLocation(position);
+}
+void AGolfBall::stopStrike()
+{
+	if (currentLaunchPower > 0.f)
+	{ 
+		LMBPressed = false;
+		currentLaunchPower = 0.f;
+		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
 }
 void AGolfBall::spacebarPressed()
 {
@@ -434,33 +450,33 @@ bool AGolfBall::sphereTrace()
 	return hitResults.Num() > 2;
 }
 
-void AGolfBall::tickWalking()
+void AGolfBall::tickWalking(float DeltaTime)
 {
 	mMesh->SetWorldRotation(currentRotation);
 
 	if (WPressed)
 	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime));
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime);
 	}
 	if (SPressed)
 	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime));
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime);
 	}
 	if (APressed)
 	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime));
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime);
 	}
 	if (DPressed)
 	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime));
+		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime);
+		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime);
 	}
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
