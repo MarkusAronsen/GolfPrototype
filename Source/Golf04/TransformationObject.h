@@ -3,6 +3,7 @@
 #pragma once
 
 #define PI 3.14159265//358//9793238462643383279502884
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -26,7 +27,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool rotateAllAxisPeriodically;
+		bool rotateRollPeriodically;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+		bool rotatePitchPeriodically;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+		bool rotateYawPeriodically;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateOneAxisConstantly;
