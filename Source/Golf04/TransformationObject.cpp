@@ -22,7 +22,7 @@ void ATransformationObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (rotateRollPeriodically)
+	if (rotateAllAxisPeriodically)
 	{
 		static float rotateTimer = 0.f;
 		static float rotationSpeed = 0.4f;
@@ -42,7 +42,8 @@ void ATransformationObject::Tick(float DeltaTime)
 				lerpAlpha = 0.f;
 				rotateTimer = 0.f;
 				lockedRotation = targetRotation;
-				targetRotation = targetRotation * 2.f;
+				targetRotation = FRotator(targetRotation.Roll + 90.f, targetRotation.Pitch + 90.f, targetRotation.Yaw + 90.f);
+				SetActorRotation(lockedRotation);
 			}
 		}
 	}
@@ -107,32 +108,29 @@ void ATransformationObject::Tick(float DeltaTime)
 
 	if (scaleUpAndDownPeriodically)
 	{
-		static float timeToScale = 0.f;
-		static bool scaleUp = true;
 		static float scaleXY = 0.f;
 		static float scaleZ = 0.f;
-		static float scaleSpeed = 10.f;
+		static float scaleSpeed = 0.35f;
 
 		timeToScale += DeltaTime;
 
+		scaleZ = DeltaTime * scaleSpeed * 0.2f;
+		scaleXY = DeltaTime * scaleSpeed;
+
 		if (timeToScale > 3.f && scaleUp)
 		{
-			SetActorRelativeScale3D(FVector(scaleXY, scaleXY, scaleZ));
-			scaleZ += DeltaTime * scaleSpeed * 0.5f;
-			scaleXY += DeltaTime * scaleSpeed;
-			if (scaleZ > 2.f)
+			SetActorScale3D(FVector(GetActorScale().X + scaleXY, GetActorScale().Y + scaleXY, GetActorScale().Z + scaleZ));
+			if (timeToScale > 6.f)
 			{
 				scaleUp = false;
 				timeToScale = 0.f;
 			}
 		}
 
-		else if (timeToScale > 3.f && !scaleUp)
+		if (timeToScale > 3.f && !scaleUp)
 		{
-			SetActorRelativeScale3D(FVector(scaleXY, scaleXY, scaleZ));
-			scaleZ -= DeltaTime * scaleSpeed * 0.5f;
-			scaleXY -= DeltaTime * scaleSpeed;
-			if (scaleZ < 1.f)
+			SetActorScale3D(FVector(GetActorScale().X - scaleXY, GetActorScale().Y - scaleXY, GetActorScale().Z - scaleZ));
+			if (timeToScale > 6.f)
 			{
 				scaleUp = true;
 				timeToScale = 0.f;
