@@ -27,11 +27,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool rotateRollPeriodically;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool rotatePitchPeriodically;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool rotateYawPeriodically;
+		bool rotateAllAxisPeriodically;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateOneAxisConstantly;

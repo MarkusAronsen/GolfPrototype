@@ -4,6 +4,7 @@
 
 #include "ClimbObject.h"
 #include "Goal.h"
+#include "GolfSaveGame.h"
 
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
@@ -173,4 +174,5 @@ public:
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
+	void printLoadedGame();
 };
