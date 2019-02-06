@@ -44,4 +44,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool translateBackAndForth;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scaling sequence")
+		float timeToScale = 0.f;
+
+	bool scaleUp = true;
+
 };
