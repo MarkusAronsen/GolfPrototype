@@ -2,18 +2,21 @@
 
 #pragma once
 
+#include "Components/BoxComponent.h"
+#include "GolfBall.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ClimbObject.generated.h"
+#include "ModeExit.generated.h"
 
 UCLASS()
-class GOLF04_API AClimbObject : public AActor
+class GOLF04_API AModeExit : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AClimbObject();
+	AModeExit();
 
 protected:
 	// Called when the game starts or when spawned
@@ -22,5 +25,11 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	
+
+	UBoxComponent* CollisionBox = nullptr;
+
+	UFUNCTION()
+		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult &SweepResult);
 };

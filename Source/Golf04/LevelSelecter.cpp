@@ -51,6 +51,7 @@ void ALevelSelecter::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
 		LevelSelectWidget->SetVisibility(ESlateVisibility::Visible);
-		//UGameplayStatics::OpenLevel(GetWorld(), levelName);
+
+		UGameplayStatics::OpenLevel(this, levelName);
 	}
 }
