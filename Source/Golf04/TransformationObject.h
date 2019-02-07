@@ -48,5 +48,7 @@ public:
 		float timeToScale = 0.f;
 
 	bool scaleUp = true;
+	float position = PI;
+	FRotator LockedRotation = FRotator(0.f, 0.f, 0.f);
 
 };

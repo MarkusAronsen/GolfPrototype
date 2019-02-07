@@ -15,6 +15,7 @@ void ATransformationObject::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	
 }
 
 // Called every frame
@@ -64,16 +65,18 @@ void ATransformationObject::Tick(float DeltaTime)
 		static float rotateTimer = 0.f;
 		static int modeSwitch = 1;
 		static float angle = 0.f;
-		static float rotationSpeed = 100.f;
+		static float rotationSpeed = 10.f;
 
 		rotateTimer += DeltaTime;
 
 		if (rotateTimer >= 3.5f)
 		{
+			angle += DeltaTime * rotationSpeed;
+
 			switch (modeSwitch)
 			{
 			case 1:
-				angle += DeltaTime * rotationSpeed;
+				AddActorLocalRotation(FRotator(DeltaTime * rotationSpeed, 0.f, 0.f));
 				if (angle > 90.f)
 				{
 					angle = 0.f;
@@ -82,7 +85,7 @@ void ATransformationObject::Tick(float DeltaTime)
 				}
 				break;
 			case 2:
-				angle += DeltaTime * rotationSpeed;
+				AddActorLocalRotation(FRotator(0.f, DeltaTime * rotationSpeed, 0.f));
 				if (angle > 90.f)
 				{
 					angle = 0.f;
@@ -91,7 +94,7 @@ void ATransformationObject::Tick(float DeltaTime)
 				}
 				break;
 			case 3:
-				angle += DeltaTime * rotationSpeed;
+				AddActorLocalRotation(FRotator(0.f, 0.f, DeltaTime * rotationSpeed));
 				if (angle > 90.f)
 				{
 					angle = 0.f;
@@ -134,12 +137,12 @@ void ATransformationObject::Tick(float DeltaTime)
 			}
 		}
 	}
+	
 	if (rotateAllAxisPeriodically)
 	{
 		static float rotateTimer = 0.f;
-		static FRotator LockedRotation = FRotator(0.f, 0.f, 0.f);
 		static float angle = 0.f;
-		static float rotationSpeed = 100.f;
+		static float rotationSpeed = 1.f;
 		static int rotationCount = 0;
 
 		rotateTimer += DeltaTime;
@@ -172,23 +175,23 @@ void ATransformationObject::Tick(float DeltaTime)
 
 	if (translateBackAndForth)
 	{
-		static float position = PI;
-		static float translationSpeed = 10.f;
+		static float translationSpeed = 1.f;
 
-		SetActorLocation(GetActorLocation() + GetActorForwardVector() * sin(position) * 10);
+		SetActorLocation(GetActorLocation() + GetActorForwardVector() * sin(position) * 6);
 		position += DeltaTime * translationSpeed;
 		if (position > 2 * PI + PI)
 		{
 			position = PI;
 		}
 	}
+	
 	if (translateUpAndDown)
 	{
 		static float position = PI;
-		static float translationSpeed = 10.f;
+		static float translationSpeed = 0.2f;
 
 
-		SetActorLocation(GetActorLocation() + GetActorUpVector() * sin(position) * 10);
+		SetActorLocation(GetActorLocation() + GetActorUpVector() * sin(position) * 4);
 		position += DeltaTime * translationSpeed;
 		if (position > 2 * PI + PI)
 		{

@@ -123,7 +123,7 @@ void AGolfBall::Tick(float DeltaTime)
 	case FLYING:
 		lerpPerspective(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f), 2000.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		applyForce(gravity);
-		updatePosition();
+		updatePosition(DeltaTime);
 		break;
 
 	case LEVEL_SELECT:
@@ -267,6 +267,7 @@ void AGolfBall::walkFunction(float deltaTime)
 void AGolfBall::jump()
 {
 	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 3000), false);
+	onPlatform = false;
 }
 
 void AGolfBall::applyForce(FVector force)
@@ -274,15 +275,13 @@ void AGolfBall::applyForce(FVector force)
 	acceleration += force;
 }
 
-void AGolfBall::updatePosition()
+void AGolfBall::updatePosition(float DeltaTime)
 {
 	velocity += acceleration;
 
 	position += velocity;
-	position += FVector(GetActorForwardVector() * 10);
+	position += FVector(GetActorForwardVector() * 700 * DeltaTime);
 	acceleration = FVector::ZeroVector;
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *velocity.ToString());
 
 	SetActorLocation(position);
 }
@@ -447,7 +446,6 @@ bool AGolfBall::sphereTrace()
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape());
 
-
 	return hitResults.Num() > 2;
 }
 
@@ -460,24 +458,32 @@ void AGolfBall::tickWalking(float DeltaTime)
 		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * movementSpeed, true);
 		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime);
+		if(onPlatform && hitResults.Num() > 2)
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
 	}
 	if (SPressed)
 	{
 		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f).Vector() * movementSpeed, true);
 		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime);
+		if (onPlatform && hitResults.Num() > 2)
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
 	}
 	if (APressed)
 	{
 		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f).Vector() * movementSpeed, true);
 		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime);
+		if (onPlatform && hitResults.Num() > 2)
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
 	}
 	if (DPressed)
 	{
 		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime));
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f).Vector() * movementSpeed, true);
 		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime);
+		if (onPlatform && hitResults.Num() > 2)
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
 	}
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
@@ -485,6 +491,23 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 	if (onGround)
 		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
+
+	if (onGround && hitResults.Num() > 2 && hitResults[2].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
+	{
+		if(platformOffset.Size() < 2.f)
+		{
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+			onPlatform = true;
+		}
+		if(platformOffset.Size() > 10.f)
+			SetActorLocation(hitResults[2].GetActor()->GetActorLocation() + platformOffset);
+	}
+	else
+	{ 
+		onPlatform = false;
+		platformOffset = FVector::OneVector;
+	}
+
 }
 
 void AGolfBall::debugMouse()
