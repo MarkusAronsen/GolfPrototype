@@ -7,6 +7,7 @@
 #include "GolfSaveGame.h"
 #include "Checkpoint.h"
 #include "GolfGameInstance.h"
+#include "TransformationObject.h"
 
 #include "Runtime/UMG/Public/UMG.h"
 #include "Components/SphereComponent.h"
@@ -137,7 +138,7 @@ public:
 	void tickWalking(float DeltaTime);
 	void jump();
 	void applyForce(FVector Force);
-	void updatePosition();
+	void updatePosition(float DeltaTime);
 	void stopStrike();
 
 	void WClicked();
@@ -166,6 +167,8 @@ public:
 	bool sphereTrace();
 	TArray<FHitResult> hitResults;
 	bool onGround = false;
+	bool onPlatform = false;
+	FVector platformOffset;
 
 	void lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime);
 	float lerpTimer = 0.f;
