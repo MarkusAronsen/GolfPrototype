@@ -14,27 +14,34 @@
 
 const int NUM_LEVELS = 3;
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 		FString levelName;
 	
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 		int starRating;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 		float timeElapsed;
+
+	UPROPERTY(BlueprintReadOnly)
+		int currentCheckpoint;
+
+	UPROPERTY(BlueprintReadOnly)
+		bool bLevelCompleted;
 
 	FLevelData()
 	{
 		levelName = TEXT("");
 		starRating = -1;
 		timeElapsed = -1;
+		currentCheckpoint = -1;
+		bLevelCompleted = false;
 	}
-
 };
 
 UCLASS()
@@ -45,13 +52,13 @@ class GOLF04_API UGolfSaveGame : public USaveGame
 public:
 	UGolfSaveGame();
 
-	UPROPERTY(VisibleAnywhere, Category = "Save data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save data")
 		FString slotName;
 
-	UPROPERTY(VisibleAnywhere, Category = "Save data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save data")
 		int userIndex;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData() };
 
 };

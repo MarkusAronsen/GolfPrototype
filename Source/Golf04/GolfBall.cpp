@@ -22,7 +22,26 @@ AGolfBall::AGolfBall()
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character."));
+		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
+	
+/*#if WITH_EDITOR
+	static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(TEXT("/Game/Widgets/PowerBar"));
+	if (FoundPowerBarWidget.Succeeded())
+	{
+		PowerBarWidget = FoundPowerBarWidget.Object;
+		// LoadObject<UClass>(UUserWidget::StaticClass(), TEXT("/Game/Widgets/PowerBar.PowerBar"));
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find Power bar widget"));
+#endif
+
+#if !WITH_EDITOR
+		FString Path = FPaths::GameContentDir();
+		static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(*Path.Append(TEXT("/Game/Widgets/PowerBar.PowerBar")));
+		if (FoundPowerBarWidget.Succeeded())
+			PowerBarWidget = FoundPowerBarWidget.Object;
+#endif
+*/
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
@@ -42,6 +61,7 @@ AGolfBall::AGolfBall()
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
 	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
 
+	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
 
 // Called when the game starts or when spawned
@@ -50,14 +70,38 @@ void AGolfBall::BeginPlay()
 	Super::BeginPlay();
 
 	if (mCollisionBox)
-	{
 		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnOverlap);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
-	}
 
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
+
+	/*if (!Cast<UGolfGameInstance>(GetGameInstance())->bWidgetsInitialized)
+	{
+		if (PowerBarWidget_BP)
+		{
+			PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
+			if (PowerBarWidget)
+			{
+				PowerBarWidget->AddToViewport();
+				PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
+		}
+
+		Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget = PowerBarWidget;
+		Cast<UGolfGameInstance>(GetGameInstance())->initializeWidgets();
+		Cast<UGolfGameInstance>(GetGameInstance())->bWidgetsInitialized = true;
+
+		UE_LOG(LogTemp, Warning, TEXT("Widgets initialized"));
+	}*/
+
+	/*if (!Cast<UGolfGameInstance>(GetGameInstance())->PowerBarWidget_BP)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game instance no power bar widget"));
+	}*/
 	if (PowerBarWidget_BP)
 	{
 		PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
@@ -67,6 +111,8 @@ void AGolfBall::BeginPlay()
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
 
 	walkMaxDuration = 30.f;
 	movementSpeed = 150.f;
@@ -78,7 +124,9 @@ void AGolfBall::BeginPlay()
 	mMesh->SetEnableGravity(false);
 
 	mController = GetWorld()->GetFirstPlayerController();
-	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), 2.5f);
+	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
+
+	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
 // Called every frame
@@ -134,7 +182,11 @@ void AGolfBall::Tick(float DeltaTime)
 	if (world)
 		drawDebugObjectsTick();
 	debugMouse();
+
+	if(bRespawning)
+		respawnAtCheckpointTick(DeltaTime);
 }
+
 
 // Called to bind functionality to input
 void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -154,6 +206,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("ScrollUp", IE_Pressed, this, &AGolfBall::scrollUp);
 	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
 	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::printLoadedGame);
+	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
@@ -292,7 +345,13 @@ void AGolfBall::stopStrike()
 	{ 
 		LMBPressed = false;
 		currentLaunchPower = 0.f;
+
+		//REPLACE__________________________________________________________________________________
+
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+		//Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+
+		//REPLACE__________________________________________________________________________________
 	}
 }
 void AGolfBall::spacebarPressed()
@@ -352,7 +411,13 @@ void AGolfBall::setLMBPressed()
 	switch (state)
 	{
 	case GOLF:
+		//REPLACE__________________________________________________________________________________
+
 		PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
+		//Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget->SetVisibility(ESlateVisibility::Visible);
+
+		//REPLACE__________________________________________________________________________________
+
 		break;
 	case WALKING:
 		break;
@@ -374,7 +439,13 @@ void AGolfBall::setLMBReleased()
 	case GOLF:
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
 		currentLaunchPower = 0.f;
+		//REPLACE__________________________________________________________________________________
+
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+		//Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+
+		//REPLACE__________________________________________________________________________________
+
 		break;
 	case WALKING:
 		break;
@@ -487,6 +558,75 @@ void AGolfBall::tickWalking(float DeltaTime)
 		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
 }
 
+void AGolfBall::respawnAtCheckpoint()
+{
+	UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+	if (UGameplayStatics::DoesSaveGameExist(LoadGameInstance->slotName, LoadGameInstance->userIndex))
+	{
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+		
+		int levelIndex = -1;
+
+		for (int i = 0; i < NUM_LEVELS; i++)
+		{
+			if (LoadGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::CaseSensitive) == 0)
+			{
+				levelIndex = i;
+			}
+		}
+
+		if (levelIndex != -1)
+		{
+			ACheckpoint* checkpoint = nullptr;
+			TArray<AActor*> checkpoints;
+			UGameplayStatics::GetAllActorsOfClass(this, ACheckpoint::StaticClass(), checkpoints);
+
+			for (int i = 0; i < checkpoints.Num(); i++)
+			{
+				if (LoadGameInstance->levelData[levelIndex].currentCheckpoint == Cast<ACheckpoint>(checkpoints[i])->checkpointIndex 
+					&& Cast<ACheckpoint>(checkpoints[i])->checkpointIndex != -1)
+				{
+					checkpoint = Cast<ACheckpoint>(checkpoints[i]);
+				}
+			}
+			if (checkpoint)
+			{
+				SpawnPosition = checkpoint->GetActorLocation();
+				//FActorSpawnParameters SpawnInfo;
+				//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+				//FVector SpawnPosition = checkpoint->GetActorLocation();
+				//GetWorld()->SpawnActor<AGolfBall>(SpawnPosition + FVector(0, 0, 250), FRotator::ZeroRotator, SpawnInfo);
+				bRespawning = true;
+				bStartRespawnCameraFade = true;
+			}
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
+
+
+
+		//PowerBarWidget->RemoveFromParent();
+		//PowerBarWidget_BP->RemoveFromRoot();
+	}
+}
+
+void AGolfBall::respawnAtCheckpointTick(float deltaTime)
+{
+	if (bStartRespawnCameraFade)
+	{
+		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(0.f, 2.f), cameraFadeTimer);
+		bStartRespawnCameraFade = false;
+	}
+	timeToCameraFadeEnd += deltaTime;
+	if (timeToCameraFadeEnd >= cameraFadeTimer)
+	{
+		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
+		bRespawning = false;
+		timeToCameraFadeEnd = 0.f;
+	}
+}
+
 void AGolfBall::debugMouse()
 {
 	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
@@ -507,11 +647,26 @@ void AGolfBall::drawDebugObjectsTick()
 void AGolfBall::printLoadedGame()
 {
 	UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
-	LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
 
-	for (int i = 0; i < NUM_LEVELS; i++)
+	if (UGameplayStatics::DoesSaveGameExist(LoadGameInstance->slotName, LoadGameInstance->userIndex))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Level with index %i and name %s has recorded level data: time elapsed(%f), -star rating(%i)")
-			, i, *LoadGameInstance->levelData[i].levelName, LoadGameInstance->levelData[i].timeElapsed, LoadGameInstance->levelData[i].starRating);
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+		for (int i = 0; i < NUM_LEVELS; i++)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Level with index %i and name %s has recorded level data:" 
+				"time elapsed(%f), -star rating(%i), current checkpoint(%i), level completed(%b)")
+				, 
+				i, 
+				*LoadGameInstance->levelData[i].levelName, 
+				LoadGameInstance->levelData[i].timeElapsed, 
+				LoadGameInstance->levelData[i].starRating, 
+				LoadGameInstance->levelData[i].currentCheckpoint,
+				LoadGameInstance->levelData[i].bLevelCompleted);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
 	}
 }

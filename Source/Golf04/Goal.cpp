@@ -25,13 +25,11 @@ void AGoal::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
+		UE_LOG(LogTemp, Warning, TEXT("Goal no collision box"));
 
 	}
 	
 	levelName = UGameplayStatics::GetCurrentLevelName(this);
-
-
 }
 
 // Called every frame
@@ -81,8 +79,14 @@ void AGoal::saveLevelData()
 		{
 			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
 			SaveGameInstance->levelData[levelIndex].timeElapsed = levelTimeElapsed;
+			SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
 			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 		}
+
+			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+			SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
+			SaveGameInstance->levelData[levelIndex].bLevelCompleted = true;
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));

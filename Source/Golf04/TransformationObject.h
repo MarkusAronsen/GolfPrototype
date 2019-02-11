@@ -3,7 +3,6 @@
 #pragma once
 
 #define PI 3.14159265//358//9793238462643383279502884
-#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -43,10 +42,5 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool translateBackAndForth;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scaling sequence")
-		float timeToScale = 0.f;
-
-	bool scaleUp = true;
 
 };

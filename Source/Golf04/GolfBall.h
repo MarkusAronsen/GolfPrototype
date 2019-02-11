@@ -5,7 +5,10 @@
 #include "ClimbObject.h"
 #include "Goal.h"
 #include "GolfSaveGame.h"
+#include "Checkpoint.h"
+#include "GolfGameInstance.h"
 
+#include "Runtime/UMG/Public/UMG.h"
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
@@ -69,10 +72,10 @@ public:
 	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UMaterialInstanceDynamic* DynamicMaterialInst = nullptr;
 
-	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		UUserWidget* PowerBarWidget = nullptr;
 
-	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> PowerBarWidget_BP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
@@ -97,11 +100,13 @@ public:
 		LEVEL_SELECT = 4
 	};
 	int state;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golf variable")
 		float maxLaunchPower = 10000.f;
 
+	float cameraFadeTimer = 1.f;
 	UCameraComponent* topDownCamera;
 	AController* mController;
 
@@ -169,10 +174,20 @@ public:
 
 	float movementSpeed;
 
+
+	//Death and respawning
+	void respawnAtCheckpoint();
+	void respawnAtCheckpointTick(float deltaTime);
+	FVector SpawnPosition;
+	bool bRespawning = false;
+	bool bStartRespawnCameraFade = false;
+	float timeToCameraFadeEnd = 0.f;
+
 	//Debug purposes
 	FString debugMouseX;
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
+
 	void printLoadedGame();
 };
