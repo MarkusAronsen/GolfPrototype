@@ -76,33 +76,34 @@ void ATransformationObject::Tick(float DeltaTime)
 	{
 		static float timeToScale = 0.f;
 		static bool scaleUp = true;
-		static float scaleXY = 0.f;
-		static float scaleZ = 0.f;
-		static float scaleSpeed = 10.f;
+		static float lerpAlpha = 0.f;
+		static float XYScaleDown = 1.f;
+		static float XYScaleUp = 2.f;
+		static float scaleSpeed = 0.02f;
 
-		timeToScale += DeltaTime;
+		timeToScale += DeltaTime * 0.2f;
 
 		if (timeToScale > 3.f && scaleUp)
 		{
-			SetActorScale3D(FVector(scaleXY, scaleXY, scaleZ));
-			scaleZ += DeltaTime * scaleSpeed * 0.5f;
-			scaleXY += DeltaTime * scaleSpeed;
-			if (scaleZ > 2.f)
+			SetActorScale3D(FMath::Lerp(FVector(XYScaleDown, XYScaleDown, 1.f), FVector(XYScaleUp, XYScaleUp, 1.f), lerpAlpha));
+			lerpAlpha += DeltaTime * scaleSpeed;
+			if (lerpAlpha >= 1.f)
 			{
 				scaleUp = false;
 				timeToScale = 0.f;
+				lerpAlpha = 0.f;
 			}
 		}
 
 		else if (timeToScale > 3.f && !scaleUp)
 		{
-			SetActorScale3D(FVector(scaleXY, scaleXY, scaleZ));
-			scaleZ -= DeltaTime * scaleSpeed * 0.5f;
-			scaleXY -= DeltaTime * scaleSpeed;
-			if (scaleZ < 1.f)
+			SetActorScale3D(FMath::Lerp(FVector(XYScaleUp, XYScaleUp, 1.f), FVector(XYScaleDown, XYScaleDown, 1.f), lerpAlpha));
+			lerpAlpha += DeltaTime * scaleSpeed;
+			if (lerpAlpha >= 1.f)
 			{
 				scaleUp = true;
 				timeToScale = 0.f;
+				lerpAlpha = 0.f;
 			}
 		}
 	}
@@ -111,14 +112,15 @@ void ATransformationObject::Tick(float DeltaTime)
 	{
 		static float rotateTimer = 0.f;
 		static float angle = 0.f;
-		static float rotationSpeed = 1.f;
+		static float rotationSpeed = 10.f;
 		static int rotationCount = 0;
+		static FRotator LockedRotation = FRotator(0.f, 0.f, 0.f);
 
 		rotateTimer += DeltaTime;
 
 		SetActorRotation(LockedRotation + FRotator(angle, angle, angle));
 
-		if (rotateTimer >= 3.5f)
+		if (rotateTimer >= 20.f)
 		{
 			angle += DeltaTime * rotationSpeed;
 			if (angle > 90.f)
@@ -145,6 +147,7 @@ void ATransformationObject::Tick(float DeltaTime)
 	if (translateBackAndForth)
 	{
 		static float translationSpeed = 1.f;
+		static float position = PI;
 
 		SetActorLocation(GetActorLocation() + GetActorForwardVector() * sin(position) * 6);
 		position += DeltaTime * translationSpeed;
@@ -153,6 +156,7 @@ void ATransformationObject::Tick(float DeltaTime)
 			position = PI;
 		}
 	}
+	
 	if (translateUpAndDown)
 	{
 		static float position = PI;

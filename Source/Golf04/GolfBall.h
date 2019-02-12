@@ -102,9 +102,9 @@ public:
 	};
 	int state;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golf variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golf variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float maxLaunchPower = 10000.f;
 
 	float cameraFadeTimer = 1.f;
@@ -176,6 +176,8 @@ public:
 	FRotator currentRotation;
 
 	float movementSpeed;
+	bool platformJump = false;
+	void movementTransformation(float walkingDirection, float DeltaTime);
 
 
 	//Death and respawning
@@ -191,6 +193,7 @@ public:
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
+	bool timerFunction(float timerLength, float DeltaTime);
 
 	void printLoadedGame();
 };

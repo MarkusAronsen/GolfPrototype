@@ -181,7 +181,7 @@ void AGolfBall::Tick(float DeltaTime)
 
 	if (world)
 		drawDebugObjectsTick();
-	debugMouse();
+	//debugMouse();
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
@@ -320,7 +320,8 @@ void AGolfBall::walkFunction(float deltaTime)
 void AGolfBall::jump()
 {
 	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 3000), false);
-	onPlatform = false;
+	if (onPlatform)
+		platformJump = true;
 }
 
 void AGolfBall::applyForce(FVector force)
@@ -517,7 +518,27 @@ bool AGolfBall::sphereTrace()
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape());
 
-	return hitResults.Num() > 2;
+	int mesh = 0;
+	int collision = 0;
+
+	for (int i = 0; i < hitResults.Num(); i++)
+	{
+		FString meshToString = FString::FromInt(hitResults[i].GetComponent()->GetReadableName().Compare(mMesh->GetReadableName()));
+		FString collisionToString = FString::FromInt(hitResults[i].GetComponent()->GetReadableName().Compare(mCollisionBox->GetReadableName()));
+
+		if (hitResults[i].GetComponent()->GetReadableName().Compare(mMesh->GetReadableName()) == 0)
+			mesh = i;
+
+		if (hitResults[i].GetComponent()->GetReadableName().Compare(mCollisionBox->GetReadableName()) == 0)
+			collision = i;
+	}
+
+	hitResults.RemoveAt(mesh, collision);
+
+	if (GEngine && hitResults.Num() > 0)
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *hitResults[0].GetComponent()->GetReadableName());
+
+	return hitResults.Num() > 0;
 }
 
 void AGolfBall::tickWalking(float DeltaTime)
@@ -525,53 +546,32 @@ void AGolfBall::tickWalking(float DeltaTime)
 	mMesh->SetWorldRotation(currentRotation);
 
 	if (WPressed)
-	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime);
-		if(onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
-	}
+		movementTransformation(0.f, DeltaTime);
 	if (SPressed)
-	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime);
-		if (onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
-	}
+		movementTransformation(180.f, DeltaTime);
 	if (APressed)
-	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime);
-		if (onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
-	}
+		movementTransformation(-90.f, DeltaTime);
 	if (DPressed)
-	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime);
-		if (onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
-	}
+		movementTransformation(90.f, DeltaTime);
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
 
 	if (onGround)
 		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
+	
+	if (platformJump)
+		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (onGround && hitResults.Num() > 2 && hitResults[2].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
+	if (onGround && hitResults[0].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
 	{
-		if(platformOffset.Size() < 2.f)
+		if(platformOffset.Size() < 2.f && !platformJump)
 		{
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+			platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
 			onPlatform = true;
 		}
-		if(platformOffset.Size() > 10.f)
-			SetActorLocation(hitResults[2].GetActor()->GetActorLocation() + platformOffset);
+		if (platformOffset.Size() > 10.f && !platformJump)
+			SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
 	}
 	else
 	{ 
@@ -579,6 +579,15 @@ void AGolfBall::tickWalking(float DeltaTime)
 		platformOffset = FVector::OneVector;
 	}
 
+}
+
+void AGolfBall::movementTransformation(float walkingDirection, float DeltaTime)
+{
+	mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + walkingDirection, 0.f), lerpTime * DeltaTime));
+	mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + walkingDirection, 0.f).Vector() * movementSpeed, true);
+	currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + walkingDirection, 0.f), lerpTime * DeltaTime);
+	if (onPlatform && hitResults.Num() > 0)
+		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
 }
 
 void AGolfBall::respawnAtCheckpoint()
@@ -665,6 +674,20 @@ void AGolfBall::drawDebugObjectsTick()
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
 
+}
+
+bool AGolfBall::timerFunction(float timerLength, float DeltaTime)
+{
+	static float clock = 0.f;
+	clock += DeltaTime;
+
+	if (clock > timerLength)
+	{
+		clock = 0.f;
+		return false;
+	}
+	else
+		return true;
 }
 
 void AGolfBall::printLoadedGame()
