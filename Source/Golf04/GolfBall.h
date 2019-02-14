@@ -165,8 +165,12 @@ public:
 	bool LMBPressed = false;
 
 	bool sphereTrace();
+	bool lineTrace();
 	TArray<FHitResult> hitResults;
+	TArray<FHitResult> lineTraceResults;
+	FCollisionQueryParams traceParams;
 	bool onGround = false;
+	FVector surfaceNormal;
 	bool onPlatform = false;
 	FVector platformOffset;
 

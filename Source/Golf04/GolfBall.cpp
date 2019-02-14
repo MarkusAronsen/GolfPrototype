@@ -126,6 +126,16 @@ void AGolfBall::BeginPlay()
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
+	traceParams.bFindInitialOverlaps = false;
+	traceParams.bIgnoreBlocks = false;
+	traceParams.bIgnoreTouches = true;
+	traceParams.bReturnFaceIndex = true;
+	traceParams.bReturnPhysicalMaterial = false;
+	traceParams.bTraceComplex = true;
+	traceParams.AddIgnoredActor(GetUniqueID());
+	traceParams.AddIgnoredComponent(mMesh);
+	traceParams.AddIgnoredComponent(mCollisionBox);
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
@@ -135,6 +145,7 @@ void AGolfBall::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	onGround = sphereTrace();
+	lineTrace();
 
 	switch (state)
 	{
@@ -518,27 +529,29 @@ bool AGolfBall::sphereTrace()
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape());
 
-	int mesh = 0;
-	int collision = 0;
+	return hitResults.Num() > 2;
+}
 
-	for (int i = 0; i < hitResults.Num(); i++)
+bool AGolfBall::lineTrace()
+{
+	if (world && mMesh)
+		world->LineTraceMultiByChannel(
+			lineTraceResults,
+			GetActorLocation(),
+			GetActorLocation() + GetActorUpVector() * -200,
+			ECollisionChannel::ECC_Pawn,
+			traceParams,
+			FCollisionResponseParams::DefaultResponseParam);
+
+	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		FString meshToString = FString::FromInt(hitResults[i].GetComponent()->GetReadableName().Compare(mMesh->GetReadableName()));
-		FString collisionToString = FString::FromInt(hitResults[i].GetComponent()->GetReadableName().Compare(mCollisionBox->GetReadableName()));
-
-		if (hitResults[i].GetComponent()->GetReadableName().Compare(mMesh->GetReadableName()) == 0)
-			mesh = i;
-
-		if (hitResults[i].GetComponent()->GetReadableName().Compare(mCollisionBox->GetReadableName()) == 0)
-			collision = i;
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetComponent()->GetReadableName());
+		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Red, false, 0, (uint8)'\000', 6.f);
 	}
 
-	hitResults.RemoveAt(mesh, collision);
 
-	if (GEngine && hitResults.Num() > 0)
-		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *hitResults[0].GetComponent()->GetReadableName());
-
-	return hitResults.Num() > 0;
+	return lineTraceResults.Num() > 0;
 }
 
 void AGolfBall::tickWalking(float DeltaTime)
@@ -563,15 +576,15 @@ void AGolfBall::tickWalking(float DeltaTime)
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (onGround && hitResults[0].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
+	if (onGround && hitResults[2].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
 	{
 		if(platformOffset.Size() < 2.f && !platformJump)
 		{
-			platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
 			onPlatform = true;
 		}
 		if (platformOffset.Size() > 10.f && !platformJump)
-			SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
+			SetActorLocation(hitResults[2].GetActor()->GetActorLocation() + platformOffset);
 	}
 	else
 	{ 
@@ -583,11 +596,28 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 void AGolfBall::movementTransformation(float walkingDirection, float DeltaTime)
 {
-	mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + walkingDirection, 0.f), lerpTime * DeltaTime));
-	mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + walkingDirection, 0.f).Vector() * movementSpeed, true);
-	currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + walkingDirection, 0.f), lerpTime * DeltaTime);
-	if (onPlatform && hitResults.Num() > 0)
-		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+	mMesh->SetWorldRotation(FMath::Lerp(
+		GetActorRotation(),
+		FRotator(surfaceNormal.Rotation().Pitch,
+			mController->GetControlRotation().Yaw + walkingDirection,
+			surfaceNormal.Rotation().Roll),
+		lerpTime * DeltaTime));
+
+	mMesh->SetPhysicsLinearVelocity(FRotator(
+		surfaceNormal.Rotation().Pitch,
+		mController->GetControlRotation().Yaw + walkingDirection, 
+		surfaceNormal.Rotation().Roll).Vector() * movementSpeed, true);
+	
+	currentRotation = FMath::Lerp(
+		GetActorRotation(), 
+		FRotator(
+			surfaceNormal.Rotation().Pitch,
+			mController->GetControlRotation().Yaw + walkingDirection,
+			surfaceNormal.Rotation().Roll),
+		lerpTime * DeltaTime);
+
+	if (onPlatform && hitResults.Num() > 2)
+		platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
 }
 
 void AGolfBall::respawnAtCheckpoint()
