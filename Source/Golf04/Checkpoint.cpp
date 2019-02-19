@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Checkpoint.h"
+#include "GolfSaveGame.h"
 
 #include "GolfBall.h"
 

@@ -28,6 +28,8 @@
 #include "GameFramework/Pawn.h"
 #include "GolfBall.generated.h"
 
+class ALevelSelecter;
+
 UCLASS()
 class GOLF04_API AGolfBall : public APawn
 {
@@ -51,7 +53,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+		void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
@@ -98,7 +100,8 @@ public:
 		WALKING = 1,
 		CLIMBING = 2,
 		FLYING = 3,
-		LEVEL_SELECT = 4
+		LEVEL_SELECT = 4,
+		AWAITING_LEVELSELECT_INPUT = 5
 	};
 	int state;
 
@@ -191,6 +194,12 @@ public:
 	bool bRespawning = false;
 	bool bStartRespawnCameraFade = false;
 	float timeToCameraFadeEnd = 0.f;
+
+	//savingMerge
+	void confirmLevelSelection();
+	void setLevelToOpen(FName name);
+	FName levelToOpen;
+	ALevelSelecter* currentLevelSelecter = nullptr;
 
 	//Debug purposes
 	FString debugMouseX;

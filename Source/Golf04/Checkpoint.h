@@ -3,13 +3,13 @@
 #pragma once
 
 #include "Components/SphereComponent.h"
-#include "GolfSaveGame.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Checkpoint.generated.h"
 
 class AGolfBall;
+class AGolfSaveGame;
 
 UCLASS()
 class GOLF04_API ACheckpoint : public AActor
