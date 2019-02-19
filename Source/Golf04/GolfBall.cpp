@@ -188,6 +188,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
 }
 
 
@@ -675,8 +677,8 @@ void AGolfBall::confirmLevelSelection()
 	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
 	{
 		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
-		//UGameplayStatics::OpenLevel(GetWorld(), *levelToOpen.ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
+		UGameplayStatics::OpenLevel(GetWorld(), *levelToOpen.ToString());
 	}
 }
 

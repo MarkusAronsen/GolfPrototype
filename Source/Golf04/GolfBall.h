@@ -198,7 +198,7 @@ public:
 	//savingMerge
 	void confirmLevelSelection();
 	void setLevelToOpen(FName name);
-	FName levelToOpen;
+	FName levelToOpen = TEXT("nn");
 	ALevelSelecter* currentLevelSelecter = nullptr;
 
 	//Debug purposes
