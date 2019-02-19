@@ -71,11 +71,9 @@ void AGolfBall::BeginPlay()
 	movementSpeed = 150.f;
 	world = GetWorld();
 	
-<<<<<<< HEAD
-	state = GOLF;
-=======
+
 	state = WALKING;
->>>>>>> c270ccb276abf43ed180acfc432ef440240a5eb1
+
 	debugV = FVector(1000.f, 0.f, 50.f);
 }
 
@@ -326,16 +324,6 @@ void AGolfBall::leftShiftPressed()
 {
 	if(!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-<<<<<<< HEAD
-	if(state == CLIMBING)
-		state = WALKING;
-	if (state == WALKING)
-		state = GOLF;
-	if (state == GOLF)
-		state = WALKING;
-=======
-	state = WALKING;
->>>>>>> c270ccb276abf43ed180acfc432ef440240a5eb1
 	defaultViewSettings();
 
 	walkTimer = walkMaxDuration;
