@@ -596,6 +596,7 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 void AGolfBall::movementTransformation(float walkingDirection, float DeltaTime)
 {
+	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
 	mMesh->SetWorldRotation(FMath::Lerp(
 		GetActorRotation(),
 		FRotator(surfaceNormal.Rotation().Pitch,
