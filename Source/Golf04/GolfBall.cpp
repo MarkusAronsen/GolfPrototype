@@ -76,7 +76,6 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
 
-
 	if (PowerBarWidget_BP)
 	{
 		PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
@@ -484,6 +483,7 @@ void AGolfBall::leftShiftPressed()
 	lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
+
 	else if (state == CLIMBING)
 	{
 		state = WALKING;
@@ -493,6 +493,7 @@ void AGolfBall::leftShiftPressed()
 		state = GOLF;
 	else if (state == GOLF)
 		state = WALKING;
+
 
 	walkTimer = walkMaxDuration;
 }
