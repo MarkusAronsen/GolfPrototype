@@ -2,10 +2,10 @@
 
 #pragma once
 
-#include "LevelSelecter.h"
+//#include "LevelSelecter.h"
 
-#include "Blueprint/UserWidget.h"
-#include "Engine/Classes/Kismet/GameplayStatics.h"
+//#include "Blueprint/UserWidget.h"
+//#include "Engine/Classes/Kismet/GameplayStatics.h"
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
@@ -21,7 +21,7 @@ class GOLF04_API UGolfGameInstance : public UGameInstance
 	
 public:
 	
-	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = "Game Instance Data")
-		TArray<FString> levelNames;
+	//UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = "Game Instance Data")
+		//TArray<FString> levelNames;
 
 };

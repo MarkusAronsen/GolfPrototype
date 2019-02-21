@@ -40,7 +40,7 @@ public:
 		class USphereComponent* mCollisionBox = nullptr;
 
 	UPROPERTY(EditAnywhere, BluePrintReadOnly, Category = "Level Name")
-		FName levelName;
+		FString levelName;
 
 	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
 		UUserWidget* LevelSelectWidget = nullptr;
@@ -54,8 +54,4 @@ public:
 	//Move to level data read/write class
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level performance")
 		int levelPerformance = 0;
-
-
-	UFUNCTION(BlueprintCallable, Category = "Widget data")
-		FName getLevelName();
 };

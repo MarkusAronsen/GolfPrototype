@@ -106,7 +106,7 @@ void AGolfBall::BeginPlay()
 	if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
 		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 
-	SaveGameInstance->initLevelNames();
+	//SaveGameInstance->initLevelNames();
 
 	traceParams.bFindInitialOverlaps = false;
 	traceParams.bIgnoreBlocks = false;
@@ -658,7 +658,6 @@ void AGolfBall::animationControlTick(float deltaTime)
 				flyingAnimTimer = 0.f;
 			}
 		}
-
 	}
 }
 
@@ -736,14 +735,14 @@ void AGolfBall::confirmLevelSelection()
 	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
 	{
 		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
-		UGameplayStatics::OpenLevel(GetWorld(), *levelToOpen.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen);
+		//UGameplayStatics::OpenLevel(this, FName(*levelToOpen));
 	}
 }
 
-void AGolfBall::setLevelToOpen(FName name)
+void AGolfBall::setLevelToOpen(FString Name)
 {
-	levelToOpen = name;
+	levelToOpen = Name;
 }
 
 void AGolfBall::debugMouse()

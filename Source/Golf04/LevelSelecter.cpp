@@ -29,7 +29,7 @@ void ALevelSelecter::BeginPlay()
 
 	if (LevelSelectWidget_BP)
 	{
-		LevelSelectWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), LevelSelectWidget_BP, levelName);
+		LevelSelectWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), LevelSelectWidget_BP, FName(*levelName));
 		if (LevelSelectWidget)
 		{
 			LevelSelectWidget->AddToViewport();

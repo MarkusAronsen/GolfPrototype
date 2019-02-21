@@ -5,9 +5,9 @@
 
 UGolfGameInstance::UGolfGameInstance(const FObjectInitializer & ObjectInitializer)	 : Super(ObjectInitializer)
 {
-	levelNames.Add(TEXT("/Game/Levels/Golf01.Golf01"));
+	/*levelNames.Add(TEXT("/Game/Levels/Golf01.Golf01"));
 	levelNames.Add(TEXT("/Game/Levels/Golf01.Golf02"));
-	levelNames.Add(TEXT("/Game/Levels/Golf01.Golf03"));
+	levelNames.Add(TEXT("/Game/Levels/Golf01.Golf03"));*/
 }
 
 

@@ -198,8 +198,8 @@ public:
 
 	//savingMerge
 	void confirmLevelSelection();
-	void setLevelToOpen(FName name);
-	FName levelToOpen = TEXT("nn");
+	void setLevelToOpen(FString Name);
+	FString levelToOpen = TEXT("None");
 	ALevelSelecter* currentLevelSelecter = nullptr;
 
 	//animation control
