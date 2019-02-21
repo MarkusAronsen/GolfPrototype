@@ -29,7 +29,7 @@ void ALevelSelecter::BeginPlay()
 
 	if (LevelSelectWidget_BP)
 	{
-		LevelSelectWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), LevelSelectWidget_BP, FName(*levelName)	);
+		LevelSelectWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), LevelSelectWidget_BP, FName(*levelName));
 		if (LevelSelectWidget)
 		{
 			LevelSelectWidget->AddToViewport();
@@ -75,4 +75,9 @@ void ALevelSelecter::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor *
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING;
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->currentLevelSelecter = nullptr;
 	}
+}
+
+FName ALevelSelecter::getLevelName()
+{
+	return levelName;
 }

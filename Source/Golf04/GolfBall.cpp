@@ -197,8 +197,6 @@ void AGolfBall::Tick(float DeltaTime)
 		respawnAtCheckpointTick(DeltaTime);
 
 	animationControlTick(DeltaTime);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
 }
 
 
@@ -645,7 +643,6 @@ void AGolfBall::animationControlTick(float deltaTime)
 				flyingAnimTimer = 0.f;
 			}
 		}
-
 	}
 }
 

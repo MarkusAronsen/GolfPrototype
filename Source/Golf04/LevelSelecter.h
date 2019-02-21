@@ -54,5 +54,4 @@ public:
 	//Move to level data read/write class
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level performance")
 		int levelPerformance = 0;
-
 };
