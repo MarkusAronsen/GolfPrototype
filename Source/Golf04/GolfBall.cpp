@@ -138,7 +138,7 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
-		else if (LMBPressed)
+		else if (LMBPressed && canLaunch)
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 100.f)
@@ -194,15 +194,9 @@ void AGolfBall::Tick(float DeltaTime)
 	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 	if(LMBPressed)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
-
-	if (GEngine && LMBPressed)
-		GEngine->AddOnScreenDebugMessage(5, 1.0f, FColor::Yellow, TEXT("True"));
-
-	if (GEngine && !LMBPressed)
-		GEngine->AddOnScreenDebugMessage(6, 1.0f, FColor::Yellow, TEXT("False"));
 	
-	if (world)
-		drawDebugObjectsTick();
+	//if (world)
+		//drawDebugObjectsTick();
 	//debugMouse();
 
 	if(bRespawning)
@@ -429,13 +423,12 @@ void AGolfBall::DReleased()
 
 void AGolfBall::setLMBPressed()
 {
-	UE_LOG(LogTemp, Warning, TEXT("LMBPRESSED CALLED"));
-
 	LMBPressed = true;
 	switch (state)
 	{
 	case GOLF:
-		PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
+		if(canLaunch)
+			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
 
 		break;
 	case WALKING:
@@ -551,10 +544,10 @@ bool AGolfBall::lineTrace()
 
 	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
+		//GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
 		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(GetActorRotation().Yaw, lineTraceResults[0].ImpactNormal);
 		surfaceNormal = surfaceNormal.RotateAngleAxis(90.f, surfaceNormal.RightVector);
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
 	}
 	else if (lineTraceResults.Num() == 0)
 	{
@@ -749,8 +742,8 @@ void AGolfBall::debugMouse()
 {
 	debugMouseX = FString::SanitizeFloat(mouseX);
 	debugMouseY = FString::SanitizeFloat(572.f - mouseY);
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
+	//if (GEngine)
+		//GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
 }
 
 void AGolfBall::drawDebugObjectsTick()
