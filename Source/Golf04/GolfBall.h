@@ -174,6 +174,7 @@ public:
 	FCollisionQueryParams traceParams;
 	bool onGround = false;
 	FVector surfaceNormal;
+	float walkingDirection = 0.f;
 	bool onPlatform = false;
 	FVector platformOffset;
 
@@ -184,7 +185,7 @@ public:
 
 	float movementSpeed;
 	bool platformJump = false;
-	void movementTransformation(float walkingDirection, float DeltaTime);
+	void movementTransformation(float DeltaTime);
 
 
 	//Death and respawning
@@ -200,6 +201,17 @@ public:
 	void setLevelToOpen(FName name);
 	FName levelToOpen = TEXT("nn");
 	ALevelSelecter* currentLevelSelecter = nullptr;
+
+	//animation control
+	void animationControlTick(float DeltaTime);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool bFlyingAnimShouldPlay = false;
+
+	bool bRestartFlyingAnim = false;
+	float flyingAnimTimer = 0.f;
+
+	const float flyingAnimLength = 0.375f;
 
 	//Debug purposes
 	FString debugMouseX;

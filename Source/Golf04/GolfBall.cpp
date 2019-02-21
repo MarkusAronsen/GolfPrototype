@@ -56,7 +56,7 @@ AGolfBall::AGolfBall()
 	mMesh->SetSimulatePhysics(true);
 	mMesh->BodyInstance.bUseCCD = true;
 
-	mCollisionBox->SetSphereRadius(45.f);
+	mCollisionBox->SetSphereRadius(35.f);
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
 
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
@@ -153,8 +153,16 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
-		if(!onGround)
-			mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+		//if(!onGround)
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+
+		SetActorRotation(FMath::Lerp(
+			GetActorRotation(),
+			FRotator(surfaceNormal.Rotation().Pitch,
+				mController->GetControlRotation().Yaw + walkingDirection,
+				surfaceNormal.Rotation().Roll),
+			lerpTime * DeltaTime));
+
 		break;
 
 	case CLIMBING:
@@ -188,6 +196,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
+
+	animationControlTick(DeltaTime);
 
 	UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
 }
@@ -508,9 +518,10 @@ bool AGolfBall::sphereTrace()
 			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
 			FQuat::Identity,
 			ECC_Visibility,
-			mCollisionBox->GetCollisionShape());
+			mCollisionBox->GetCollisionShape(),
+			traceParams);
 
-	return hitResults.Num() > 2;
+	return hitResults.Num() > 0;
 }
 
 bool AGolfBall::lineTrace()
@@ -526,12 +537,16 @@ bool AGolfBall::lineTrace()
 
 	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetComponent()->GetReadableName());
-		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
-		surfaceNormal = surfaceNormal.RotateAngleAxis(GetActorRotation().Yaw, surfaceNormal.ForwardVector);
-		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + lineTraceResults[0].ImpactNormal * -200.f, FColor::Red, false, 0, (uint8)'\000', 6.f);
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
+		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(GetActorRotation().Yaw, lineTraceResults[0].ImpactNormal);
+		surfaceNormal = surfaceNormal.RotateAngleAxis(90.f, surfaceNormal.RightVector);
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
 	}
-
+	else if (lineTraceResults.Num() == 0)
+	{
+		//surfaceNormal = FVector(0.f, 0.f, 1.f).RotateAngleAxis(90.f, GetActorRightVector());
+		//surfaceNormal = surfaceNormal.RotateAngleAxis(GetActorRotation().Yaw, FVector(0.f, 0.f, 1.f));
+	}
 
 	return lineTraceResults.Num() > 0;
 }
@@ -541,13 +556,26 @@ void AGolfBall::tickWalking(float DeltaTime)
 	mMesh->SetWorldRotation(currentRotation);
 
 	if (WPressed)
-		movementTransformation(0.f, DeltaTime);
+	{ 
+		walkingDirection = 0.f;
+		movementTransformation(DeltaTime);
+	}
 	if (SPressed)
-		movementTransformation(180.f, DeltaTime);
+	{ 
+		walkingDirection = 180.f;
+		movementTransformation(DeltaTime);
+	}
+		
 	if (APressed)
-		movementTransformation(-90.f, DeltaTime);
+	{
+		walkingDirection = -90.f;
+		movementTransformation(DeltaTime);
+	}
 	if (DPressed)
-		movementTransformation(90.f, DeltaTime);
+	{
+		walkingDirection = 90.f;
+		movementTransformation(DeltaTime);
+	}
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
@@ -558,15 +586,15 @@ void AGolfBall::tickWalking(float DeltaTime)
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (onGround && hitResults[2].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
+	if (onGround && hitResults[0].GetActor()->GetHumanReadableName().Compare("movingPlatform") >= 0)
 	{
 		if(platformOffset.Size() < 2.f && !platformJump)
 		{
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+			platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
 			onPlatform = true;
 		}
 		if (platformOffset.Size() > 10.f && !platformJump)
-			SetActorLocation(hitResults[2].GetActor()->GetActorLocation() + platformOffset);
+			SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
 	}
 	else
 	{ 
@@ -576,31 +604,49 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 }
 
-void AGolfBall::movementTransformation(float walkingDirection, float DeltaTime)
+void AGolfBall::movementTransformation(float DeltaTime)
 {
 	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
-	mMesh->SetWorldRotation(FMath::Lerp(
-		GetActorRotation(),
-		FRotator(surfaceNormal.Rotation().Pitch,
-			mController->GetControlRotation().Yaw + walkingDirection,
-			surfaceNormal.Rotation().Roll),
-		lerpTime * DeltaTime));
 
 	mMesh->SetPhysicsLinearVelocity(FRotator(
-		surfaceNormal.Rotation().Pitch,
+		0.f,
 		mController->GetControlRotation().Yaw + walkingDirection, 
-		surfaceNormal.Rotation().Roll).Vector() * movementSpeed, true);
+		0.f).Vector() * movementSpeed, true);
 	
 	currentRotation = FMath::Lerp(
 		GetActorRotation(), 
 		FRotator(
-			surfaceNormal.Rotation().Pitch,
+			0.f,
 			mController->GetControlRotation().Yaw + walkingDirection,
-			surfaceNormal.Rotation().Roll),
+			0.f),
 		lerpTime * DeltaTime);
 
-	if (onPlatform && hitResults.Num() > 2)
-		platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+	if (onPlatform && onGround)
+		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+}
+
+void AGolfBall::animationControlTick(float deltaTime)
+{
+	if (state == FLYING)
+	{
+		if (bRestartFlyingAnim)
+		{
+			bRestartFlyingAnim = false;
+			bFlyingAnimShouldPlay = true;
+			flyingAnimTimer = 0.f;
+		}
+		if (bFlyingAnimShouldPlay)
+		{
+			flyingAnimTimer += deltaTime;
+			if (flyingAnimTimer >= flyingAnimLength)
+			{
+				bFlyingAnimShouldPlay = false;
+				flyingAnimTimer = 0.f;
+			}
+		}
+
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%S"), bFlyingAnimShouldPlay ? TEXT("True") : TEXT("False"));
 }
 
 void AGolfBall::respawnAtCheckpoint()

@@ -26,24 +26,53 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+		bool rotateNextAxisPeriodically;
+
+	float rotateTimer1 = 0.f;
+	int modeSwitch1 = 1;
+	float angle1 = 0.f;
+	float rotationSpeed1 = 30.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+		bool scaleUpAndDownPeriodically;
+
+	bool scaleUp2 = true;
+	float lerpAlpha2 = 0.f;
+	float XYScaleDown2 = 1.f;
+	float XYScaleUp2 = 2.f;
+	float scaleSpeed2 = 0.02f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scaling sequence")
+		float timeToScale2 = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateAllAxisPeriodically;
+
+	float rotateTimer3 = 0.f;
+	float angle3 = 0.f;
+	float rotationSpeed3 = 10.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateOneAxisConstantly;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool rotateNextAxisPeriodically;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool scaleUpAndDownPeriodically;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
-		bool translateUpAndDown;
+	float angle4 = 0.f;
+	float rotationSpeed4 = 20.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool translateBackAndForth;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scaling sequence")
-		float timeToScale = 0.f;
+	float translationSpeed5 = 0.5f;
+	float position5 = PI;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform range")
+		float rangeXY = 12.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+		bool translateUpAndDown;
+
+	float position6 = PI;
+	float translationSpeed6 = 0.2f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform range")
+		float rangeZ = 12.f;
 };
