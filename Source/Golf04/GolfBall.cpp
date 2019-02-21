@@ -22,14 +22,33 @@ AGolfBall::AGolfBall()
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character."));
+		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
+	
+/*#if WITH_EDITOR
+	static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(TEXT("/Game/Widgets/PowerBar"));
+	if (FoundPowerBarWidget.Succeeded())
+	{
+		PowerBarWidget = FoundPowerBarWidget.Object;
+		// LoadObject<UClass>(UUserWidget::StaticClass(), TEXT("/Game/Widgets/PowerBar.PowerBar"));
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find Power bar widget"));
+#endif
+
+#if !WITH_EDITOR
+		FString Path = FPaths::GameContentDir();
+		static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(*Path.Append(TEXT("/Game/Widgets/PowerBar.PowerBar")));
+		if (FoundPowerBarWidget.Succeeded())
+			PowerBarWidget = FoundPowerBarWidget.Object;
+#endif
+*/
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 
 	mMesh->SetLinearDamping(0.6f);
-	mMesh->SetAngularDamping(0.3f);
+	mMesh->SetAngularDamping(0.1f);
 
 	mMesh->BodyInstance.bEnableGravity = true;
 
@@ -39,6 +58,10 @@ AGolfBall::AGolfBall()
 	mCollisionBox->SetSphereRadius(45.f);
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
 
+	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
+	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
+
+	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
 
 // Called when the game starts or when spawned
@@ -47,13 +70,10 @@ void AGolfBall::BeginPlay()
 	Super::BeginPlay();
 
 	if (mCollisionBox)
-	{
 		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnOverlap);
-	}
+
 	else
-	{
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
-	}
 
 	if (PowerBarWidget_BP)
 	{
@@ -64,17 +84,32 @@ void AGolfBall::BeginPlay()
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
-
-	defaultViewSettings();
+	else
+		UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
 
 	walkMaxDuration = 30.f;
 	movementSpeed = 150.f;
 	world = GetWorld();
-	
 
-	state = WALKING;
+	state = GOLF;
+	golfInit();
+	GEngine->SetMaxFPS(60.f);
+	mMesh->SetEnableGravity(false);
 
-	debugV = FVector(1000.f, 0.f, 50.f);
+	mController = GetWorld()->GetFirstPlayerController();
+	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
+
+	traceParams.bFindInitialOverlaps = false;
+	traceParams.bIgnoreBlocks = false;
+	traceParams.bIgnoreTouches = true;
+	traceParams.bReturnFaceIndex = true;
+	traceParams.bReturnPhysicalMaterial = false;
+	traceParams.bTraceComplex = true;
+	traceParams.AddIgnoredActor(GetUniqueID());
+	traceParams.AddIgnoredComponent(mMesh);
+	traceParams.AddIgnoredComponent(mCollisionBox);
+
+	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
 // Called every frame
@@ -83,16 +118,19 @@ void AGolfBall::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	onGround = sphereTrace();
+	lineTrace();
 
 	switch (state)
 	{
 	case GOLF:
-
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		mouseCameraPitch();
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
 		else if (LMBPressed)
-			currentLaunchPower = currentLaunchPower + launchPowerIncrement;
+			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 100.f)
 			canLaunch = true;
@@ -101,27 +139,38 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case WALKING:
-
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		mouseCameraPitch();
 		mouseCameraYaw();
-		tickWalking();
+		tickWalking(DeltaTime);
 		break;
-	
-	case CLIMBING:
 
+	case CLIMBING:
+		if(mMesh->IsSimulatingPhysics())
+			mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		break;
 
 	case FLYING:
-		
+		lerpPerspective(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f), 2000.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+		applyForce(gravity);
+		updatePosition(DeltaTime);
+		break;
+
+	case LEVEL_SELECT:
+		topDownCamera->SetWorldLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 2500));
 		break;
 	};
 
-	if(world)
+	if (world)
 		drawDebugObjectsTick();
-	debugMouse();
+	//debugMouse();
 
-	DrawDebugLine(world, FVector(0.f, 0.f, 50.f), debugV, FColor::Red, true, 3.f, 100.f);
-	debugV = debugV.RotateAngleAxis(1.f, FVector(0.f, 0.f, 1.f));
+	if(bRespawning)
+		respawnAtCheckpointTick(DeltaTime);
 }
+
 
 // Called to bind functionality to input
 void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -130,68 +179,62 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::spacebarPressed);
 	InputComponent->BindAction("Left Shift", IE_Pressed, this, &AGolfBall::leftShiftPressed);
-	InputComponent->BindAction("W", IE_Pressed, this, &AGolfBall::setW);
-	InputComponent->BindAction("W", IE_Released, this, &AGolfBall::setW);
-	InputComponent->BindAction("A", IE_Pressed, this, &AGolfBall::setA);
-	InputComponent->BindAction("A", IE_Released, this, &AGolfBall::setA);
-	InputComponent->BindAction("S", IE_Pressed, this, &AGolfBall::setS);
-	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::setS);
-	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::setD);
-	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::setD);
+	InputComponent->BindAction("W", IE_Pressed, this, &AGolfBall::WClicked);
+	InputComponent->BindAction("W", IE_Released, this, &AGolfBall::WReleased);
+	InputComponent->BindAction("A", IE_Pressed, this, &AGolfBall::AClicked);
+	InputComponent->BindAction("A", IE_Released, this, &AGolfBall::AReleased);
+	InputComponent->BindAction("S", IE_Pressed, this, &AGolfBall::SClicked);
+	InputComponent->BindAction("S", IE_Released, this, &AGolfBall::SReleased);
+	InputComponent->BindAction("D", IE_Pressed, this, &AGolfBall::DClicked);
+	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::DReleased);
 	InputComponent->BindAction("ScrollUp", IE_Pressed, this, &AGolfBall::scrollUp);
 	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
+	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::printLoadedGame);
+	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
+	InputComponent->BindAction("Right Mouse Button", IE_Pressed, this, &AGolfBall::stopStrike);
 }
 
 void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(AGoal::StaticClass()))
-	{
-		UGameplayStatics::OpenLevel(GetWorld(), "GOFF2");
-	}
-	if (OtherActor->IsA(ALegsPUp::StaticClass()))
-	{
-
-		state = WALKING;
-		walkTimer = walkMaxDuration;
-		OtherActor->Destroy();
-	}
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		state = CLIMBING;
-		mMesh->SetSimulatePhysics(false);
-		world->GetFirstPlayerController()->bShowMouseCursor = true;
-		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
-		OActorForwardVector = OtherActor->GetActorForwardVector();
-		SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
-
-		mSpringArm->bInheritYaw = false;
-		mSpringArm->CameraLagSpeed = 5.f;
-		mSpringArm->SetRelativeRotation(GetActorRotation());
-		mSpringArm->TargetArmLength = 1500.f;
-		mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
-	}
-
-	if (OtherActor->IsA(AWingsPUp::StaticClass()))
-	{
-		state = FLYING;
-		mMesh->SetSimulatePhysics(false);
-		SetActorLocation(OtherActor->GetActorLocation());
-		SetActorRotation(OtherActor->GetActorRotation());
-
-		mSpringArm->bInheritYaw = false;
-		mSpringArm->SetRelativeRotation(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f));
-		mSpringArm->TargetArmLength = 2000.f;
-		mCamera->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
-		OtherActor->Destroy();
+		lerpTimer = 0.f;
+		climbingInit(OtherActor);
 	}
 }
 
-void AGolfBall::defaultViewSettings()
+void AGolfBall::levelInit()
+{
+	FString levelName = UGameplayStatics::GetCurrentLevelName(this);
+
+	if (levelName == "LevelSelect")
+	{
+		state = LEVEL_SELECT;
+	}
+	else if (levelName == "Golf1")
+	{
+		state = GOLF;
+	}
+	else if (levelName == "Walking1")
+	{
+		state = WALKING;
+	}
+	else if (levelName == "Climbing1")
+	{
+		state = CLIMBING;
+	}
+	else if (levelName == "Flying1")
+	{
+		state = FLYING;
+	}
+}
+
+void AGolfBall::golfInit()
 {
 	mSpringArm->TargetArmLength = 500.f;
 
@@ -206,11 +249,46 @@ void AGolfBall::defaultViewSettings()
 	mSpringArm->bInheritYaw = true;
 	mSpringArm->bInheritRoll = false;
 
-	mSpringArm->RelativeRotation = FRotator(-30.f, 0.f, 0.f);
-	mCamera->SetRelativeRotation(FRotator(15.f, 0, 0));
-
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
+
+	mMesh->SetSimulatePhysics(true);
+}
+
+void AGolfBall::climbingInit(AActor* OtherActor)
+{
+	state = CLIMBING;
+	mMesh->SetSimulatePhysics(false);
+	world->GetFirstPlayerController()->bShowMouseCursor = true;
+	SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
+	OActorForwardVector = OtherActor->GetActorForwardVector();
+	SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
+
+	mSpringArm->bInheritYaw = false;
+	mSpringArm->CameraLagSpeed = 5.f;
+}
+
+void AGolfBall::flyingInit(AActor *OtherActor)
+{
+	state = FLYING;
+	mMesh->SetSimulatePhysics(false);
+	SetActorLocation(OtherActor->GetActorLocation());
+	SetActorRotation(OtherActor->GetActorRotation());
+
+	position = OtherActor->GetActorLocation();
+
+	mSpringArm->bInheritYaw = false;
+}
+
+void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
+{
+	if (lerpTimer < 0.8f)
+	{
+		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, lerpTime * DeltaTime);
+		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, lerpTime * DeltaTime);
+		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, lerpTime * DeltaTime));
+		lerpTimer += DeltaTime;
+	}
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -225,39 +303,86 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() + FVector(0, 0, 1500), true);
+	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 3000), false);
+	if (onPlatform)
+		platformJump = true;
 }
 
-void AGolfBall::upForce()
+void AGolfBall::applyForce(FVector force)
 {
+	acceleration += force;
 }
 
+void AGolfBall::updatePosition(float DeltaTime)
+{
+	velocity += acceleration;
+
+	position += velocity;
+	position += FVector(GetActorForwardVector() * 700 * DeltaTime);
+	acceleration = FVector::ZeroVector;
+
+	SetActorLocation(position);
+}
+void AGolfBall::stopStrike()
+{
+	if (currentLaunchPower > 0.f)
+	{ 
+		LMBPressed = false;
+		currentLaunchPower = 0.f;
+
+		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+
+	}
+}
 void AGolfBall::spacebarPressed()
 {
 	if (state == FLYING)
-		upForce();
+	{
+		velocity = FVector::ZeroVector;
+		applyForce(FVector(0.f, 0.f, 30.f));
+	}
 	if (state == WALKING && onGround)
 		jump();
 }
 
-void AGolfBall::setW()
+void AGolfBall::WClicked()
 {
-	WPressed = !WPressed;
+	WPressed = true;
 }
 
-void AGolfBall::setA()
+void AGolfBall::WReleased()
 {
-	APressed = !APressed;
+	WPressed = false;
 }
 
-void AGolfBall::setS()
+void AGolfBall::AClicked()
 {
-	SPressed = !SPressed;
+	APressed = true;
 }
 
-void AGolfBall::setD()
+void AGolfBall::AReleased()
 {
-	DPressed = !DPressed;
+	APressed = false;
+}
+
+void AGolfBall::SClicked()
+{
+	SPressed = true;
+}
+
+void AGolfBall::SReleased()
+{
+	SPressed = false;
+}
+
+void AGolfBall::DClicked()
+{
+	DPressed = true;
+}
+
+void AGolfBall::DReleased()
+{
+	DPressed = false;
 }
 
 void AGolfBall::setLMBPressed()
@@ -267,6 +392,7 @@ void AGolfBall::setLMBPressed()
 	{
 	case GOLF:
 		PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
+
 		break;
 	case WALKING:
 		break;
@@ -288,7 +414,9 @@ void AGolfBall::setLMBReleased()
 	case GOLF:
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
 		currentLaunchPower = 0.f;
+
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+
 		break;
 	case WALKING:
 		break;
@@ -311,7 +439,7 @@ void AGolfBall::setLMBReleased()
 void AGolfBall::mouseCameraPitch()
 {
 	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
-	world->GetFirstPlayerController()->AddPitchInput(mouseY);
+	mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + mouseY, -10.f, 30.f);
 }
 
 void AGolfBall::mouseCameraYaw()
@@ -322,9 +450,20 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
-	if(!mMesh->IsSimulatingPhysics())
+	lerpTimer = 0.f;
+	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
-	defaultViewSettings();
+
+	else if (state == CLIMBING)
+	{
+		state = WALKING;
+		golfInit();
+	}
+	else if (state == WALKING)
+		state = GOLF;
+	else if (state == GOLF)
+		state = WALKING;
+
 
 	walkTimer = walkMaxDuration;
 }
@@ -352,52 +491,171 @@ bool AGolfBall::sphereTrace()
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape());
 
-
 	return hitResults.Num() > 2;
 }
 
-void AGolfBall::tickWalking()
+bool AGolfBall::lineTrace()
 {
-	mMesh->SetWorldRotation(GetControlRotation());
+	if (world && mMesh)
+		world->LineTraceMultiByChannel(
+			lineTraceResults,
+			GetActorLocation(),
+			GetActorLocation() + GetActorUpVector() * -200,
+			ECollisionChannel::ECC_Pawn,
+			traceParams,
+			FCollisionResponseParams::DefaultResponseParam);
 
-	if (onGround && (WPressed || APressed || SPressed || DPressed))
+	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		if (APressed)
-			ADirection = UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw - 90, 0));
-		if (DPressed)
-			DDirection = UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw + 90, 0));
-		if (SPressed)
-			SDirection = UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw, 0)) * -1;
-		if (WPressed)
-			WDirection = UKismetMathLibrary::GetForwardVector(FRotator(0, GetControlRotation().Yaw, 0));
-
-		FVector Direction = ADirection + DDirection + SDirection + WDirection;
-		Direction.Normalize();
-		Direction *= movementSpeed;
-
-		mMesh->SetPhysicsLinearVelocity(Direction, true);
-
-		ADirection = FVector::ZeroVector;
-		DDirection = FVector::ZeroVector;
-		SDirection = FVector::ZeroVector;
-		WDirection = FVector::ZeroVector;
-
-		if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
-			mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.9f);
-	}
-	else if (onGround)
-	{
-		FVector newVelocity = mMesh->GetPhysicsLinearVelocity();
-		mMesh->SetPhysicsLinearVelocity(FVector(newVelocity.X * 0.9f, newVelocity.Y * 0.9f, newVelocity.Z));
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetComponent()->GetReadableName());
+		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Red, false, 0, (uint8)'\000', 6.f);
 	}
 
+
+	return lineTraceResults.Num() > 0;
+}
+
+void AGolfBall::tickWalking(float DeltaTime)
+{
+	mMesh->SetWorldRotation(currentRotation);
+
+	if (WPressed)
+		movementTransformation(0.f, DeltaTime);
+	if (SPressed)
+		movementTransformation(180.f, DeltaTime);
+	if (APressed)
+		movementTransformation(-90.f, DeltaTime);
+	if (DPressed)
+		movementTransformation(90.f, DeltaTime);
+
+	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
+		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
+
+	if (onGround)
+		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
+	
+	if (platformJump)
+		platformJump = timerFunction(0.2f, DeltaTime);
+
+	if (onGround && hitResults[2].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
+	{
+		if(platformOffset.Size() < 2.f && !platformJump)
+		{
+			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+			onPlatform = true;
+		}
+		if (platformOffset.Size() > 10.f && !platformJump)
+			SetActorLocation(hitResults[2].GetActor()->GetActorLocation() + platformOffset);
+	}
+	else
+	{ 
+		onPlatform = false;
+		platformOffset = FVector::OneVector;
+	}
+
+}
+
+void AGolfBall::movementTransformation(float walkingDirection, float DeltaTime)
+{
+	mMesh->SetWorldRotation(FMath::Lerp(
+		GetActorRotation(),
+		FRotator(surfaceNormal.Rotation().Pitch,
+			mController->GetControlRotation().Yaw + walkingDirection,
+			surfaceNormal.Rotation().Roll),
+		lerpTime * DeltaTime));
+
+	mMesh->SetPhysicsLinearVelocity(FRotator(
+		surfaceNormal.Rotation().Pitch,
+		mController->GetControlRotation().Yaw + walkingDirection, 
+		surfaceNormal.Rotation().Roll).Vector() * movementSpeed, true);
+	
+	currentRotation = FMath::Lerp(
+		GetActorRotation(), 
+		FRotator(
+			surfaceNormal.Rotation().Pitch,
+			mController->GetControlRotation().Yaw + walkingDirection,
+			surfaceNormal.Rotation().Roll),
+		lerpTime * DeltaTime);
+
+	if (onPlatform && hitResults.Num() > 2)
+		platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+}
+
+void AGolfBall::respawnAtCheckpoint()
+{
+	UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+	if (UGameplayStatics::DoesSaveGameExist(LoadGameInstance->slotName, LoadGameInstance->userIndex))
+	{
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+		
+		int levelIndex = -1;
+
+		for (int i = 0; i < NUM_LEVELS; i++)
+		{
+			if (LoadGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::CaseSensitive) == 0)
+			{
+				levelIndex = i;
+			}
+		}
+
+		if (levelIndex != -1)
+		{
+			ACheckpoint* checkpoint = nullptr;
+			TArray<AActor*> checkpoints;
+			UGameplayStatics::GetAllActorsOfClass(this, ACheckpoint::StaticClass(), checkpoints);
+
+			for (int i = 0; i < checkpoints.Num(); i++)
+			{
+				if (LoadGameInstance->levelData[levelIndex].currentCheckpoint == Cast<ACheckpoint>(checkpoints[i])->checkpointIndex 
+					&& Cast<ACheckpoint>(checkpoints[i])->checkpointIndex != -1)
+				{
+					checkpoint = Cast<ACheckpoint>(checkpoints[i]);
+				}
+			}
+			if (checkpoint)
+			{
+				SpawnPosition = checkpoint->GetActorLocation();
+				//FActorSpawnParameters SpawnInfo;
+				//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+				//FVector SpawnPosition = checkpoint->GetActorLocation();
+				//GetWorld()->SpawnActor<AGolfBall>(SpawnPosition + FVector(0, 0, 250), FRotator::ZeroRotator, SpawnInfo);
+				bRespawning = true;
+				bStartRespawnCameraFade = true;
+			}
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
+
+
+
+		//PowerBarWidget->RemoveFromParent();
+		//PowerBarWidget_BP->RemoveFromRoot();
+	}
+}
+
+void AGolfBall::respawnAtCheckpointTick(float deltaTime)
+{
+	if (bStartRespawnCameraFade)
+	{
+		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(0.f, 2.f), cameraFadeTimer);
+		bStartRespawnCameraFade = false;
+	}
+	timeToCameraFadeEnd += deltaTime;
+	if (timeToCameraFadeEnd >= cameraFadeTimer)
+	{
+		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
+		bRespawning = false;
+		timeToCameraFadeEnd = 0.f;
+	}
 }
 
 void AGolfBall::debugMouse()
 {
 	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 	debugMouseX = FString::SanitizeFloat(mouseX);
-    debugMouseY = FString::SanitizeFloat(572.f - mouseY);
+	debugMouseY = FString::SanitizeFloat(572.f - mouseY);
 	if (GEngine)
 		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
 }
@@ -408,4 +666,45 @@ void AGolfBall::drawDebugObjectsTick()
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
 
+}
+
+bool AGolfBall::timerFunction(float timerLength, float DeltaTime)
+{
+	static float clock = 0.f;
+	clock += DeltaTime;
+
+	if (clock > timerLength)
+	{
+		clock = 0.f;
+		return false;
+	}
+	else
+		return true;
+}
+
+void AGolfBall::printLoadedGame()
+{
+	UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+	if (UGameplayStatics::DoesSaveGameExist(LoadGameInstance->slotName, LoadGameInstance->userIndex))
+	{
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+		for (int i = 0; i < NUM_LEVELS; i++)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Level with index %i and name %s has recorded level data:" 
+				"time elapsed(%f), -star rating(%i), current checkpoint(%i), level completed(%b)")
+				, 
+				i, 
+				*LoadGameInstance->levelData[i].levelName, 
+				LoadGameInstance->levelData[i].timeElapsed, 
+				LoadGameInstance->levelData[i].starRating, 
+				LoadGameInstance->levelData[i].currentCheckpoint,
+				LoadGameInstance->levelData[i].bLevelCompleted);
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
+	}
 }

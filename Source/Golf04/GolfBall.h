@@ -3,11 +3,13 @@
 #pragma once
 
 #include "ClimbObject.h"
-#include "SomersaultObject.h"
 #include "Goal.h"
-#include "LegsPUp.h"
-#include "WingsPUp.h"
+#include "GolfSaveGame.h"
+#include "Checkpoint.h"
+#include "GolfGameInstance.h"
+#include "TransformationObject.h"
 
+#include "Runtime/UMG/Public/UMG.h"
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/StaticMesh.h"
@@ -71,10 +73,10 @@ public:
 	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UMaterialInstanceDynamic* DynamicMaterialInst = nullptr;
 
-	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		UUserWidget* PowerBarWidget = nullptr;
 
-	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> PowerBarWidget_BP;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
@@ -95,19 +97,28 @@ public:
 		GOLF = 0,
 		WALKING = 1,
 		CLIMBING = 2,
-		FLYING = 3
+		FLYING = 3,
+		LEVEL_SELECT = 4
 	};
 	int state;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
-		float maxLaunchPower = 7000.f;
+		float maxLaunchPower = 10000.f;
 
-	void defaultViewSettings();
+	float cameraFadeTimer = 1.f;
+	UCameraComponent* topDownCamera;
+	AController* mController;
+
+	void levelInit();
+	void golfInit();
+	void climbingInit(AActor *OtherActor);
+	void flyingInit(AActor *OtherActor);
 
 	bool isCharging = false;
 	bool canLaunch = true;
-	float launchPowerIncrement = 45.f;
+	float launchPowerIncrement = 5000.f;
 	float mouseX;
 	float mouseY;
 	float frameX = 1206.f;
@@ -117,15 +128,27 @@ public:
 	FVector mousePositionReleased;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
+	FVector position;
+	FVector velocity;
+	FVector acceleration;
+	FVector gravity = FVector(0, 0, -1.5f);
+	FVector gravitation = FVector(0.f, 0.f, -400000.f);
 
 	void walkFunction(float deltaTime);
+	void tickWalking(float DeltaTime);
 	void jump();
-	void upForce();
+	void applyForce(FVector Force);
+	void updatePosition(float DeltaTime);
+	void stopStrike();
 
-	void setW();
-	void setA();
-	void setS();
-	void setD();
+	void WClicked();
+	void WReleased();
+	void AClicked();
+	void AReleased();
+	void SClicked();
+	void SReleased();
+	void DClicked();
+	void DReleased();
 	void spacebarPressed();
 	void setLMBPressed();
 	void setLMBReleased();
@@ -142,22 +165,39 @@ public:
 	bool LMBPressed = false;
 
 	bool sphereTrace();
+	bool lineTrace();
 	TArray<FHitResult> hitResults;
+	TArray<FHitResult> lineTraceResults;
+	FCollisionQueryParams traceParams;
 	bool onGround = false;
+	FVector surfaceNormal;
+	bool onPlatform = false;
+	FVector platformOffset;
 
-	void tickWalking();
-
-	FVector ADirection;
-	FVector DDirection;
-	FVector SDirection;
-	FVector WDirection;
+	void lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime);
+	float lerpTimer = 0.f;
+	float lerpTime = 5.f;
+	FRotator currentRotation;
 
 	float movementSpeed;
+	bool platformJump = false;
+	void movementTransformation(float walkingDirection, float DeltaTime);
+
+
+	//Death and respawning
+	void respawnAtCheckpoint();
+	void respawnAtCheckpointTick(float deltaTime);
+	FVector SpawnPosition;
+	bool bRespawning = false;
+	bool bStartRespawnCameraFade = false;
+	float timeToCameraFadeEnd = 0.f;
 
 	//Debug purposes
-	FVector debugV;
 	FString debugMouseX;
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
+	bool timerFunction(float timerLength, float DeltaTime);
+
+	void printLoadedGame();
 };

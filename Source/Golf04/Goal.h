@@ -3,10 +3,15 @@
 #pragma once
 
 #include "Components/SphereComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "GolfSaveGame.h"
+
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Goal.generated.h"
+
+class AGolfBall;
 
 UCLASS()
 class GOLF04_API AGoal : public AActor
@@ -33,4 +38,10 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 	
+	void saveLevelData();
+
+	int levelPerformance = 0;
+	float levelTimeElapsed;
+
+	FString levelName;
 };
