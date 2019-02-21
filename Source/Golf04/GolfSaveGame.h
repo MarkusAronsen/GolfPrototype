@@ -2,15 +2,14 @@
 
 #pragma once
 
+#include "Engine/GameEngine.h"
 #include "Golf04.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "GolfSaveGame.generated.h"
 
-/**
- * 
- */
+class AGolfSaveInstance;
 
 const int NUM_LEVELS = 3;
 
@@ -19,19 +18,19 @@ struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		FString levelName;
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int starRating;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		float timeElapsed;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int currentCheckpoint;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		bool bLevelCompleted;
 
 	FLevelData()
@@ -60,5 +59,7 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData() };
+
+	void initLevelNames();
 
 };

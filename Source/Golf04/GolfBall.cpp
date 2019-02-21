@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GolfBall.h"
+#include "LevelSelecter.h"
 
 
 
@@ -70,7 +71,7 @@ void AGolfBall::BeginPlay()
 	Super::BeginPlay();
 
 	if (mCollisionBox)
-		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnOverlap);
+		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnBeginOverlap);
 
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
@@ -98,6 +99,14 @@ void AGolfBall::BeginPlay()
 
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
+
+	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>
+		(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+	if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+	SaveGameInstance->initLevelNames();
 
 	traceParams.bFindInitialOverlaps = false;
 	traceParams.bIgnoreBlocks = false;
@@ -139,11 +148,12 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case WALKING:
-		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
+		if(!onGround)
+			mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		break;
 
 	case CLIMBING:
@@ -161,6 +171,14 @@ void AGolfBall::Tick(float DeltaTime)
 	case LEVEL_SELECT:
 		topDownCamera->SetWorldLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 2500));
 		break;
+
+	case AWAITING_LEVELSELECT_INPUT:
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+		lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		mouseCameraPitch();
+		mouseCameraYaw();
+		tickWalking(DeltaTime);
+		break;
 	};
 
 	if (world)
@@ -169,6 +187,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
 }
 
 
@@ -191,13 +211,14 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
 	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::printLoadedGame);
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
+	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
 	InputComponent->BindAction("Right Mouse Button", IE_Pressed, this, &AGolfBall::stopStrike);
 }
 
-void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
@@ -331,7 +352,6 @@ void AGolfBall::stopStrike()
 		currentLaunchPower = 0.f;
 
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-
 	}
 }
 void AGolfBall::spacebarPressed()
@@ -509,7 +529,8 @@ bool AGolfBall::lineTrace()
 	{
 		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetComponent()->GetReadableName());
 		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(90.f, FVector(0.f, 1.f, 0.f));
-		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Red, false, 0, (uint8)'\000', 6.f);
+		surfaceNormal = surfaceNormal.RotateAngleAxis(GetActorRotation().Yaw, surfaceNormal.ForwardVector);
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + lineTraceResults[0].ImpactNormal * -200.f, FColor::Red, false, 0, (uint8)'\000', 6.f);
 	}
 
 
@@ -558,6 +579,7 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 void AGolfBall::movementTransformation(float walkingDirection, float DeltaTime)
 {
+	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
 	mMesh->SetWorldRotation(FMath::Lerp(
 		GetActorRotation(),
 		FRotator(surfaceNormal.Rotation().Pitch,
@@ -649,6 +671,21 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 		bRespawning = false;
 		timeToCameraFadeEnd = 0.f;
 	}
+}
+
+void AGolfBall::confirmLevelSelection()
+{
+	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
+	{
+		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
+		UGameplayStatics::OpenLevel(GetWorld(), *levelToOpen.ToString());
+	}
+}
+
+void AGolfBall::setLevelToOpen(FName name)
+{
+	levelToOpen = name;
 }
 
 void AGolfBall::debugMouse()

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "LevelSelecter.h"
+
 #include "Blueprint/UserWidget.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
 
@@ -10,9 +12,6 @@
 #include "GolfGameInstance.generated.h"
 
 class AGolfBall;
-/**
- * 
- */
 UCLASS()
 class GOLF04_API UGolfGameInstance : public UGameInstance
 {
@@ -22,13 +21,7 @@ class GOLF04_API UGolfGameInstance : public UGameInstance
 	
 public:
 	
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-		//TSubclassOf<class UUserWidget> PowerBarWidget_BP;
+	UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = "Game Instance Data")
+		TArray<FString> levelNames;
 
-
-	//UUserWidget* PlayerPowerBarWidget = nullptr;
-
-	void initializeWidgets();
-
-	//bool bWidgetsInitialized = false;
 };
