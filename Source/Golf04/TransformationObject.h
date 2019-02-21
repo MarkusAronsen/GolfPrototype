@@ -28,6 +28,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateNextAxisPeriodically;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation interval")
+		float interval1 = 3.5f;
+
 	float rotateTimer1 = 0.f;
 	int modeSwitch1 = 1;
 	float angle1 = 0.f;
@@ -35,6 +38,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool scaleUpAndDownPeriodically;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation interval")
+		float interval2 = 3.f;
 
 	bool scaleUp2 = true;
 	float lerpAlpha2 = 0.f;
@@ -48,20 +54,29 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateAllAxisPeriodically;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation interval")
+		float interval3 = 20.f;
+
 	float rotateTimer3 = 0.f;
 	float angle3 = 0.f;
-	float rotationSpeed3 = 10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rotation speed")
+		float rotationSpeed3 = 10.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateOneAxisConstantly;
 
 	float angle4 = 0.f;
-	float rotationSpeed4 = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rotation speed")
+		float rotationSpeed4 = 20.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool translateBackAndForth;
 
-	float translationSpeed5 = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform speed")
+		float translationSpeed5 = 0.5f;
+
 	float position5 = PI;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform range")
@@ -70,8 +85,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool translateUpAndDown;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform speed")
+		float translationSpeed6 = 0.2f;
+
 	float position6 = PI;
-	float translationSpeed6 = 0.2f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform range")
 		float rangeZ = 12.f;

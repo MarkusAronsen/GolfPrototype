@@ -165,8 +165,9 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case CLIMBING:
+		world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 		if(mMesh->IsSimulatingPhysics())
-			mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+			mMesh->AddForce(gravitation/2 * DeltaTime, NAME_None, true);
 		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		break;
 
@@ -189,6 +190,17 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 	};
 
+	FVector debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
+	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+	if(LMBPressed)
+		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
+
+	if (GEngine && LMBPressed)
+		GEngine->AddOnScreenDebugMessage(5, 1.0f, FColor::Yellow, TEXT("True"));
+
+	if (GEngine && !LMBPressed)
+		GEngine->AddOnScreenDebugMessage(6, 1.0f, FColor::Yellow, TEXT("False"));
+	
 	if (world)
 		drawDebugObjectsTick();
 	//debugMouse();
@@ -197,8 +209,6 @@ void AGolfBall::Tick(float DeltaTime)
 		respawnAtCheckpointTick(DeltaTime);
 
 	animationControlTick(DeltaTime);
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
 }
 
 
@@ -267,6 +277,7 @@ void AGolfBall::levelInit()
 
 void AGolfBall::golfInit()
 {
+	lerpTimer = 0.f;
 	mSpringArm->TargetArmLength = 500.f;
 
 	mSpringArm->bEnableCameraLag = true;
@@ -291,6 +302,7 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	state = CLIMBING;
 	mMesh->SetSimulatePhysics(false);
 	world->GetFirstPlayerController()->bShowMouseCursor = true;
+	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
 	OActorForwardVector = OtherActor->GetActorForwardVector();
 	SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
@@ -356,7 +368,7 @@ void AGolfBall::updatePosition(float DeltaTime)
 }
 void AGolfBall::stopStrike()
 {
-	if (currentLaunchPower > 0.f)
+	if (currentLaunchPower > 0.f && state == GOLF)
 	{ 
 		LMBPressed = false;
 		currentLaunchPower = 0.f;
@@ -417,6 +429,8 @@ void AGolfBall::DReleased()
 
 void AGolfBall::setLMBPressed()
 {
+	UE_LOG(LogTemp, Warning, TEXT("LMBPRESSED CALLED"));
+
 	LMBPressed = true;
 	switch (state)
 	{
@@ -457,8 +471,7 @@ void AGolfBall::setLMBReleased()
 			mMesh->SetSimulatePhysics(true);
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + mousePositionReleased, FColor::Blue, true, 15.f);
-			mMesh->SetPhysicsLinearVelocity(mousePositionReleased * 5.f, false);
+			mMesh->SetPhysicsLinearVelocity(mousePositionReleased * 5, false);
 		}
 		break;
 	case FLYING:
@@ -647,7 +660,6 @@ void AGolfBall::animationControlTick(float deltaTime)
 		}
 
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%S"), bFlyingAnimShouldPlay ? TEXT("True") : TEXT("False"));
 }
 
 void AGolfBall::respawnAtCheckpoint()
@@ -736,7 +748,6 @@ void AGolfBall::setLevelToOpen(FName name)
 
 void AGolfBall::debugMouse()
 {
-	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 	debugMouseX = FString::SanitizeFloat(mouseX);
 	debugMouseY = FString::SanitizeFloat(572.f - mouseY);
 	if (GEngine)
