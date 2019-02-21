@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GolfBall.h"
-
+#include "LevelSelecter.h"
 
 
 // Sets default values
@@ -70,8 +70,8 @@ void AGolfBall::BeginPlay()
 	Super::BeginPlay();
 
 	if (mCollisionBox)
-		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnOverlap);
-
+		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnBeginOverlap);
+		
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
 
@@ -126,6 +126,11 @@ void AGolfBall::BeginPlay()
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
+	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+	if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
@@ -177,6 +182,15 @@ void AGolfBall::Tick(float DeltaTime)
 	case LEVEL_SELECT:
 		topDownCamera->SetWorldLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 2500));
 		break;
+
+	case AWAITING_LEVELSELECT_INPUT:
+
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		mouseCameraPitch();
+		mouseCameraYaw();
+		tickWalking(DeltaTime);
+		break;
 	};
 
 	if (world)
@@ -207,13 +221,14 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
 	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::printLoadedGame);
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
+	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
 	InputComponent->BindAction("Right Mouse Button", IE_Pressed, this, &AGolfBall::stopStrike);
 }
 
-void AGolfBall::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
@@ -345,12 +360,7 @@ void AGolfBall::stopStrike()
 		LMBPressed = false;
 		currentLaunchPower = 0.f;
 
-		//REPLACE__________________________________________________________________________________
-
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-		//Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-
-		//REPLACE__________________________________________________________________________________
 	}
 }
 void AGolfBall::spacebarPressed()
@@ -410,12 +420,7 @@ void AGolfBall::setLMBPressed()
 	switch (state)
 	{
 	case GOLF:
-		//REPLACE__________________________________________________________________________________
-
 		PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
-		//Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget->SetVisibility(ESlateVisibility::Visible);
-
-		//REPLACE__________________________________________________________________________________
 
 		break;
 	case WALKING:
@@ -438,13 +443,8 @@ void AGolfBall::setLMBReleased()
 	case GOLF:
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
 		currentLaunchPower = 0.f;
-		//REPLACE__________________________________________________________________________________
-
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-		//Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-
-		//REPLACE__________________________________________________________________________________
-
+		
 		break;
 	case WALKING:
 		break;
@@ -504,6 +504,22 @@ void AGolfBall::scrollDown()
 {
 	if (mSpringArm->TargetArmLength < 2000.f)
 		mSpringArm->TargetArmLength += 100.f;
+}
+
+void AGolfBall::confirmLevelSelection()
+{
+	UE_LOG(LogTemp, Warning, TEXT("currentLevelSelecter: %s, state = %i"), (currentLevelSelecter) ? TEXT("not null") : TEXT("null"), state);
+	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
+	{
+		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString())
+		UGameplayStatics::OpenLevel(GetWorld(), *levelToOpen.ToString());
+	}
+}
+
+void AGolfBall::setLevelToOpen(FName name)
+{
+	levelToOpen = name;
 }
 
 bool AGolfBall::sphereTrace()

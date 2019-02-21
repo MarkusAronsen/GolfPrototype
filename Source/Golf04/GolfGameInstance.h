@@ -4,6 +4,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
+#include "LevelSelecter.h"
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
@@ -22,7 +23,10 @@ class GOLF04_API UGolfGameInstance : public UGameInstance
 	
 public:
 	
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game instance data")
+	TArray<FString> levelNames;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")	
 		//TSubclassOf<class UUserWidget> PowerBarWidget_BP;
 
 

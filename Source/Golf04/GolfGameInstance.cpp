@@ -7,6 +7,11 @@ UGolfGameInstance::UGolfGameInstance(const FObjectInitializer & ObjectInitialize
 {
 	//if (!PowerBarWidget_BP)
 		//UE_LOG(LogTemp, Warning, TEXT("No awflnawfnwa"));
+
+	levelNames.Add(TEXT("Golf01"));
+	levelNames.Add(TEXT("Golf02"));
+	levelNames.Add(TEXT("Golf03"));
+
 }
 
 void UGolfGameInstance::initializeWidgets()

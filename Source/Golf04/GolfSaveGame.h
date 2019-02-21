@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Engine/GameEngine.h"
+#include "GolfGameInstance.h"
 #include "Golf04.h"
 
 #include "CoreMinimal.h"
@@ -19,19 +21,19 @@ struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level data")
 		FString levelName;
 	
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		int starRating;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float timeElapsed;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		int currentCheckpoint;
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		bool bLevelCompleted;
 
 	FLevelData()
