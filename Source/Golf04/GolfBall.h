@@ -101,13 +101,13 @@ public:
 		CLIMBING = 2,
 		FLYING = 3,
 		LEVEL_SELECT = 4,
-		AWAITING_LEVELSELECT_INPUT
+		AWAITING_LEVELSELECT_INPUT = 5
 	};
 	int state;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golf variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Golf variable")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float maxLaunchPower = 10000.f;
 
 	float cameraFadeTimer = 1.f;
@@ -160,11 +160,6 @@ public:
 	void leftShiftPressed();
 	void scrollUp();
 	void scrollDown();
-	
-	void confirmLevelSelection();
-	void setLevelToOpen(FName name);
-	FName levelToOpen;
-	ALevelSelecter* currentLevelSelecter = nullptr;
 
 	bool WPressed = false;
 	bool APressed = false;
@@ -173,8 +168,13 @@ public:
 	bool LMBPressed = false;
 
 	bool sphereTrace();
+	bool lineTrace();
 	TArray<FHitResult> hitResults;
+	TArray<FHitResult> lineTraceResults;
+	FCollisionQueryParams traceParams;
 	bool onGround = false;
+	FVector surfaceNormal;
+	float walkingDirection = 0.f;
 	bool onPlatform = false;
 	FVector platformOffset;
 
@@ -184,6 +184,8 @@ public:
 	FRotator currentRotation;
 
 	float movementSpeed;
+	bool platformJump = false;
+	void movementTransformation(float DeltaTime);
 
 
 	//Death and respawning
@@ -194,11 +196,29 @@ public:
 	bool bStartRespawnCameraFade = false;
 	float timeToCameraFadeEnd = 0.f;
 
+	//savingMerge
+	void confirmLevelSelection();
+	void setLevelToOpen(FString Name);
+	FString levelToOpen = TEXT("None");
+	ALevelSelecter* currentLevelSelecter = nullptr;
+
+	//animation control
+	void animationControlTick(float DeltaTime);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool bFlyingAnimShouldPlay = false;
+
+	bool bRestartFlyingAnim = false;
+	float flyingAnimTimer = 0.f;
+
+	const float flyingAnimLength = 0.375f;
+
 	//Debug purposes
 	FString debugMouseX;
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
+	bool timerFunction(float timerLength, float DeltaTime);
 
 	void printLoadedGame();
 };

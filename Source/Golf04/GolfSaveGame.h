@@ -3,37 +3,34 @@
 #pragma once
 
 #include "Engine/GameEngine.h"
-#include "GolfGameInstance.h"
 #include "Golf04.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
 #include "GolfSaveGame.generated.h"
 
-/**
- * 
- */
+//class AGolfSaveInstance;
 
-const int NUM_LEVELS = 3;
+const int NUM_LEVELS = 5;
 
 USTRUCT(BlueprintType)
 struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level data")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		FString levelName;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int starRating;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		float timeElapsed;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int currentCheckpoint;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		bool bLevelCompleted;
 
 	FLevelData()
@@ -61,6 +58,8 @@ public:
 		int userIndex;
 
 	UPROPERTY(BlueprintReadOnly)
-		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData() };
+		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData(), FLevelData(), FLevelData() };
+
+	//void initLevelNames();
 
 };

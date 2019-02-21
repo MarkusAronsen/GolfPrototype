@@ -4,6 +4,7 @@
 #include "LevelSelecter.h"
 
 
+
 // Sets default values
 AGolfBall::AGolfBall()
 {
@@ -55,7 +56,7 @@ AGolfBall::AGolfBall()
 	mMesh->SetSimulatePhysics(true);
 	mMesh->BodyInstance.bUseCCD = true;
 
-	mCollisionBox->SetSphereRadius(45.f);
+	mCollisionBox->SetSphereRadius(35.f);
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
 
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
@@ -71,37 +72,10 @@ void AGolfBall::BeginPlay()
 
 	if (mCollisionBox)
 		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnBeginOverlap);
-		
+
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Player character no collision box"));
 
-	/*if (!Cast<UGolfGameInstance>(GetGameInstance())->bWidgetsInitialized)
-	{
-		if (PowerBarWidget_BP)
-		{
-			PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
-			if (PowerBarWidget)
-			{
-				PowerBarWidget->AddToViewport();
-				PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
-		}
-
-		Cast<UGolfGameInstance>(GetGameInstance())->PlayerPowerBarWidget = PowerBarWidget;
-		Cast<UGolfGameInstance>(GetGameInstance())->initializeWidgets();
-		Cast<UGolfGameInstance>(GetGameInstance())->bWidgetsInitialized = true;
-
-		UE_LOG(LogTemp, Warning, TEXT("Widgets initialized"));
-	}*/
-
-	/*if (!Cast<UGolfGameInstance>(GetGameInstance())->PowerBarWidget_BP)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Game instance no power bar widget"));
-	}*/
 	if (PowerBarWidget_BP)
 	{
 		PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
@@ -126,10 +100,23 @@ void AGolfBall::BeginPlay()
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
-	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>
+		(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
 
 	if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
 		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+	//SaveGameInstance->initLevelNames();
+
+	traceParams.bFindInitialOverlaps = false;
+	traceParams.bIgnoreBlocks = false;
+	traceParams.bIgnoreTouches = true;
+	traceParams.bReturnFaceIndex = true;
+	traceParams.bReturnPhysicalMaterial = false;
+	traceParams.bTraceComplex = true;
+	traceParams.AddIgnoredActor(GetUniqueID());
+	traceParams.AddIgnoredComponent(mMesh);
+	traceParams.AddIgnoredComponent(mCollisionBox);
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
@@ -140,6 +127,7 @@ void AGolfBall::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	onGround = sphereTrace();
+	lineTrace();
 
 	switch (state)
 	{
@@ -160,11 +148,20 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case WALKING:
-		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
+		//if(!onGround)
+		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
+
+		SetActorRotation(FMath::Lerp(
+			GetActorRotation(),
+			FRotator(surfaceNormal.Rotation().Pitch,
+				mController->GetControlRotation().Yaw + walkingDirection,
+				surfaceNormal.Rotation().Roll),
+			lerpTime * DeltaTime));
+
 		break;
 
 	case CLIMBING:
@@ -184,9 +181,8 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case AWAITING_LEVELSELECT_INPUT:
-
 		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
-		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
@@ -195,10 +191,14 @@ void AGolfBall::Tick(float DeltaTime)
 
 	if (world)
 		drawDebugObjectsTick();
-	debugMouse();
+	//debugMouse();
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
+
+	animationControlTick(DeltaTime);
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString());
 }
 
 
@@ -335,7 +335,8 @@ void AGolfBall::walkFunction(float deltaTime)
 void AGolfBall::jump()
 {
 	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 3000), false);
-	onPlatform = false;
+	if (onPlatform)
+		platformJump = true;
 }
 
 void AGolfBall::applyForce(FVector force)
@@ -443,8 +444,9 @@ void AGolfBall::setLMBReleased()
 	case GOLF:
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
 		currentLaunchPower = 0.f;
+
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-		
+
 		break;
 	case WALKING:
 		break;
@@ -481,6 +483,7 @@ void AGolfBall::leftShiftPressed()
 	lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
+
 	else if (state == CLIMBING)
 	{
 		state = WALKING;
@@ -490,6 +493,7 @@ void AGolfBall::leftShiftPressed()
 		state = GOLF;
 	else if (state == GOLF)
 		state = WALKING;
+
 
 	walkTimer = walkMaxDuration;
 }
@@ -506,22 +510,6 @@ void AGolfBall::scrollDown()
 		mSpringArm->TargetArmLength += 100.f;
 }
 
-void AGolfBall::confirmLevelSelection()
-{
-	UE_LOG(LogTemp, Warning, TEXT("currentLevelSelecter: %s, state = %i"), (currentLevelSelecter) ? TEXT("not null") : TEXT("null"), state);
-	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
-	{
-		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen.ToString())
-		UGameplayStatics::OpenLevel(GetWorld(), *levelToOpen.ToString());
-	}
-}
-
-void AGolfBall::setLevelToOpen(FName name)
-{
-	levelToOpen = name;
-}
-
 bool AGolfBall::sphereTrace()
 {
 	if (world && mMesh)
@@ -531,9 +519,37 @@ bool AGolfBall::sphereTrace()
 			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
 			FQuat::Identity,
 			ECC_Visibility,
-			mCollisionBox->GetCollisionShape());
+			mCollisionBox->GetCollisionShape(),
+			traceParams);
 
-	return hitResults.Num() > 2;
+	return hitResults.Num() > 0;
+}
+
+bool AGolfBall::lineTrace()
+{
+	if (world && mMesh)
+		world->LineTraceMultiByChannel(
+			lineTraceResults,
+			GetActorLocation(),
+			GetActorLocation() + GetActorUpVector() * -200,
+			ECollisionChannel::ECC_Pawn,
+			traceParams,
+			FCollisionResponseParams::DefaultResponseParam);
+
+	if (GEngine && lineTraceResults.Num() > 0)
+	{
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
+		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(GetActorRotation().Yaw, lineTraceResults[0].ImpactNormal);
+		surfaceNormal = surfaceNormal.RotateAngleAxis(90.f, surfaceNormal.RightVector);
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+	}
+	else if (lineTraceResults.Num() == 0)
+	{
+		//surfaceNormal = FVector(0.f, 0.f, 1.f).RotateAngleAxis(90.f, GetActorRightVector());
+		//surfaceNormal = surfaceNormal.RotateAngleAxis(GetActorRotation().Yaw, FVector(0.f, 0.f, 1.f));
+	}
+
+	return lineTraceResults.Num() > 0;
 }
 
 void AGolfBall::tickWalking(float DeltaTime)
@@ -541,36 +557,25 @@ void AGolfBall::tickWalking(float DeltaTime)
 	mMesh->SetWorldRotation(currentRotation);
 
 	if (WPressed)
-	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw, 0.f), lerpTime * DeltaTime);
-		if(onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+	{ 
+		walkingDirection = 0.f;
+		movementTransformation(DeltaTime);
 	}
 	if (SPressed)
-	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 180.f, 0.f), lerpTime * DeltaTime);
-		if (onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+	{ 
+		walkingDirection = 180.f;
+		movementTransformation(DeltaTime);
 	}
+		
 	if (APressed)
 	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw - 90.f, 0.f), lerpTime * DeltaTime);
-		if (onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+		walkingDirection = -90.f;
+		movementTransformation(DeltaTime);
 	}
 	if (DPressed)
 	{
-		mMesh->SetWorldRotation(FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime));
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f).Vector() * movementSpeed, true);
-		currentRotation = FMath::Lerp(GetActorRotation(), FRotator(0.f, mController->GetControlRotation().Yaw + 90.f, 0.f), lerpTime * DeltaTime);
-		if (onPlatform && hitResults.Num() > 2)
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+		walkingDirection = 90.f;
+		movementTransformation(DeltaTime);
 	}
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
@@ -578,16 +583,19 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 	if (onGround)
 		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
+	
+	if (platformJump)
+		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (onGround && hitResults.Num() > 2 && hitResults[2].GetActor()->GetHumanReadableName().Compare("TransformationObject") > 0)
+	if (onGround && hitResults[0].GetActor()->GetHumanReadableName().Compare("movingPlatform") >= 0)
 	{
-		if(platformOffset.Size() < 2.f)
+		if(platformOffset.Size() < 2.f && !platformJump)
 		{
-			platformOffset = GetActorLocation() - hitResults[2].GetActor()->GetActorLocation();
+			platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
 			onPlatform = true;
 		}
-		if(platformOffset.Size() > 10.f)
-			SetActorLocation(hitResults[2].GetActor()->GetActorLocation() + platformOffset);
+		if (platformOffset.Size() > 10.f && !platformJump)
+			SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
 	}
 	else
 	{ 
@@ -595,6 +603,50 @@ void AGolfBall::tickWalking(float DeltaTime)
 		platformOffset = FVector::OneVector;
 	}
 
+}
+
+void AGolfBall::movementTransformation(float DeltaTime)
+{
+	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
+
+	mMesh->SetPhysicsLinearVelocity(FRotator(
+		0.f,
+		mController->GetControlRotation().Yaw + walkingDirection, 
+		0.f).Vector() * movementSpeed, true);
+	
+	currentRotation = FMath::Lerp(
+		GetActorRotation(), 
+		FRotator(
+			0.f,
+			mController->GetControlRotation().Yaw + walkingDirection,
+			0.f),
+		lerpTime * DeltaTime);
+
+	if (onPlatform && onGround)
+		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+}
+
+void AGolfBall::animationControlTick(float deltaTime)
+{
+	if (state == FLYING)
+	{
+		if (bRestartFlyingAnim)
+		{
+			bRestartFlyingAnim = false;
+			bFlyingAnimShouldPlay = true;
+			flyingAnimTimer = 0.f;
+		}
+		if (bFlyingAnimShouldPlay)
+		{
+			flyingAnimTimer += deltaTime;
+			if (flyingAnimTimer >= flyingAnimLength)
+			{
+				bFlyingAnimShouldPlay = false;
+				flyingAnimTimer = 0.f;
+			}
+		}
+
+	}
 }
 
 void AGolfBall::respawnAtCheckpoint()
@@ -666,6 +718,21 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	}
 }
 
+void AGolfBall::confirmLevelSelection()
+{
+	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
+	{
+		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen);
+		//UGameplayStatics::OpenLevel(this, FName(*levelToOpen));
+	}
+}
+
+void AGolfBall::setLevelToOpen(FString Name)
+{
+	levelToOpen = Name;
+}
+
 void AGolfBall::debugMouse()
 {
 	world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
@@ -681,6 +748,20 @@ void AGolfBall::drawDebugObjectsTick()
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
 
+}
+
+bool AGolfBall::timerFunction(float timerLength, float DeltaTime)
+{
+	static float clock = 0.f;
+	clock += DeltaTime;
+
+	if (clock > timerLength)
+	{
+		clock = 0.f;
+		return false;
+	}
+	else
+		return true;
 }
 
 void AGolfBall::printLoadedGame()

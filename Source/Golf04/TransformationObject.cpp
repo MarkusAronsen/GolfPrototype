@@ -25,47 +25,39 @@ void ATransformationObject::Tick(float DeltaTime)
 
 	if (rotateNextAxisPeriodically)
 	{
-		static float rotateTimer = 0.f;
-		static int modeSwitch = 1;
-		static float angle = 0.f;
-		static float rotationSpeed = 10.f;
+		rotateTimer1 += DeltaTime;
 
-		rotateTimer += DeltaTime;
-
-		if (rotateTimer >= 3.5f)
+		if (rotateTimer1 >= 3.5f)
 		{
-			angle += DeltaTime * rotationSpeed;
+			angle1 += DeltaTime * rotationSpeed1;
 
-			switch (modeSwitch)
+			switch (modeSwitch1)
 			{
 			case 1:
-				SetActorRotation(FRotator(0, 0, angle));
-				angle += DeltaTime * rotationSpeed;
-				if (angle > 90.f)
+				AddActorLocalRotation(FRotator(0, 0, DeltaTime * rotationSpeed1));
+				if (angle1 > 90.f)
 				{
-					angle = 0.f;
-					rotateTimer = 0.f;
-					modeSwitch = 2;
+					angle1 = 0.f;
+					rotateTimer1 = 0.f;
+					modeSwitch1 = 2;
 				}
 				break;
 			case 2:
-				SetActorRotation(FRotator(0, angle, 0));
-				angle += DeltaTime * rotationSpeed;
-				if (angle > 90.f)
+				AddActorLocalRotation(FRotator(0, DeltaTime * rotationSpeed1, 0));
+				if (angle1 > 90.f)
 				{
-					angle = 0.f;
-					rotateTimer = 0.f;
-					modeSwitch = 3;
+					angle1 = 0.f;
+					rotateTimer1 = 0.f;
+					modeSwitch1 = 3;
 				}
 				break;
 			case 3:
-				SetActorRotation(FRotator(angle, 0, 0));
-				angle += DeltaTime * rotationSpeed;
-				if (angle > 90.f)
+				AddActorLocalRotation(FRotator(DeltaTime * rotationSpeed1, 0, 0));
+				if (angle1 > 90.f)
 				{
-					angle = 0.f;
-					rotateTimer = 0.f;
-					modeSwitch = 1;
+					angle1 = 0.f;
+					rotateTimer1 = 0.f;
+					modeSwitch1 = 1;
 				}
 				break;
 			}
@@ -74,95 +66,74 @@ void ATransformationObject::Tick(float DeltaTime)
 
 	if (scaleUpAndDownPeriodically)
 	{
-		static float timeToScale = 0.f;
-		static bool scaleUp = true;
-		static float scaleXY = 0.f;
-		static float scaleZ = 0.f;
-		static float scaleSpeed = 10.f;
+		timeToScale2 += DeltaTime * 0.2f;
 
-		timeToScale += DeltaTime;
-
-		if (timeToScale > 3.f && scaleUp)
+		if (timeToScale2 > 3.f && scaleUp2)
 		{
-			SetActorScale3D(FVector(scaleXY, scaleXY, scaleZ));
-			scaleZ += DeltaTime * scaleSpeed * 0.5f;
-			scaleXY += DeltaTime * scaleSpeed;
-			if (scaleZ > 2.f)
+			SetActorScale3D(FMath::Lerp(FVector(XYScaleDown2, XYScaleDown2, 1.f), FVector(XYScaleUp2, XYScaleUp2, 1.f), lerpAlpha2));
+			lerpAlpha2 += DeltaTime * scaleSpeed2;
+			if (lerpAlpha2 >= 1.f)
 			{
-				scaleUp = false;
-				timeToScale = 0.f;
+				scaleUp2 = false;
+				timeToScale2 = 0.f;
+				lerpAlpha2 = 0.f;
 			}
 		}
 
-		else if (timeToScale > 3.f && !scaleUp)
+		else if (timeToScale2 > 3.f && !scaleUp2)
 		{
-			SetActorScale3D(FVector(scaleXY, scaleXY, scaleZ));
-			scaleZ -= DeltaTime * scaleSpeed * 0.5f;
-			scaleXY -= DeltaTime * scaleSpeed;
-			if (scaleZ < 1.f)
+			SetActorScale3D(FMath::Lerp(FVector(XYScaleUp2, XYScaleUp2, 1.f), FVector(XYScaleDown2, XYScaleDown2, 1.f), lerpAlpha2));
+			lerpAlpha2 += DeltaTime * scaleSpeed2;
+			if (lerpAlpha2 >= 1.f)
 			{
-				scaleUp = true;
-				timeToScale = 0.f;
+				scaleUp2 = true;
+				timeToScale2 = 0.f;
+				lerpAlpha2 = 0.f;
 			}
 		}
 	}
 	
 	if (rotateAllAxisPeriodically)
 	{
-		static float rotateTimer = 0.f;
-		static float angle = 0.f;
-		static float rotationSpeed = 1.f;
-		static int rotationCount = 0;
+		rotateTimer3 += DeltaTime;
+		AddActorLocalRotation(FRotator(DeltaTime * rotationSpeed3, DeltaTime * rotationSpeed3, DeltaTime * rotationSpeed3));
 
-		rotateTimer += DeltaTime;
-
-		SetActorRotation(LockedRotation + FRotator(angle, angle, angle));
-
-		if (rotateTimer >= 3.5f)
+		if (rotateTimer3 >= 20.f)
 		{
-			angle += DeltaTime * rotationSpeed;
-			if (angle > 90.f)
+			angle3 += DeltaTime * rotationSpeed3;
+			if (angle3 > 90.f)
 			{
-				rotationCount++;
-				angle = 0.f;
-				rotateTimer = 0.f;
-				LockedRotation = FRotator(90.f * rotationCount, 90.f * rotationCount, 90.f * rotationCount);
+				angle3 = 0.f;
+				rotateTimer3 = 0.f;
 			}
 		}
 	}
 
 	if (rotateOneAxisConstantly)
 	{
-		static float angle = 0.f;
-		static float rotationSpeed = 10.f;
-
-		SetActorRotation(FRotator(0.f, 0.f, angle));
-		angle += DeltaTime * rotationSpeed;
-		if (angle > 360.f)
-			angle = 1.f;
+		AddActorLocalRotation(FRotator(0.f, 0.f, DeltaTime * rotationSpeed4));
+		angle4 += DeltaTime * rotationSpeed4;
+		if (angle4 > 360.f)
+			angle4 = 1.f;
 	}
 
 	if (translateBackAndForth)
 	{
-		static float translationSpeed = 1.f;
-
-		SetActorLocation(GetActorLocation() + GetActorForwardVector() * sin(position) * 6);
-		position += DeltaTime * translationSpeed;
-		if (position > 2 * PI + PI)
+		AddActorWorldOffset(GetActorForwardVector() * sin(position5) * rangeXY);
+		position5 += DeltaTime * translationSpeed5;
+		if (position5 > 2 * PI + PI)
 		{
-			position = PI;
+			position5 = PI;
 		}
 	}
+	
 	if (translateUpAndDown)
 	{
-		static float position = PI;
-		static float translationSpeed = 0.2f;
-
-		SetActorLocation(GetActorLocation() + GetActorUpVector() * sin(position) * 4);
-		position += DeltaTime * translationSpeed;
-		if (position > 2 * PI + PI)
+		AddActorWorldOffset(GetActorUpVector() * sin(position6) * rangeZ);
+		position6 += DeltaTime * translationSpeed6;
+		if (position6 > 2 * PI + PI)
 		{
-			position = PI;
+			position6 = PI;
 		}
 	}
 }

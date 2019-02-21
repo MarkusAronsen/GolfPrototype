@@ -13,8 +13,8 @@ UCLASS()
 class GOLF04_API ALevelSelecter : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ALevelSelecter();
 
@@ -22,7 +22,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -40,11 +40,11 @@ public:
 		class USphereComponent* mCollisionBox = nullptr;
 
 	UPROPERTY(EditAnywhere, BluePrintReadOnly, Category = "Level Name")
-		FName levelName;
+		FString levelName;
 
 	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
 		UUserWidget* LevelSelectWidget = nullptr;
-	
+
 	UPROPERTY(Category = "Widget", EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<class UUserWidget> LevelSelectWidget_BP;
 
@@ -55,7 +55,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Level performance")
 		int levelPerformance = 0;
 
-
-	UFUNCTION(BlueprintCallable, Category = "Widget data")
-		FName getLevelName();
 };
