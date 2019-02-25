@@ -19,11 +19,23 @@ AGolfBall::AGolfBall()
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"), true);
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
+	
+	#if WITH_EDITOR
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
+	#endif
+
+	#if !WITH_EDITOR
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
+	if (FoundMesh.Succeeded())
+		mMesh->SetStaticMesh(FoundMesh.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
+	#endif
 	
 /*#if WITH_EDITOR
 	static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(TEXT("/Game/Widgets/PowerBar"));
@@ -376,6 +388,7 @@ void AGolfBall::spacebarPressed()
 	{
 		velocity = FVector::ZeroVector;
 		applyForce(FVector(0.f, 0.f, 30.f));
+		bRestartFlyingAnim = true;
 	}
 	if (state == WALKING && onGround)
 		jump();
@@ -688,10 +701,14 @@ void AGolfBall::respawnAtCheckpoint()
 			if (checkpoint)
 			{
 				SpawnPosition = checkpoint->GetActorLocation();
-				//FActorSpawnParameters SpawnInfo;
-				//SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-				//FVector SpawnPosition = checkpoint->GetActorLocation();
-				//GetWorld()->SpawnActor<AGolfBall>(SpawnPosition + FVector(0, 0, 250), FRotator::ZeroRotator, SpawnInfo);
+				bRespawning = true;
+				bStartRespawnCameraFade = true;
+			}
+			if (!checkpoint)
+			{
+				TArray<AActor*> PlayerStart;
+				UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStart);
+				SpawnPosition = PlayerStart[0]->GetActorLocation();
 				bRespawning = true;
 				bStartRespawnCameraFade = true;
 			}
@@ -716,6 +733,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	timeToCameraFadeEnd += deltaTime;
 	if (timeToCameraFadeEnd >= cameraFadeTimer)
 	{
+		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
 		bRespawning = false;
