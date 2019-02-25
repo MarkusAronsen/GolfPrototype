@@ -235,12 +235,14 @@ public:
 	bool bCameraShouldPan;
 	void cameraPanTick();
 
-	//Debug purposes
+	//Debug and misc
 	FString debugMouseX;
 	FString debugMouseY;
 	void debugMouse();
 	void drawDebugObjectsTick();
 	bool timerFunction(float timerLength, float DeltaTime);
-
+	
 	void printLoadedGame();
+
+	void setMeshVisibility();
 };

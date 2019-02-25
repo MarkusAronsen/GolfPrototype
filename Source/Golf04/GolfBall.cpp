@@ -90,6 +90,8 @@ AGolfBall::AGolfBall()
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 	mWingsMeshRight->SetupAttachment(mMesh);
 
+	mWingsMeshLeft->SetVisibility(false);
+	mWingsMeshRight->SetVisibility(false);
 	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP->);
 
 	//mWingsMeshLeft->AnimationBlueprint_DEPRECATED = FlyingAnim_BP;
@@ -346,6 +348,8 @@ void AGolfBall::golfInit()
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 
 	mMesh->SetSimulatePhysics(true);
+
+	setMeshVisibility();
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -360,6 +364,8 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
+
+	setMeshVisibility();
 }
 
 void AGolfBall::flyingInit(AActor *OtherActor)
@@ -372,6 +378,8 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	position = OtherActor->GetActorLocation();
 
 	mSpringArm->bInheritYaw = false;
+
+	setMeshVisibility();
 }
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
@@ -860,5 +868,38 @@ void AGolfBall::printLoadedGame()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
+	}
+}
+
+void AGolfBall::setMeshVisibility()
+{
+	switch (state)
+	{
+	case GOLF:
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
+		//mArmsMesh->SetVisibility(false);
+		break;
+	case WALKING:
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//mLegsMesh->SetVisibility(true);
+		//mArmsMesh->SetVisibility(false);
+		break;
+	case CLIMBING:
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
+		//mArmsMesh->SetVisibility(true);
+		break;
+	case FLYING:
+		mWingsMeshLeft->SetVisibility(true);
+		mWingsMeshRight->SetVisibility(true);
+		//mLegsMesh->SetVisibility(false);
+		//mArmsMesh->SetVisibility(false);
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("Set mesh visibility failed"));
 	}
 }
