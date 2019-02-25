@@ -19,24 +19,48 @@ AGolfBall::AGolfBall()
 	mCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"), true);
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
+
+	mWingsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMesh"), true);
+	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
+	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	
-	#if WITH_EDITOR
+#if WITH_EDITOR
+	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
-	#endif
 
-	#if !WITH_EDITOR
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWings(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	if (FoundWings.Succeeded())
+		mWingsMesh->SetSkeletalMesh(FoundWings.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
+		/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+		if (FoundLegs.Succeeded())
+			mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
+
+		static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+		if (FoundArms.Succeeded())
+			mArmsMesh->SetSkeletalMesh(FoundArms.Object);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
+
+#endif
+
+#if !WITH_EDITOR
+
+	FString Path = FPaths::GameContentDir();
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(*Path.Append(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball")));
+
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
-	#endif
-	
+#endif
+
 /*#if WITH_EDITOR
 	static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(TEXT("/Game/Widgets/PowerBar"));
 	if (FoundPowerBarWidget.Succeeded())
@@ -59,6 +83,9 @@ AGolfBall::AGolfBall()
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
+	mWingsMesh->SetupAttachment(mMesh);
+
+	//mWingsMesh->SetAnimation(UAnimationAsset::)
 
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.1f);
@@ -129,6 +156,14 @@ void AGolfBall::BeginPlay()
 	traceParams.AddIgnoredActor(GetUniqueID());
 	traceParams.AddIgnoredComponent(mMesh);
 	traceParams.AddIgnoredComponent(mCollisionBox);
+
+	//Start camera pan if level is not LevelSelect
+	if (!UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
+	{
+		bCameraShouldPan = true;
+		UE_LOG(LogTemp, Warning, TEXT("Start camera pan"));
+	}
+	
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
@@ -754,6 +789,11 @@ void AGolfBall::confirmLevelSelection()
 void AGolfBall::setLevelToOpen(FString Name)
 {
 	levelToOpen = Name;
+}
+
+void AGolfBall::cameraPanTick()
+{
+
 }
 
 void AGolfBall::debugMouse()
