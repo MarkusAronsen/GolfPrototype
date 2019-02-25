@@ -76,8 +76,3 @@ void ALevelSelecter::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor *
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->currentLevelSelecter = nullptr;
 	}
 }
-
-FName ALevelSelecter::getLevelName()
-{
-	return levelName;
-}

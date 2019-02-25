@@ -7,16 +7,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "FlyingObstacle.generated.h"
+#include "ExpandingFloor.generated.h"
 
 UCLASS()
-class GOLF04_API AFlyingObstacle : public AActor
+class GOLF04_API AExpandingFloor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AFlyingObstacle();
+	AExpandingFloor();
 
 protected:
 	// Called when the game starts or when spawned
@@ -34,6 +34,8 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	
-	
+	bool isExpanding = false;
+
+	float scaleFactor = 1.f;
+
 };

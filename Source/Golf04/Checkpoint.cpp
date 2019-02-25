@@ -65,7 +65,7 @@ void ACheckpoint::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * 
 			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 		}
 		else
-			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
+			UE_LOG(LogTemp, Warning, TEXT("Invalid level index (Checkpoint)"));
 
 	}
 }

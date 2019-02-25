@@ -27,7 +27,7 @@ void ATransformationObject::Tick(float DeltaTime)
 	{
 		rotateTimer1 += DeltaTime;
 
-		if (rotateTimer1 >= 3.5f)
+		if (rotateTimer1 >= interval1)
 		{
 			angle1 += DeltaTime * rotationSpeed1;
 
@@ -68,7 +68,7 @@ void ATransformationObject::Tick(float DeltaTime)
 	{
 		timeToScale2 += DeltaTime * 0.2f;
 
-		if (timeToScale2 > 3.f && scaleUp2)
+		if (timeToScale2 > interval2 && scaleUp2)
 		{
 			SetActorScale3D(FMath::Lerp(FVector(XYScaleDown2, XYScaleDown2, 1.f), FVector(XYScaleUp2, XYScaleUp2, 1.f), lerpAlpha2));
 			lerpAlpha2 += DeltaTime * scaleSpeed2;
@@ -80,7 +80,7 @@ void ATransformationObject::Tick(float DeltaTime)
 			}
 		}
 
-		else if (timeToScale2 > 3.f && !scaleUp2)
+		else if (timeToScale2 > interval2 && !scaleUp2)
 		{
 			SetActorScale3D(FMath::Lerp(FVector(XYScaleUp2, XYScaleUp2, 1.f), FVector(XYScaleDown2, XYScaleDown2, 1.f), lerpAlpha2));
 			lerpAlpha2 += DeltaTime * scaleSpeed2;
@@ -98,7 +98,7 @@ void ATransformationObject::Tick(float DeltaTime)
 		rotateTimer3 += DeltaTime;
 		AddActorLocalRotation(FRotator(DeltaTime * rotationSpeed3, DeltaTime * rotationSpeed3, DeltaTime * rotationSpeed3));
 
-		if (rotateTimer3 >= 20.f)
+		if (rotateTimer3 >= interval3)
 		{
 			angle3 += DeltaTime * rotationSpeed3;
 			if (angle3 > 90.f)
