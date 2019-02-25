@@ -20,10 +20,13 @@ AGolfBall::AGolfBall()
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
 
-	mWingsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMesh"), true);
+	mWingsMeshLeft = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshLeft"), true);
+	mWingsMeshRight = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshRight"), true);
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	
+
+
 #if WITH_EDITOR
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
@@ -32,11 +35,18 @@ AGolfBall::AGolfBall()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWings(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-	if (FoundWings.Succeeded())
-		mWingsMesh->SetSkeletalMesh(FoundWings.Object);
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWingsLeft(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	if (FoundWingsLeft.Succeeded())
+		mWingsMeshLeft->SetSkeletalMesh(FoundWingsLeft.Object);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWingsRight(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	if (FoundWingsRight.Succeeded())
+		mWingsMeshRight->SetSkeletalMesh(FoundWingsRight.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
+
 
 		/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
 		if (FoundLegs.Succeeded())
@@ -50,6 +60,17 @@ AGolfBall::AGolfBall()
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
 
+	static ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
+	if (FoundFlyingAnim.Succeeded())
+	{
+		mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		//mWingsMeshLeft->AnimClass = FoundFlyingAnim.Object;
+		//mWingsMeshRight->AnimClass = FoundFlyingAnim.Object;
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
+
 #endif
 
 #if !WITH_EDITOR
@@ -61,31 +82,20 @@ AGolfBall::AGolfBall()
 		mMesh->SetStaticMesh(FoundMesh.Object);
 #endif
 
-/*#if WITH_EDITOR
-	static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(TEXT("/Game/Widgets/PowerBar"));
-	if (FoundPowerBarWidget.Succeeded())
-	{
-		PowerBarWidget = FoundPowerBarWidget.Object;
-		// LoadObject<UClass>(UUserWidget::StaticClass(), TEXT("/Game/Widgets/PowerBar.PowerBar"));
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find Power bar widget"));
-#endif
-
-#if !WITH_EDITOR
-		FString Path = FPaths::GameContentDir();
-		static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(*Path.Append(TEXT("/Game/Widgets/PowerBar.PowerBar")));
-		if (FoundPowerBarWidget.Succeeded())
-			PowerBarWidget = FoundPowerBarWidget.Object;
-#endif
-*/
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
-	mWingsMesh->SetupAttachment(mMesh);
+	mWingsMeshLeft->SetupAttachment(mMesh);
+	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
+	mWingsMeshRight->SetupAttachment(mMesh);
 
-	//mWingsMesh->SetAnimation(UAnimationAsset::)
+	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP->);
+
+	//mWingsMeshLeft->AnimationBlueprint_DEPRECATED = FlyingAnim_BP;
+	//AnimBlueprintGeneratedClass = FlyingAnim_BP->GeneratedClass;
+
+
 
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.1f);
