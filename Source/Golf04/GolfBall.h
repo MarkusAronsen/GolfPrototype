@@ -57,23 +57,32 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* mCamera = nullptr;
 
-	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* mSpringArm = nullptr;
 
-	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USphereComponent* mCollisionBox = nullptr;
 
-	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	//UPROPERTY(Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* mMesh = nullptr;
 
-	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class USkeletalMeshComponent* mWingsMesh = nullptr;
+
+	//UPROPERTY(Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class USkeletalMeshComponent* mLegsMesh = nullptr;
+
+	//UPROPERTY(Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class USkeletalMeshComponent* mArmsMesh = nullptr;
+
+	/*UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UMaterial* StoredMaterial = nullptr;
 
 	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		class UMaterialInstanceDynamic* DynamicMaterialInst = nullptr;
+		class UMaterialInstanceDynamic* DynamicMaterialInst = nullptr;*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		UUserWidget* PowerBarWidget = nullptr;
@@ -212,6 +221,10 @@ public:
 	float flyingAnimTimer = 0.f;
 
 	const float flyingAnimLength = 0.375f;
+
+	//Enter level camera pan
+	bool bCameraShouldPan;
+	void cameraPanTick();
 
 	//Debug purposes
 	FString debugMouseX;
