@@ -25,9 +25,6 @@ AGolfBall::AGolfBall()
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	
-
-
-#if WITH_EDITOR
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
@@ -60,7 +57,7 @@ AGolfBall::AGolfBall()
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
 
-	static ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
+	/*static ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
 	if (FoundFlyingAnim.Succeeded())
 	{
 		mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
@@ -69,23 +66,14 @@ AGolfBall::AGolfBall()
 		//mWingsMeshRight->AnimClass = FoundFlyingAnim.Object;
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
+		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));*/
 
-#endif
-
-#if !WITH_EDITOR
-
-	FString Path = FPaths::GameContentDir();
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(*Path.Append(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball")));
-
-	if (FoundMesh.Succeeded())
-		mMesh->SetStaticMesh(FoundMesh.Object);
-#endif
 
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
+	
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 	mWingsMeshRight->SetupAttachment(mMesh);
@@ -349,7 +337,7 @@ void AGolfBall::golfInit()
 
 	mMesh->SetSimulatePhysics(true);
 
-	if(state == GOLF)
+	/*if(state == GOLF)
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 100.f;
@@ -365,7 +353,7 @@ void AGolfBall::golfInit()
 		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
 	}
 
-	setMeshVisibility();
+	setMeshVisibility();*/
 
 }
 
