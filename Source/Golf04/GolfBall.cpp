@@ -20,10 +20,13 @@ AGolfBall::AGolfBall()
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("CollisionSphere"), true);
 	mMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PlayerMesh"), true);
 
-	mWingsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMesh"), true);
+	mWingsMeshLeft = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshLeft"), true);
+	mWingsMeshRight = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshRight"), true);
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	
+
+
 #if WITH_EDITOR
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
@@ -32,11 +35,18 @@ AGolfBall::AGolfBall()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWings(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-	if (FoundWings.Succeeded())
-		mWingsMesh->SetSkeletalMesh(FoundWings.Object);
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWingsLeft(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	if (FoundWingsLeft.Succeeded())
+		mWingsMeshLeft->SetSkeletalMesh(FoundWingsLeft.Object);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
+
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWingsRight(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	if (FoundWingsRight.Succeeded())
+		mWingsMeshRight->SetSkeletalMesh(FoundWingsRight.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
+
 
 		/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
 		if (FoundLegs.Succeeded())
@@ -50,6 +60,17 @@ AGolfBall::AGolfBall()
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
 
+	static ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
+	if (FoundFlyingAnim.Succeeded())
+	{
+		mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		//mWingsMeshLeft->AnimClass = FoundFlyingAnim.Object;
+		//mWingsMeshRight->AnimClass = FoundFlyingAnim.Object;
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
+
 #endif
 
 #if !WITH_EDITOR
@@ -61,31 +82,22 @@ AGolfBall::AGolfBall()
 		mMesh->SetStaticMesh(FoundMesh.Object);
 #endif
 
-/*#if WITH_EDITOR
-	static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(TEXT("/Game/Widgets/PowerBar"));
-	if (FoundPowerBarWidget.Succeeded())
-	{
-		PowerBarWidget = FoundPowerBarWidget.Object;
-		// LoadObject<UClass>(UUserWidget::StaticClass(), TEXT("/Game/Widgets/PowerBar.PowerBar"));
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find Power bar widget"));
-#endif
-
-#if !WITH_EDITOR
-		FString Path = FPaths::GameContentDir();
-		static ConstructorHelpers::FObjectFinder<UUserWidget> FoundPowerBarWidget(*Path.Append(TEXT("/Game/Widgets/PowerBar.PowerBar")));
-		if (FoundPowerBarWidget.Succeeded())
-			PowerBarWidget = FoundPowerBarWidget.Object;
-#endif
-*/
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
-	mWingsMesh->SetupAttachment(mMesh);
+	mWingsMeshLeft->SetupAttachment(mMesh);
+	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
+	mWingsMeshRight->SetupAttachment(mMesh);
 
-	//mWingsMesh->SetAnimation(UAnimationAsset::)
+	mWingsMeshLeft->SetVisibility(false);
+	mWingsMeshRight->SetVisibility(false);
+	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP->);
+
+	//mWingsMeshLeft->AnimationBlueprint_DEPRECATED = FlyingAnim_BP;
+	//AnimBlueprintGeneratedClass = FlyingAnim_BP->GeneratedClass;
+
+
 
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.1f);
@@ -336,7 +348,7 @@ void AGolfBall::golfInit()
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 
 	mMesh->SetSimulatePhysics(true);
-	
+
 	if(state == GOLF)
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
@@ -352,6 +364,9 @@ void AGolfBall::golfInit()
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -40.f);
 		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
 	}
+
+	setMeshVisibility();
+
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -366,6 +381,8 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
+
+	setMeshVisibility();
 }
 
 void AGolfBall::flyingInit(AActor *OtherActor)
@@ -378,6 +395,8 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	position = OtherActor->GetActorLocation();
 
 	mSpringArm->bInheritYaw = false;
+
+	setMeshVisibility();
 }
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
@@ -878,5 +897,38 @@ void AGolfBall::printLoadedGame()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
+	}
+}
+
+void AGolfBall::setMeshVisibility()
+{
+	switch (state)
+	{
+	case GOLF:
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
+		//mArmsMesh->SetVisibility(false);
+		break;
+	case WALKING:
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//mLegsMesh->SetVisibility(true);
+		//mArmsMesh->SetVisibility(false);
+		break;
+	case CLIMBING:
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
+		//mArmsMesh->SetVisibility(true);
+		break;
+	case FLYING:
+		mWingsMeshLeft->SetVisibility(true);
+		mWingsMeshRight->SetVisibility(true);
+		//mLegsMesh->SetVisibility(false);
+		//mArmsMesh->SetVisibility(false);
+		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("Set mesh visibility failed"));
 	}
 }
