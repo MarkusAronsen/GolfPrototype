@@ -25,9 +25,6 @@ AGolfBall::AGolfBall()
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	
-
-
-#if WITH_EDITOR
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
@@ -48,7 +45,7 @@ AGolfBall::AGolfBall()
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
 
 
-		/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	/*	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
 		if (FoundLegs.Succeeded())
 			mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
 		else
@@ -60,32 +57,26 @@ AGolfBall::AGolfBall()
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
 
-	static ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
+	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("/Game/Models/Wings/FlyingAnim.FlyingAnim"));
 	if (FoundFlyingAnim.Succeeded())
 	{
-		mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
-		mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
-		//mWingsMeshLeft->AnimClass = FoundFlyingAnim.Object;
-		//mWingsMeshRight->AnimClass = FoundFlyingAnim.Object;
-	}
+		if (FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass())
+		{
+			mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid"))
+		}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
-
-#endif
-
-#if !WITH_EDITOR
-
-	FString Path = FPaths::GameContentDir();
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(*Path.Append(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball")));
-
-	if (FoundMesh.Succeeded())
-		mMesh->SetStaticMesh(FoundMesh.Object);
-#endif
+	
 
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
+	
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 	mWingsMeshRight->SetupAttachment(mMesh);
@@ -349,7 +340,24 @@ void AGolfBall::golfInit()
 
 	mMesh->SetSimulatePhysics(true);
 
-	setMeshVisibility();
+	/*if(state == GOLF)
+	{ 
+		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 100.f;
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
+		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
+	}
+	if (state == WALKING)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
+		SetActorLocation(GetActorLocation() + FVector(0.f, 0.f, 200.f));
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 110.f;
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -40.f);
+		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
+	}
+
+	setMeshVisibility();*/
+
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -562,9 +570,15 @@ void AGolfBall::leftShiftPressed()
 		golfInit();
 	}
 	else if (state == WALKING)
+	{
 		state = GOLF;
+		golfInit();
+	}
 	else if (state == GOLF)
+	{
 		state = WALKING;
+		golfInit();
+	}
 
 
 	walkTimer = walkMaxDuration;
@@ -588,7 +602,7 @@ bool AGolfBall::sphereTrace()
 		world->SweepMultiByChannel(
 			hitResults,
 			mMesh->GetComponentToWorld().GetLocation(),
-			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
+			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 80),
 			FQuat::Identity,
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape(),
@@ -649,6 +663,12 @@ void AGolfBall::tickWalking(float DeltaTime)
 		walkingDirection = 90.f;
 		movementTransformation(DeltaTime);
 	}
+
+	if (WPressed || SPressed || APressed || DPressed)
+		bIsWalking = true;
+
+	else
+		bIsWalking = false;
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));

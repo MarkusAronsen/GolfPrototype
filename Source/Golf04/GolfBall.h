@@ -226,6 +226,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		bool bFlyingAnimShouldPlay = false;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool bIsWalking = false;
+
 	bool bRestartFlyingAnim = false;
 	float flyingAnimTimer = 0.f;
 
