@@ -336,6 +336,20 @@ void AGolfBall::golfInit()
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = false;
 
 	mMesh->SetSimulatePhysics(true);
+	
+	if(state == GOLF)
+	{ 
+		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 100.f;
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
+	}
+	if (state == WALKING)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
+		SetActorLocation(GetActorLocation() + FVector(0.f, 0.f, 200.f));
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 110.f;
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -40.f);
+	}
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -544,9 +558,15 @@ void AGolfBall::leftShiftPressed()
 		golfInit();
 	}
 	else if (state == WALKING)
+	{
 		state = GOLF;
+		golfInit();
+	}
 	else if (state == GOLF)
+	{
 		state = WALKING;
+		golfInit();
+	}
 
 
 	walkTimer = walkMaxDuration;
@@ -570,7 +590,7 @@ bool AGolfBall::sphereTrace()
 		world->SweepMultiByChannel(
 			hitResults,
 			mMesh->GetComponentToWorld().GetLocation(),
-			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 50),
+			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 80),
 			FQuat::Identity,
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape(),
@@ -631,6 +651,12 @@ void AGolfBall::tickWalking(float DeltaTime)
 		walkingDirection = 90.f;
 		movementTransformation(DeltaTime);
 	}
+
+	if (WPressed || SPressed || APressed || DPressed)
+		bIsWalking = true;
+
+	else
+		bIsWalking = false;
 
 	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
 		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
