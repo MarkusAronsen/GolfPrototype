@@ -342,6 +342,7 @@ void AGolfBall::golfInit()
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 100.f;
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
+		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
 	}
 	if (state == WALKING)
 	{
@@ -349,6 +350,7 @@ void AGolfBall::golfInit()
 		SetActorLocation(GetActorLocation() + FVector(0.f, 0.f, 200.f));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 110.f;
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -40.f);
+		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
 	}
 }
 
