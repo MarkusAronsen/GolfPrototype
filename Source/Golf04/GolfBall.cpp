@@ -57,26 +57,29 @@ AGolfBall::AGolfBall()
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
 
-	/*static ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
+	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
 	if (FoundFlyingAnim.Succeeded())
 	{
-		mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
-		mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		if(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass())
+		{ 
+			mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
+		}
 		//mWingsMeshLeft->AnimClass = FoundFlyingAnim.Object;
 		//mWingsMeshRight->AnimClass = FoundFlyingAnim.Object;
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));*/
+		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 
 
 	RootComponent = mMesh;
-	mCollisionBox->SetupAttachment(mMesh);
+	mCollisionBox->SetupAttachment(RootComponent);
 	mSpringArm->SetupAttachment(RootComponent);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	
-	mWingsMeshLeft->SetupAttachment(mMesh);
+	mWingsMeshLeft->SetupAttachment(RootComponent);
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
-	mWingsMeshRight->SetupAttachment(mMesh);
+	mWingsMeshRight->SetupAttachment(RootComponent);
 
 	mWingsMeshLeft->SetVisibility(false);
 	mWingsMeshRight->SetVisibility(false);
@@ -337,29 +340,33 @@ void AGolfBall::golfInit()
 
 	mMesh->SetSimulatePhysics(true);
 
-	/*if(state == GOLF)
+	if(state == GOLF && mMesh != nullptr && mMesh->IsValidLowLevel())
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 100.f;
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
-		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
+		mMesh->RecreatePhysicsState();
 	}
-	if (state == WALKING)
+	if (state == WALKING && mMesh != nullptr && mMesh->IsValidLowLevel())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
-		SetActorLocation(GetActorLocation() + FVector(0.f, 0.f, 200.f));
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 110.f;
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -40.f);
-		mMesh->GetStaticMesh()->BodySetup->ConditionalPostLoad();
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -23.f);
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 95.f;
+		mMesh->RecreatePhysicsState();
 	}
 
-	setMeshVisibility();*/
+	setMeshVisibility();
 
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
 {
 	state = CLIMBING;
+	
+	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
+	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
+	mMesh->RecreatePhysicsState();
+
 	mMesh->SetSimulatePhysics(false);
 	world->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
@@ -376,6 +383,11 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 void AGolfBall::flyingInit(AActor *OtherActor)
 {
 	state = FLYING;
+
+	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
+	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
+	mMesh->RecreatePhysicsState();
+
 	mMesh->SetSimulatePhysics(false);
 	SetActorLocation(OtherActor->GetActorLocation());
 	SetActorRotation(OtherActor->GetActorRotation());
@@ -507,6 +519,7 @@ void AGolfBall::setLMBPressed()
 	case CLIMBING:
 		if (!mMesh->IsSimulatingPhysics())
 		{
+			UE_LOG(LogTemp, Warning, TEXT("CLICKED"));
 			mousePositionClicked = FVector(0.f, mouseX, mouseY);
 		}
 		break;
@@ -599,7 +612,7 @@ bool AGolfBall::sphereTrace()
 		world->SweepMultiByChannel(
 			hitResults,
 			mMesh->GetComponentToWorld().GetLocation(),
-			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 80),
+			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 120),
 			FQuat::Identity,
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape(),
