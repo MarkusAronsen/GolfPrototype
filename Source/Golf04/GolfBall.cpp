@@ -45,7 +45,7 @@ AGolfBall::AGolfBall()
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
 
 
-		/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	/*	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
 		if (FoundLegs.Succeeded())
 			mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
 		else
@@ -60,18 +60,17 @@ AGolfBall::AGolfBall()
 	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
 	if (FoundFlyingAnim.Succeeded())
 	{
-		if(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass())
-		{ 
+		if (FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass())
+		{
 			mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
 			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
 		}
-		//mWingsMeshLeft->AnimClass = FoundFlyingAnim.Object;
-		//mWingsMeshRight->AnimClass = FoundFlyingAnim.Object;
-	}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid"))
+		}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
-
-
+	
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(RootComponent);
 	mSpringArm->SetupAttachment(RootComponent);
