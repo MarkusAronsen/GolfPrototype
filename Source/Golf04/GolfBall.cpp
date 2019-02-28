@@ -26,7 +26,7 @@ AGolfBall::AGolfBall()
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	
 	
-	/*static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
 	if (FoundMesh.Succeeded())
 		mMesh->SetStaticMesh(FoundMesh.Object);
 	else
@@ -43,14 +43,14 @@ AGolfBall::AGolfBall()
 		mWingsMeshRight->SetSkeletalMesh(FoundWingsRight.Object);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
-*/
-	/*
+
+	
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("SkeletalMesh'/Game/Models/Feet/FeetSkeletalMesh.FeetSkeletalMesh'"));
 	if (FoundLegs.Succeeded())
 		mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
-		*/
+
 	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
 	if (FoundArms.Succeeded())
 		mArmsMesh->SetSkeletalMesh(FoundArms.Object);
@@ -66,8 +66,8 @@ AGolfBall::AGolfBall()
 			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
 		}
 		else
-			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid (wings)"));
-	}
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid"))
+		}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 	
@@ -81,15 +81,15 @@ AGolfBall::AGolfBall()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));*/
-/*
+
 	RootComponent = mMesh;
-	mCollisionBox->SetupAttachment(RootComponent);
-	mSpringArm->SetupAttachment(RootComponent);
+	mCollisionBox->SetupAttachment(mMesh);
+	mSpringArm->SetupAttachment(mMesh);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	
-	//mWingsMeshLeft->SetupAttachment(RootComponent);
-	//mWingsMeshRight->SetupAttachment(RootComponent);
-	//mLegsMesh->SetupAttachment(RootComponent);
+	mWingsMeshLeft->SetupAttachment(mMesh);
+	mWingsMeshRight->SetupAttachment(mMesh);
+	mLegsMesh->SetupAttachment(mMesh);
 
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.1f);
@@ -104,7 +104,7 @@ AGolfBall::AGolfBall()
 
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
 	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
-	*/
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
 
@@ -112,7 +112,6 @@ AGolfBall::AGolfBall()
 void AGolfBall::BeginPlay()
 {
 	Super::BeginPlay();
-/*
 	if (mCollisionBox)
 		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnBeginOverlap);
 
@@ -160,7 +159,7 @@ void AGolfBall::BeginPlay()
 	traceParams.AddIgnoredComponent(mCollisionBox);
 
 	//Disable visibility on meshes not relevant for golfing
-	//mLegsMesh->SetVisibility(false);
+	mLegsMesh->SetVisibility(false);
 	mWingsMeshLeft->SetVisibility(false);
 	mWingsMeshRight->SetVisibility(false);
 	//-
@@ -168,7 +167,7 @@ void AGolfBall::BeginPlay()
 	//Flip left wing to create right wing
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 	//-
-	/*
+	
 	//Load animations and use them if they exist
 	UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
 	UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Feet/WalkingAnimation.WalkingAnimation'"));
@@ -188,9 +187,9 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
 	//-
-	*/
+	
 	//Start camera pan if level is not LevelSelect
-	/*if (!UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
+	if (!UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
 	{
 		bCameraShouldPan = true;
 		UE_LOG(LogTemp, Warning, TEXT("Start camera pan"));
@@ -198,16 +197,15 @@ void AGolfBall::BeginPlay()
 	
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
-	*/
 }
 
 // Called every frame
 void AGolfBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-/*
+
 	onGround = sphereTrace();
-	lineTrace();
+	alignWithSurface = lineTrace();
 
 	switch (state)
 	{
@@ -283,7 +281,6 @@ void AGolfBall::Tick(float DeltaTime)
 		respawnAtCheckpointTick(DeltaTime);
 
 	animationControlTick(DeltaTime);
-	*/
 }
 
 
@@ -381,8 +378,8 @@ void AGolfBall::golfInit()
 	if (state == WALKING && mMesh != nullptr && mMesh->IsValidLowLevel())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -23.f);
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 95.f;
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
 		mMesh->RecreatePhysicsState();
 	}*/
 
@@ -665,15 +662,27 @@ bool AGolfBall::lineTrace()
 
 	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		//GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
-		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(GetActorRotation().Yaw, lineTraceResults[0].ImpactNormal);
-		surfaceNormal = surfaceNormal.RotateAngleAxis(90.f, surfaceNormal.RightVector);
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
+		surfaceNormal = lineTraceResults[0].ImpactNormal;
+		impactPoint = lineTraceResults[0].ImpactPoint;
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+
+		FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+
+		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
+
 	}
 	else if (lineTraceResults.Num() == 0)
 	{
-		//surfaceNormal = FVector(0.f, 0.f, 1.f).RotateAngleAxis(90.f, GetActorRightVector());
-		//surfaceNormal = surfaceNormal.RotateAngleAxis(GetActorRotation().Yaw, FVector(0.f, 0.f, 1.f));
+		surfaceNormal = FVector(0.f, 0.f, 1.f);
+		impactPoint = GetActorLocation();
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+
+		FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+
+		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
 	}
 
 	return lineTraceResults.Num() > 0;
@@ -743,17 +752,17 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
 
 	mMesh->SetPhysicsLinearVelocity(FRotator(
-		0.f,
+		newTransform.Rotator().Pitch,
 		mController->GetControlRotation().Yaw + walkingDirection, 
-		0.f).Vector() * movementSpeed, true);
+		newTransform.Rotator().Roll).Vector() * movementSpeed, true);
 	
 	currentRotation = FMath::Lerp(
 		GetActorRotation(), 
 		FRotator(
-			0.f,
+			newTransform.Rotator().Pitch,
 			mController->GetControlRotation().Yaw + walkingDirection,
-			0.f),
-		lerpTime * DeltaTime);
+			newTransform.Rotator().Roll),
+			lerpTime * DeltaTime);
 
 	if (onPlatform && onGround)
 		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();

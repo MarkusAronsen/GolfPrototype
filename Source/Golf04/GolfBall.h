@@ -191,7 +191,10 @@ public:
 	TArray<FHitResult> lineTraceResults;
 	FCollisionQueryParams traceParams;
 	bool onGround = false;
+	bool alignWithSurface = false;
+	FVector impactPoint;
 	FVector surfaceNormal;
+	FTransform newTransform;
 	float walkingDirection = 0.f;
 	bool onPlatform = false;
 	FVector platformOffset;
