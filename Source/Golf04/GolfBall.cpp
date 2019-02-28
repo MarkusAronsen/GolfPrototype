@@ -45,17 +45,17 @@ AGolfBall::AGolfBall()
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
 
 
-	/*	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-		if (FoundLegs.Succeeded())
-			mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("SkeletalMesh'/Game/Models/Feet/FeetSkeletalMesh.FeetSkeletalMesh'"));
+	if (FoundLegs.Succeeded())
+		mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
 
-		static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-		if (FoundArms.Succeeded())
-			mArmsMesh->SetSkeletalMesh(FoundArms.Object);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
+	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	if (FoundArms.Succeeded())
+		mArmsMesh->SetSkeletalMesh(FoundArms.Object);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
 
 	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
 	if (FoundFlyingAnim.Succeeded())
@@ -66,11 +66,22 @@ AGolfBall::AGolfBall()
 			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
 		}
 		else
-			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid"))
-		}
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid (wings)"));
+	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 	
+	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundWalkingAnim(TEXT("AnimBlueprint'/Game/Models/Feet/WalkingAnimation.WalkingAnimation'"));
+	if (FoundWalkingAnim.Succeeded())
+	{
+		if (FoundWalkingAnim.Object->GetAnimBlueprintGeneratedClass())
+			mLegsMesh->SetAnimInstanceClass(FoundWalkingAnim.Object->GetAnimBlueprintGeneratedClass());
+		else
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid (feet)"));
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
+
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(RootComponent);
 	mSpringArm->SetupAttachment(RootComponent);
@@ -80,6 +91,9 @@ AGolfBall::AGolfBall()
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 	mWingsMeshRight->SetupAttachment(RootComponent);
 
+	mLegsMesh->SetupAttachment(RootComponent);
+
+	mLegsMesh->SetVisibility(false);
 	mWingsMeshLeft->SetVisibility(false);
 	mWingsMeshRight->SetVisibility(false);
 	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP->);
@@ -907,25 +921,25 @@ void AGolfBall::setMeshVisibility()
 	case GOLF:
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
-		//mLegsMesh->SetVisibility(false);
+		mLegsMesh->SetVisibility(false);
 		//mArmsMesh->SetVisibility(false);
 		break;
 	case WALKING:
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
-		//mLegsMesh->SetVisibility(true);
+		mLegsMesh->SetVisibility(true);
 		//mArmsMesh->SetVisibility(false);
 		break;
 	case CLIMBING:
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
-		//mLegsMesh->SetVisibility(false);
+		mLegsMesh->SetVisibility(false);
 		//mArmsMesh->SetVisibility(true);
 		break;
 	case FLYING:
 		mWingsMeshLeft->SetVisibility(true);
 		mWingsMeshRight->SetVisibility(true);
-		//mLegsMesh->SetVisibility(false);
+		mLegsMesh->SetVisibility(false);
 		//mArmsMesh->SetVisibility(false);
 		break;
 	default:
