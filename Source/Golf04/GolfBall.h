@@ -81,11 +81,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* mArmsMesh = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-		UAnimationAsset* FlyingAnim;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		UAnimationAsset* FlyingAnim;*/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
-		UAnimBlueprint* FlyingAnim_BP;
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
+		UAnimBlueprint* FlyingAnim_BP;*/
 
 	/*UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UMaterial* StoredMaterial = nullptr;
