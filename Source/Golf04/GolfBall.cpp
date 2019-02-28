@@ -45,17 +45,17 @@ AGolfBall::AGolfBall()
 		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
 
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("SkeletalMesh'/Game/Models/Feet/FeetSkeletalMesh.FeetSkeletalMesh'"));
-	if (FoundLegs.Succeeded())
-		mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+		if (FoundLegs.Succeeded())
+			mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
 
-	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-	if (FoundArms.Succeeded())
-		mArmsMesh->SetSkeletalMesh(FoundArms.Object);
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));*/
+		static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+		if (FoundArms.Succeeded())
+			mArmsMesh->SetSkeletalMesh(FoundArms.Object);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));
 
 	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
 	if (FoundFlyingAnim.Succeeded())
@@ -66,37 +66,23 @@ AGolfBall::AGolfBall()
 			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
 		}
 		else
-			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid (wings)"));
-	}
+			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid"))
+		}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 	
-	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundWalkingAnim(TEXT("AnimBlueprint'/Game/Models/Feet/WalkingAnimation.WalkingAnimation'"));
-	if (FoundWalkingAnim.Succeeded())
-	{
-		if (FoundWalkingAnim.Object->GetAnimBlueprintGeneratedClass())
-			mLegsMesh->SetAnimInstanceClass(FoundWalkingAnim.Object->GetAnimBlueprintGeneratedClass());
-		else
-			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid (feet)"));
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
-
 	RootComponent = mMesh;
-	mCollisionBox->SetupAttachment(RootComponent);
-	mSpringArm->SetupAttachment(RootComponent);
+	mCollisionBox->SetupAttachment(mMesh);
+	mSpringArm->SetupAttachment(mMesh);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	
-	mWingsMeshLeft->SetupAttachment(RootComponent);
+	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
-	mWingsMeshRight->SetupAttachment(RootComponent);
+	mWingsMeshRight->SetupAttachment(mMesh);
 
-	mLegsMesh->SetupAttachment(RootComponent);
-
-	mLegsMesh->SetVisibility(false);
 	mWingsMeshLeft->SetVisibility(false);
 	mWingsMeshRight->SetVisibility(false);
-	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP->);
+	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP);
 
 	//mWingsMeshLeft->AnimationBlueprint_DEPRECATED = FlyingAnim_BP;
 	//AnimBlueprintGeneratedClass = FlyingAnim_BP->GeneratedClass;
@@ -190,7 +176,7 @@ void AGolfBall::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	onGround = sphereTrace();
-	lineTrace();
+	alignWithSurface = lineTrace();
 
 	switch (state)
 	{
@@ -647,15 +633,27 @@ bool AGolfBall::lineTrace()
 
 	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		//GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
-		surfaceNormal = lineTraceResults[0].ImpactNormal.RotateAngleAxis(GetActorRotation().Yaw, lineTraceResults[0].ImpactNormal);
-		surfaceNormal = surfaceNormal.RotateAngleAxis(90.f, surfaceNormal.RightVector);
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
+		surfaceNormal = lineTraceResults[0].ImpactNormal;
+		impactPoint = lineTraceResults[0].ImpactPoint;
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+
+		FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+
+		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
+
 	}
 	else if (lineTraceResults.Num() == 0)
 	{
-		//surfaceNormal = FVector(0.f, 0.f, 1.f).RotateAngleAxis(90.f, GetActorRightVector());
-		//surfaceNormal = surfaceNormal.RotateAngleAxis(GetActorRotation().Yaw, FVector(0.f, 0.f, 1.f));
+		surfaceNormal = FVector(0.f, 0.f, 1.f);
+		impactPoint = GetActorLocation();
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+
+		FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+
+		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
 	}
 
 	return lineTraceResults.Num() > 0;
@@ -725,17 +723,17 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
 
 	mMesh->SetPhysicsLinearVelocity(FRotator(
-		0.f,
+		newTransform.Rotator().Pitch,
 		mController->GetControlRotation().Yaw + walkingDirection, 
-		0.f).Vector() * movementSpeed, true);
+		newTransform.Rotator().Roll).Vector() * movementSpeed, true);
 	
 	currentRotation = FMath::Lerp(
 		GetActorRotation(), 
 		FRotator(
-			0.f,
+			newTransform.Rotator().Pitch,
 			mController->GetControlRotation().Yaw + walkingDirection,
-			0.f),
-		lerpTime * DeltaTime);
+			newTransform.Rotator().Roll),
+			lerpTime * DeltaTime);
 
 	if (onPlatform && onGround)
 		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
@@ -921,25 +919,25 @@ void AGolfBall::setMeshVisibility()
 	case GOLF:
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
-		mLegsMesh->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
 		//mArmsMesh->SetVisibility(false);
 		break;
 	case WALKING:
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
-		mLegsMesh->SetVisibility(true);
+		//mLegsMesh->SetVisibility(true);
 		//mArmsMesh->SetVisibility(false);
 		break;
 	case CLIMBING:
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
-		mLegsMesh->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
 		//mArmsMesh->SetVisibility(true);
 		break;
 	case FLYING:
 		mWingsMeshLeft->SetVisibility(true);
 		mWingsMeshRight->SetVisibility(true);
-		mLegsMesh->SetVisibility(false);
+		//mLegsMesh->SetVisibility(false);
 		//mArmsMesh->SetVisibility(false);
 		break;
 	default:
