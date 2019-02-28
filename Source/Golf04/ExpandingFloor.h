@@ -38,4 +38,7 @@ public:
 
 	float scaleFactor = 1.f;
 
+	UPROPERTY(EditAnywhere, Category = "Upward force")
+		bool bPush = false;
+
 };

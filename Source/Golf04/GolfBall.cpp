@@ -349,8 +349,8 @@ void AGolfBall::golfInit()
 	if (state == WALKING && mMesh != nullptr && mMesh->IsValidLowLevel())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -23.f);
-		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 95.f;
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
+		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
 		mMesh->RecreatePhysicsState();
 	}
 

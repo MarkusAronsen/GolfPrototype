@@ -55,6 +55,11 @@ void AExpandingFloor::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 			static_cast<AGolfBall*>(OtherActor)->golfInit();
 			CollisionBox->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
 		}
+
+		if (bPush)
+			static_cast<AGolfBall*>(OtherActor)->SetActorLocation(static_cast<AGolfBall*>(OtherActor)->GetActorLocation() + FVector(0.f, 0.f, 300.f));
+		
+		bPush = false;
 	}
 }
 
