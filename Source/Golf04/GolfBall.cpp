@@ -130,7 +130,7 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
 
 	walkMaxDuration = 30.f;
-	movementSpeed = 150.f;
+	movementSpeed = 10000.f;
 	world = GetWorld();
 
 	state = GOLF;
@@ -201,15 +201,15 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
-		//if(!onGround)
 		mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 
-		SetActorRotation(FMath::Lerp(
+		currentRotation = FMath::Lerp(
 			GetActorRotation(),
-			FRotator(surfaceNormal.Rotation().Pitch,
+			FRotator(
+				newTransform.Rotator().Pitch,
 				mController->GetControlRotation().Yaw + walkingDirection,
-				surfaceNormal.Rotation().Roll),
-			lerpTime * DeltaTime));
+				newTransform.Rotator().Roll),
+			lerpTime * DeltaTime);
 
 		break;
 
@@ -626,14 +626,13 @@ bool AGolfBall::lineTrace()
 		world->LineTraceMultiByChannel(
 			lineTraceResults,
 			GetActorLocation(),
-			GetActorLocation() + GetActorUpVector() * -200,
+			GetActorLocation() + GetActorUpVector() * -400,
 			ECollisionChannel::ECC_Pawn,
 			traceParams,
 			FCollisionResponseParams::DefaultResponseParam);
 
 	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, *lineTraceResults[0].GetActor()->GetHumanReadableName());
 		surfaceNormal = lineTraceResults[0].ImpactNormal;
 		impactPoint = lineTraceResults[0].ImpactPoint;
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
@@ -650,7 +649,7 @@ bool AGolfBall::lineTrace()
 		impactPoint = GetActorLocation();
 		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
 
-		FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+		FVector newForwardVector = FVector::CrossProduct(mCamera->GetRightVector(), surfaceNormal);
 		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
 
 		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
@@ -663,30 +662,23 @@ void AGolfBall::tickWalking(float DeltaTime)
 {
 	mMesh->SetWorldRotation(currentRotation);
 
-	if (WPressed)
-	{ 
-		walkingDirection = 0.f;
-		movementTransformation(DeltaTime);
-	}
 	if (SPressed)
-	{ 
 		walkingDirection = 180.f;
-		movementTransformation(DeltaTime);
-	}
 		
 	if (APressed)
-	{
 		walkingDirection = -90.f;
-		movementTransformation(DeltaTime);
-	}
+
 	if (DPressed)
-	{
 		walkingDirection = 90.f;
-		movementTransformation(DeltaTime);
-	}
+
+	if (WPressed)
+		walkingDirection = 0.f;
 
 	if (WPressed || SPressed || APressed || DPressed)
+	{ 
 		bIsWalking = true;
+		movementTransformation(DeltaTime);
+	}
 
 	else
 		bIsWalking = false;
@@ -720,20 +712,16 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 void AGolfBall::movementTransformation(float DeltaTime)
 {
-	//surfaceNormal.Rotation().RotateVector(FVector(0.f, GetActorRotation().Yaw, 0.f));
+	surfaceNormal = lineTraceResults[0].ImpactNormal;
+	impactPoint = lineTraceResults[0].ImpactPoint;
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
 
-	mMesh->SetPhysicsLinearVelocity(FRotator(
-		newTransform.Rotator().Pitch,
-		mController->GetControlRotation().Yaw + walkingDirection, 
-		newTransform.Rotator().Roll).Vector() * movementSpeed, true);
-	
-	currentRotation = FMath::Lerp(
-		GetActorRotation(), 
-		FRotator(
-			newTransform.Rotator().Pitch,
-			mController->GetControlRotation().Yaw + walkingDirection,
-			newTransform.Rotator().Roll),
-			lerpTime * DeltaTime);
+	FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+	FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+
+	newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
+
+	mMesh->AddForce(newTransform.GetRotation().GetForwardVector() * movementSpeed, NAME_None, true);
 
 	if (onPlatform && onGround)
 		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
