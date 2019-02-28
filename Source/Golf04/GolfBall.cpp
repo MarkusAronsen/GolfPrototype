@@ -23,71 +23,38 @@ AGolfBall::AGolfBall()
 	mWingsMeshLeft = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshLeft"), true);
 	mWingsMeshRight = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshRight"), true);
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
-	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
-	
-	
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> FoundMesh(TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
-	if (FoundMesh.Succeeded())
-		mMesh->SetStaticMesh(FoundMesh.Object);
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find base mesh for player character"));
+	//mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWingsLeft(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-	if (FoundWingsLeft.Succeeded())
-		mWingsMeshLeft->SetSkeletalMesh(FoundWingsLeft.Object);
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
+	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
+	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundWingsRight(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-	if (FoundWingsRight.Succeeded())
-		mWingsMeshRight->SetSkeletalMesh(FoundWingsRight.Object);
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for wings"));
-
-
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundLegs(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-		if (FoundLegs.Succeeded())
-			mLegsMesh->SetSkeletalMesh(FoundLegs.Object);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for legs"));
-
-		static ConstructorHelpers::FObjectFinder<USkeletalMesh> FoundArms(TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-		if (FoundArms.Succeeded())
-			mArmsMesh->SetSkeletalMesh(FoundArms.Object);
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Could not find skeletal mesh for arms"));
-
-	ConstructorHelpers::FObjectFinder<UAnimBlueprint> FoundFlyingAnim(TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
-	if (FoundFlyingAnim.Succeeded())
-	{
-		if (FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass())
-		{
-			mWingsMeshLeft->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
-			mWingsMeshRight->SetAnimInstanceClass(FoundFlyingAnim.Object->GetAnimBlueprintGeneratedClass());
-		}
-		else
-			UE_LOG(LogTemp, Warning, TEXT("AnimBlueprintGeneratedClass not valid"))
-		}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
-	
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(mMesh);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
-	
+
 	mWingsMeshLeft->SetupAttachment(mMesh);
-	mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 	mWingsMeshRight->SetupAttachment(mMesh);
+	mLegsMesh->SetupAttachment(mMesh);
 
-	mWingsMeshLeft->SetVisibility(false);
-	mWingsMeshRight->SetVisibility(false);
-	//mWingsMeshLeft->SetAnimation(FlyingAnim_BP);
+	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
+}
 
-	//mWingsMeshLeft->AnimationBlueprint_DEPRECATED = FlyingAnim_BP;
-	//AnimBlueprintGeneratedClass = FlyingAnim_BP->GeneratedClass;
+// Called when the game starts or when spawned
+void AGolfBall::BeginPlay()
+{
+	Super::BeginPlay();
 
+	UStaticMesh* loadedPlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
+	mMesh->SetStaticMesh(loadedPlayerMesh);
 
+	USkeletalMesh* loadedLeftWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	USkeletalMesh* loadedRightWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	mWingsMeshLeft->SetSkeletalMesh(loadedLeftWingMesh);
+	mWingsMeshRight->SetSkeletalMesh(loadedRightWingMesh);
+
+	USkeletalMesh* loadedLegsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Models/Feet/FeetSkeletalMesh.FeetSkeletalMesh"));
+	mLegsMesh->SetSkeletalMesh(loadedLegsMesh);
 
 	mMesh->SetLinearDamping(0.6f);
 	mMesh->SetAngularDamping(0.1f);
@@ -99,17 +66,6 @@ AGolfBall::AGolfBall()
 
 	mCollisionBox->SetSphereRadius(35.f);
 	mCollisionBox->SetWorldScale3D(FVector(1.75f, 1.75f, 1.75f));
-
-	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
-	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
-
-	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
-}
-
-// Called when the game starts or when spawned
-void AGolfBall::BeginPlay()
-{
-	Super::BeginPlay();
 
 	if (mCollisionBox)
 		mCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGolfBall::OnBeginOverlap);
@@ -133,11 +89,6 @@ void AGolfBall::BeginPlay()
 	movementSpeed = 10000.f;
 	world = GetWorld();
 
-	state = GOLF;
-	golfInit();
-	GEngine->SetMaxFPS(60.f);
-	mMesh->SetEnableGravity(false);
-
 	mController = GetWorld()->GetFirstPlayerController();
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
@@ -146,8 +97,6 @@ void AGolfBall::BeginPlay()
 
 	if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
 		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
-
-	//SaveGameInstance->initLevelNames();
 
 	traceParams.bFindInitialOverlaps = false;
 	traceParams.bIgnoreBlocks = false;
@@ -159,13 +108,58 @@ void AGolfBall::BeginPlay()
 	traceParams.AddIgnoredComponent(mMesh);
 	traceParams.AddIgnoredComponent(mCollisionBox);
 
+	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight)
+	{
+		//Disable visibility on meshes not relevant for golfing
+		mLegsMesh->SetVisibility(false);
+		mWingsMeshLeft->SetVisibility(false);
+		mWingsMeshRight->SetVisibility(false);
+		//-
+
+		//Flip left wing to create right wing
+		mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
+		//-
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight not initialized"));
+	
 	//Start camera pan if level is not LevelSelect
 	if (!UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
 	{
 		bCameraShouldPan = true;
 		UE_LOG(LogTemp, Warning, TEXT("Start camera pan"));
 	}
-	
+
+	//Load animations and use them if they exist
+	UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
+	UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Feet/WalkingAnimation.WalkingAnimation'"));
+
+	if (flyingAnim)
+	{
+	mWingsMeshLeft->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+	mWingsMeshRight->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+	}
+	else
+	UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
+
+	if (walkAnim)
+	{
+	mLegsMesh->SetAnimInstanceClass(walkAnim->GetAnimBlueprintGeneratedClass());
+	}
+	else
+	UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
+	//-
+
+	state = GOLF;
+	if (mMesh)
+	{
+		golfInit();
+		mMesh->SetEnableGravity(false);
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("mMesh not initialized"));
+
+	GEngine->SetMaxFPS(60.f);
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
@@ -905,28 +899,48 @@ void AGolfBall::setMeshVisibility()
 	switch (state)
 	{
 	case GOLF:
-		mWingsMeshLeft->SetVisibility(false);
-		mWingsMeshRight->SetVisibility(false);
-		//mLegsMesh->SetVisibility(false);
-		//mArmsMesh->SetVisibility(false);
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		{
+			mWingsMeshLeft->SetVisibility(false);
+			mWingsMeshRight->SetVisibility(false);
+			mLegsMesh->SetVisibility(false);
+			//mArmsMesh->SetVisibility(false);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	case WALKING:
-		mWingsMeshLeft->SetVisibility(false);
-		mWingsMeshRight->SetVisibility(false);
-		//mLegsMesh->SetVisibility(true);
-		//mArmsMesh->SetVisibility(false);
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		{
+			mWingsMeshLeft->SetVisibility(false);
+			mWingsMeshRight->SetVisibility(false);
+			mLegsMesh->SetVisibility(true);
+			//mArmsMesh->SetVisibility(false);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	case CLIMBING:
-		mWingsMeshLeft->SetVisibility(false);
-		mWingsMeshRight->SetVisibility(false);
-		//mLegsMesh->SetVisibility(false);
-		//mArmsMesh->SetVisibility(true);
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		{
+			mWingsMeshLeft->SetVisibility(false);
+			mWingsMeshRight->SetVisibility(false);
+			mLegsMesh->SetVisibility(false);
+			//mArmsMesh->SetVisibility(true);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	case FLYING:
-		mWingsMeshLeft->SetVisibility(true);
-		mWingsMeshRight->SetVisibility(true);
-		//mLegsMesh->SetVisibility(false);
-		//mArmsMesh->SetVisibility(false);
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		{
+			mWingsMeshLeft->SetVisibility(true);
+			mWingsMeshRight->SetVisibility(true);
+			mLegsMesh->SetVisibility(false);
+			//mArmsMesh->SetVisibility(false);
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("Set mesh visibility failed"));
