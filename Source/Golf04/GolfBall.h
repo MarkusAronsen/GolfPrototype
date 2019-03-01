@@ -187,6 +187,7 @@ public:
 
 	bool sphereTrace();
 	bool lineTrace();
+	void constructTransform(FVector hitLocation, FVector impactNormal);
 	TArray<FHitResult> hitResults;
 	TArray<FHitResult> lineTraceResults;
 	FCollisionQueryParams traceParams;
@@ -194,7 +195,8 @@ public:
 	bool alignWithSurface = false;
 	FVector impactPoint;
 	FVector surfaceNormal;
-	FTransform newTransform;
+	FTransform newRotationTransform;
+	FTransform newTranslationTransform;
 	float walkingDirection = 0.f;
 	bool onPlatform = false;
 	FVector platformOffset;
@@ -204,7 +206,7 @@ public:
 	float lerpTime = 10.f;
 	FRotator currentRotation;
 
-	float movementSpeed;
+	float movementSpeed = 5000.f;
 	bool platformJump = false;
 	void movementTransformation(float DeltaTime);
 

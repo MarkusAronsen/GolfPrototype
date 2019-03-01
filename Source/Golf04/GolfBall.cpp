@@ -86,7 +86,6 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
 
 	walkMaxDuration = 30.f;
-	movementSpeed = 10000.f;
 	world = GetWorld();
 
 	mController = GetWorld()->GetFirstPlayerController();
@@ -200,9 +199,9 @@ void AGolfBall::Tick(float DeltaTime)
 		currentRotation = FMath::Lerp(
 			GetActorRotation(),
 			FRotator(
-				newTransform.Rotator().Pitch,
+				newRotationTransform.Rotator().Pitch,
 				mController->GetControlRotation().Yaw + walkingDirection,
-				newTransform.Rotator().Roll),
+				newRotationTransform.Rotator().Roll),
 			lerpTime * DeltaTime);
 
 		break;
@@ -238,8 +237,8 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	//if (world)
-		//drawDebugObjectsTick();
+	if (world)
+		drawDebugObjectsTick();
 	//debugMouse();
 
 	if(bRespawning)
@@ -503,7 +502,7 @@ void AGolfBall::setLMBPressed()
 	switch (state)
 	{
 	case GOLF:
-		if(canLaunch)
+		if(canLaunch && PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
 
 		break;
@@ -529,7 +528,8 @@ void AGolfBall::setLMBReleased()
 		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
 		currentLaunchPower = 0.f;
 
-		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+		if(PowerBarWidget)
+			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 
 		break;
 	case WALKING:
@@ -616,6 +616,7 @@ bool AGolfBall::sphereTrace()
 
 bool AGolfBall::lineTrace()
 {
+	//Linetrace down from actor to find surface location and normal
 	if (world && mMesh)
 		world->LineTraceMultiByChannel(
 			lineTraceResults,
@@ -625,31 +626,31 @@ bool AGolfBall::lineTrace()
 			traceParams,
 			FCollisionResponseParams::DefaultResponseParam);
 
+	//If hit found, create FTransforms
 	if (GEngine && lineTraceResults.Num() > 0)
 	{
-		surfaceNormal = lineTraceResults[0].ImpactNormal;
-		impactPoint = lineTraceResults[0].ImpactPoint;
-		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
-
-		FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
-		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
-
-		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
-
+		constructTransform(lineTraceResults[0].ImpactPoint, lineTraceResults[0].ImpactNormal);
 	}
 	else if (lineTraceResults.Num() == 0)
 	{
-		surfaceNormal = FVector(0.f, 0.f, 1.f);
-		impactPoint = GetActorLocation();
-		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
-
-		FVector newForwardVector = FVector::CrossProduct(mCamera->GetRightVector(), surfaceNormal);
-		FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
-
-		newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
+		constructTransform(GetActorLocation(), FVector(0.f, 0.f, 1.f));
 	}
 
 	return lineTraceResults.Num() > 0;
+}
+
+void AGolfBall::constructTransform(FVector hitLocation, FVector impactNormal)
+{
+	surfaceNormal = impactNormal;
+	impactPoint = hitLocation;
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+
+	//Variables used to construct new transform
+	FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+	FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+
+	//FTransform used for actor rotation
+	newRotationTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
 }
 
 void AGolfBall::tickWalking(float DeltaTime)
@@ -657,16 +658,26 @@ void AGolfBall::tickWalking(float DeltaTime)
 	mMesh->SetWorldRotation(currentRotation);
 
 	if (SPressed)
+	{ 
 		walkingDirection = 180.f;
-		
+		movementTransformation(DeltaTime);
+	}	
 	if (APressed)
+	{
 		walkingDirection = -90.f;
-
+		movementTransformation(DeltaTime);
+	}
 	if (DPressed)
+	{
 		walkingDirection = 90.f;
-
+		movementTransformation(DeltaTime);
+	}
 	if (WPressed)
+	{
 		walkingDirection = 0.f;
+		movementTransformation(DeltaTime);
+	}
+
 
 	if (WPressed || SPressed || APressed || DPressed)
 	{ 
@@ -675,14 +686,20 @@ void AGolfBall::tickWalking(float DeltaTime)
 	}
 
 	else
+	{ 
 		bIsWalking = false;
+		mMesh->AddForce(mMesh->GetPhysicsLinearVelocity() * -1 * movementSpeed);
+	}
 
-	if (mMesh->GetPhysicsLinearVelocity().Size() >= 1500)
-		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.9f, mMesh->GetPhysicsLinearVelocity().Y * 0.9f, mMesh->GetPhysicsLinearVelocity().Z));
+	if (mMesh->GetPhysicsLinearVelocity().Size() > 1500.f)
+		mMesh->AddForce(FVector(mMesh->GetPhysicsLinearVelocity().X * -1 * movementSpeed, mMesh->GetPhysicsLinearVelocity().Y * -1 * movementSpeed, mMesh->GetPhysicsLinearVelocity().Z));
 
-	if (onGround)
-		mMesh->SetPhysicsLinearVelocity(mMesh->GetPhysicsLinearVelocity() * 0.93f, false);
+
+	//if (GEngine)
+		//GEngine->AddOnScreenDebugMessage(4, 1.f, FColor::Yellow, (TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size()), true);
 	
+	UE_LOG(LogTemp, Warning, TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size());
+
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
@@ -705,17 +722,22 @@ void AGolfBall::tickWalking(float DeltaTime)
 }
 
 void AGolfBall::movementTransformation(float DeltaTime)
-{
-	surfaceNormal = lineTraceResults[0].ImpactNormal;
-	impactPoint = lineTraceResults[0].ImpactPoint;
-	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + surfaceNormal * 200.f, FColor::Purple, false, 0, (uint8)'\000', 6.f);
+{	
+	//Reusing variables and snapRotation is camera + inputDirection rotation
+	FRotator targetRotation = FRotator(
+		newRotationTransform.Rotator().Pitch,
+		mController->GetControlRotation().Yaw + walkingDirection,
+		newRotationTransform.Rotator().Roll);
 
-	FVector newForwardVector = FVector::CrossProduct(GetActorRightVector(), surfaceNormal);
+	targetRotation.Yaw = targetRotation.Yaw + 90.f;
+
+	FVector newForwardVector = FVector::CrossProduct(targetRotation.Vector(), surfaceNormal);
 	FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
 
-	newTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
+	//FTransform used for actor translation
+	newTranslationTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
 
-	mMesh->AddForce(newTransform.GetRotation().GetForwardVector() * movementSpeed, NAME_None, true);
+	mMesh->AddForce(newTranslationTransform.Rotator().Vector() * movementSpeed, NAME_None, true);
 
 	if (onPlatform && onGround)
 		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
