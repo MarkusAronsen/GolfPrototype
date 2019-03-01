@@ -118,6 +118,11 @@ void AGolfBall::BeginPlay()
 		//Flip left wing to create right wing
 		mWingsMeshRight->SetRelativeScale3D(FVector(1.f, -1.f, 1.f));
 		//-
+
+		//Reposition legs
+		mLegsMesh->SetRelativeRotation(FRotator(0, -90, 0));
+		mLegsMesh->SetRelativeLocation(FVector(0, 0, -100));
+		//-
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight not initialized"));
@@ -844,8 +849,8 @@ void AGolfBall::confirmLevelSelection()
 	if (currentLevelSelecter && state == AWAITING_LEVELSELECT_INPUT)
 	{
 		currentLevelSelecter->LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen);
-		//UGameplayStatics::OpenLevel(this, FName(*levelToOpen));
+		//UE_LOG(LogTemp, Warning, TEXT("%s"), *levelToOpen);
+		UGameplayStatics::OpenLevel(this, FName(*levelToOpen));
 	}
 }
 
