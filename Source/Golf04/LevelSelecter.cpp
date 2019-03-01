@@ -72,7 +72,10 @@ void ALevelSelecter::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor *
 	{
 		LevelSelectWidget->SetVisibility(ESlateVisibility::Hidden);
 
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING;
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->currentLevelSelecter = nullptr;
+		if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0)))
+		{
+			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING;
+			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->currentLevelSelecter = nullptr;
+		}
 	}
 }
