@@ -153,7 +153,7 @@ public:
 	FVector velocity;
 	FVector acceleration;
 	FVector gravity = FVector(0, 0, -1.5f);
-	FVector gravitation = FVector(0.f, 0.f, -400000.f);
+	//FVector gravitation = FVector(0.f, 0.f, -400000.f);
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);
@@ -206,10 +206,11 @@ public:
 	float lerpTime = 10.f;
 	FRotator currentRotation;
 
-	float movementSpeed = 5000.f;
+	float movementSpeed = 1000000.f;
+	bool bValidInput = false;
 	bool platformJump = false;
 	void movementTransformation(float DeltaTime);
-
+	AWorldSettings* mWorldSettings;
 
 	//Death and respawning
 	void respawnAtCheckpoint();
