@@ -58,7 +58,6 @@ void AGolfBall::BeginPlay()
 
 	mMesh->SetAngularDamping(0.1f);
 	mWorldSettings = GetWorldSettings();
-	mWorldSettings->GlobalGravityZ = -15000.f;
 	mWorldSettings->bGlobalGravitySet = true;
 
 	mMesh->BodyInstance.bEnableGravity = true;
@@ -190,6 +189,8 @@ void AGolfBall::Tick(float DeltaTime)
 		else if (LMBPressed && canLaunch)
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 
+		UE_LOG(LogTemp, Warning, TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size());
+		
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 100.f)
 			canLaunch = true;
 		else
@@ -243,10 +244,12 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	if (world)
-		drawDebugObjectsTick();
+	//if (world)
+		//drawDebugObjectsTick();
 	//debugMouse();
 
+	if (bRespawning)
+		UE_LOG(LogTemp, Warning, TEXT("RESPAWNING"));
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
 
@@ -345,6 +348,7 @@ void AGolfBall::golfInit()
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
 		mMesh->RecreatePhysicsState();
 		mMesh->SetLinearDamping(0.6f);
+		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
 	if (state == WALKING && mMesh != nullptr && mMesh->IsValidLowLevel())
 	{
@@ -353,6 +357,7 @@ void AGolfBall::golfInit()
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
 		mMesh->RecreatePhysicsState();
 		mMesh->SetLinearDamping(8.f);
+		mWorldSettings->GlobalGravityZ = -15000.f;
 	}
 
 	setMeshVisibility();
@@ -373,6 +378,8 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
 	OActorForwardVector = OtherActor->GetActorForwardVector();
 	SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
+	mMesh->SetLinearDamping(0.6f);
+	mWorldSettings->GlobalGravityZ = -8000.f;
 
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
@@ -533,12 +540,10 @@ void AGolfBall::setLMBReleased()
 	switch (state)
 	{
 	case GOLF:
-		mMesh->SetPhysicsLinearVelocity(FRotator(0.f, GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower, true);
+		mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 		currentLaunchPower = 0.f;
-
 		if(PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-
 		break;
 	case WALKING:
 		break;
@@ -549,7 +554,7 @@ void AGolfBall::setLMBReleased()
 			mMesh->SetSimulatePhysics(true);
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-			mMesh->SetPhysicsLinearVelocity(mousePositionReleased * 5, false);
+			mMesh->AddImpulse(mousePositionReleased * 2000.f, NAME_None, false);
 		}
 		break;
 	case FLYING:
@@ -842,6 +847,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	if (timeToCameraFadeEnd >= cameraFadeTimer)
 	{
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
+		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
 		bRespawning = false;

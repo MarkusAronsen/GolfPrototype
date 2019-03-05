@@ -93,6 +93,9 @@ public:
 	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UMaterialInstanceDynamic* DynamicMaterialInst = nullptr;*/
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical material")
+		UPhysicalMaterial* PhysPlayerMaterial = nullptr;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		UUserWidget* PowerBarWidget = nullptr;
 
