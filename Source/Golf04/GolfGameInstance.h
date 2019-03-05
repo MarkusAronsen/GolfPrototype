@@ -24,4 +24,6 @@ public:
 	//UPROPERTY(VisibleAnywhere, BluePrintReadOnly, Category = "Game Instance Data")
 		//TArray<FString> levelNames;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float cameraSpeed = 1.f;
 };

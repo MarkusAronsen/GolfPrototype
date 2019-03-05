@@ -122,7 +122,7 @@ void AGolfBall::BeginPlay()
 
 		//Reposition legs
 		mLegsMesh->SetRelativeRotation(FRotator(0, -90, 0));
-		mLegsMesh->SetRelativeLocation(FVector(0, 0, -100));
+		mLegsMesh->SetRelativeLocation(FVector(0, 0, -150));
 		//-
 	}
 	else
@@ -134,6 +134,8 @@ void AGolfBall::BeginPlay()
 		bCameraShouldPan = true;
 		UE_LOG(LogTemp, Warning, TEXT("Start camera pan"));
 	}
+
+	cameraSpeed = Cast<UGolfGameInstance>(GetGameInstance())->cameraSpeed;
 
 	//Load animations and use them if they exist
 	UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
@@ -574,13 +576,13 @@ void AGolfBall::setLMBReleased()
 void AGolfBall::mouseCameraPitch()
 {
 	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
-	mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + mouseY, -10.f, 30.f);
+	mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + (mouseY * cameraSpeed), -10.f, 30.f);
 }
 
 void AGolfBall::mouseCameraYaw()
 {
 	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
-	world->GetFirstPlayerController()->AddYawInput(mouseX);
+	world->GetFirstPlayerController()->AddYawInput(mouseX * cameraSpeed);
 }
 
 void AGolfBall::leftShiftPressed()
