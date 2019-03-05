@@ -173,8 +173,11 @@ public:
 	void spacebarPressed();
 	void setLMBPressed();
 	void setLMBReleased();
+
 	void mouseCameraPitch();
 	void mouseCameraYaw();
+	float cameraSpeed;
+
 	void leftShiftPressed();
 	void scrollUp();
 	void scrollDown();
