@@ -143,11 +143,11 @@ void AGolfBall::BeginPlay()
 
 	if (flyingAnim)
 	{
-	mWingsMeshLeft->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
-	mWingsMeshRight->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+		mWingsMeshLeft->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+		mWingsMeshRight->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
 	}
 	else
-	UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
+		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 
 	if (walkAnim)
 	{
@@ -178,6 +178,12 @@ void AGolfBall::Tick(float DeltaTime)
 
 	onGround = sphereTrace();
 	alignWithSurface = lineTrace();
+
+	if (GEngine)
+	{ 
+		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Yellow, newRotationTransform.Rotator().Vector().ToString());
+		GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Yellow, newTranslationTransform.Rotator().Vector().ToString());
+	}
 
 	switch (state)
 	{
@@ -213,6 +219,12 @@ void AGolfBall::Tick(float DeltaTime)
 				newRotationTransform.Rotator().Roll),
 			lerpTime * DeltaTime);
 
+		if (onGround)
+			mMesh->SetLinearDamping(10.f);
+		if (!onGround)
+			mMesh->SetLinearDamping(1.f);
+
+		
 		break;
 
 	case CLIMBING:
@@ -246,12 +258,10 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	//if (world)
-		//drawDebugObjectsTick();
+	if (world)
+		drawDebugObjectsTick();
 	//debugMouse();
 
-	if (bRespawning)
-		UE_LOG(LogTemp, Warning, TEXT("RESPAWNING"));
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
 
@@ -358,8 +368,7 @@ void AGolfBall::golfInit()
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
 		mMesh->RecreatePhysicsState();
-		mMesh->SetLinearDamping(8.f);
-		mWorldSettings->GlobalGravityZ = -15000.f;
+		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
 
 	setMeshVisibility();
@@ -431,7 +440,7 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->AddImpulse(FVector(0.f, 0.f, 8000.f), NAME_None, true);
+	mMesh->AddImpulse(FVector(0.f, 0.f, 5000.f), NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
@@ -746,15 +755,16 @@ void AGolfBall::movementTransformation(float DeltaTime)
 		mController->GetControlRotation().Yaw + walkingDirection,
 		newRotationTransform.Rotator().Roll);
 
-	targetRotation.Yaw = targetRotation.Yaw + 90.f;
-
-	FVector newForwardVector = FVector::CrossProduct(targetRotation.Vector(), surfaceNormal);
-	FVector newRightVector = FVector::CrossProduct(surfaceNormal, newForwardVector);
+	FVector newRightVector = FVector::CrossProduct(surfaceNormal, targetRotation.Vector());
 
 	//FTransform used for actor translation
-	newTranslationTransform = FTransform(newForwardVector, newRightVector, surfaceNormal, impactPoint);
+	newTranslationTransform = FTransform(targetRotation.Vector(), newRightVector, surfaceNormal, impactPoint);
 
-	mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed, NAME_None, true);
+	if(onGround)
+		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed, NAME_None, true);
+
+	if(!onGround)
+		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/5.f, NAME_None, true);
 
 	if (onPlatform && onGround)
 		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
