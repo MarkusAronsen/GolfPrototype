@@ -247,6 +247,7 @@ void AGolfBall::Tick(float DeltaTime)
 	case AWAITING_LEVELSELECT_INPUT:
 		//mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		mMesh->SetLinearDamping(100.f);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
@@ -258,8 +259,8 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	if (world)
-		drawDebugObjectsTick();
+	//if (world)
+		//drawDebugObjectsTick();
 	//debugMouse();
 
 	if(bRespawning)
@@ -440,7 +441,7 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->AddImpulse(FVector(0.f, 0.f, 5000.f), NAME_None, true);
+	mMesh->AddImpulse(FVector(0.f, 0.f, 3500.f), NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
