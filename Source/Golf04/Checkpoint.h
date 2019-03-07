@@ -29,7 +29,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere)
-		UShapeComponent * CollisionBox = nullptr;
+		UShapeComponent* CollisionBox = nullptr;
+
+	UPROPERTY(EditAnywhere)
+		UShapeComponent* OuterCollisionBox = nullptr;
 
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
