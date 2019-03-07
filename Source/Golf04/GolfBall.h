@@ -102,6 +102,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> PowerBarWidget_BP;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* PauseWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> PauseWidget_BP;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkMaxDuration;
 
@@ -260,4 +266,6 @@ public:
 	void printLoadedGame();
 
 	void setMeshVisibility();
+
+	void pauseGame();
 };
