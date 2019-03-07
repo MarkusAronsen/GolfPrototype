@@ -122,7 +122,7 @@ void AGolfBall::BeginPlay()
 
 		//Reposition legs
 		mLegsMesh->SetRelativeRotation(FRotator(0, -90, 0));
-		mLegsMesh->SetRelativeLocation(FVector(0, 0, -150));
+		mLegsMesh->SetRelativeLocation(FVector(0, 0, -110));
 		//-
 	}
 	else
@@ -178,12 +178,6 @@ void AGolfBall::Tick(float DeltaTime)
 
 	onGround = sphereTrace();
 	alignWithSurface = lineTrace();
-
-	if (GEngine)
-	{ 
-		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Yellow, newRotationTransform.Rotator().Vector().ToString());
-		GEngine->AddOnScreenDebugMessage(2, 1.f, FColor::Yellow, newTranslationTransform.Rotator().Vector().ToString());
-	}
 
 	switch (state)
 	{
@@ -247,6 +241,7 @@ void AGolfBall::Tick(float DeltaTime)
 	case AWAITING_LEVELSELECT_INPUT:
 		//mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		mMesh->SetLinearDamping(100.f);
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
@@ -258,8 +253,8 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	if (world)
-		drawDebugObjectsTick();
+	//if (world)
+		//drawDebugObjectsTick();
 	//debugMouse();
 
 	if(bRespawning)
@@ -440,7 +435,7 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->AddImpulse(FVector(0.f, 0.f, 5000.f), NAME_None, true);
+	mMesh->AddImpulse(FVector(0.f, 0.f, 3500.f), NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
