@@ -214,7 +214,7 @@ void AGolfBall::Tick(float DeltaTime)
 			lerpTime * DeltaTime);
 
 		if (onGround)
-			mMesh->SetLinearDamping(10.f);
+			mMesh->SetLinearDamping(20.f);
 		if (!onGround)
 			mMesh->SetLinearDamping(1.f);
 
@@ -435,7 +435,7 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->AddImpulse(FVector(0.f, 0.f, 3500.f), NAME_None, true);
+	mMesh->AddImpulse(FVector(0.f, 0.f, 5000.f), NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
@@ -759,7 +759,7 @@ void AGolfBall::movementTransformation(float DeltaTime)
 		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed, NAME_None, true);
 
 	if(!onGround)
-		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/5.f, NAME_None, true);
+		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/8.f, NAME_None, true);
 
 	if (onPlatform && onGround)
 		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();

@@ -212,7 +212,7 @@ public:
 	float lerpTime = 10.f;
 	FRotator currentRotation;
 
-	float movementSpeed = 1000000.f;
+	float movementSpeed = 2000000.f;
 	bool bValidInput = false;
 	bool platformJump = false;
 	void movementTransformation(float DeltaTime);
