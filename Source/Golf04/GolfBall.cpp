@@ -86,6 +86,13 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("PowerBarWidget not initialized"));
 
+	if (PauseWidget_BP)
+	{
+		PauseWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PauseWidget_BP);
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("PauseWidget not initialized"));
+
 	walkMaxDuration = 30.f;
 	world = GetWorld();
 
@@ -290,6 +297,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::printLoadedGame);
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
+	InputComponent->BindAction("P", IE_Pressed, this, &AGolfBall::pauseGame);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
@@ -1018,4 +1026,14 @@ void AGolfBall::setMeshVisibility()
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("Set mesh visibility failed"));
 	}
+}
+
+void AGolfBall::pauseGame()
+{
+	UGameplayStatics::SetGamePaused(this, true);
+	PauseWidget->AddToViewport();
+	PauseWidget->SetVisibility(ESlateVisibility::Visible);
+
+	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
+	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 }
