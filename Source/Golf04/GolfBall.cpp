@@ -178,6 +178,7 @@ void AGolfBall::Tick(float DeltaTime)
 
 	onGround = sphereTrace();
 	alignWithSurface = lineTrace();
+	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 
 	switch (state)
 	{
@@ -214,10 +215,15 @@ void AGolfBall::Tick(float DeltaTime)
 			lerpTime * DeltaTime);
 
 		if (onGround)
+		{
 			mMesh->SetLinearDamping(20.f);
+			bDoubleJumping = false;
+		}
 		if (!onGround)
 			mMesh->SetLinearDamping(1.f);
 
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Yellow, velocityString);
 		
 		break;
 
@@ -253,9 +259,9 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	//if (world)
-		//drawDebugObjectsTick();
-	//debugMouse();
+	if (world)
+		drawDebugObjectsTick();
+	debugMouse();
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
@@ -348,7 +354,7 @@ void AGolfBall::golfInit()
 
 	mMesh->SetSimulatePhysics(true);
 
-	if(state == GOLF && mMesh != nullptr && mMesh->IsValidLowLevel())
+	if(state == GOLF && mMesh && mMesh->IsValidLowLevel())
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
@@ -357,12 +363,14 @@ void AGolfBall::golfInit()
 		mMesh->SetLinearDamping(0.6f);
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
-	if (state == WALKING && mMesh != nullptr && mMesh->IsValidLowLevel())
+	if (state == WALKING && mMesh && mMesh->IsValidLowLevel())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
 		mMesh->RecreatePhysicsState();
+		mMesh->SetAngularDamping(0.8f);
+
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
 
@@ -435,7 +443,10 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->AddImpulse(FVector(0.f, 0.f, 5000.f), NAME_None, true);
+	if(!onGround)
+		mMesh->AddImpulse(FVector(0.f, 0.f, 3500.f), NAME_None, true);
+	if (onGround)
+		mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f) + mMesh->GetPhysicsLinearVelocity(), NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
@@ -475,6 +486,11 @@ void AGolfBall::spacebarPressed()
 	}
 	if (state == WALKING && onGround)
 		jump();
+	if (state == WALKING && !onGround && !bDoubleJumping)
+	{
+		jump();
+		bDoubleJumping = true;
+	}
 }
 
 void AGolfBall::WClicked()
@@ -557,9 +573,21 @@ void AGolfBall::setLMBReleased()
 		if (!mMesh->IsSimulatingPhysics())
 		{
 			mousePositionReleased = FVector(0.f, mouseX, mouseY);
-			mMesh->SetSimulatePhysics(true);
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
+			if (mousePositionReleased.Size() < 50.f)
+			{ 
+				UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
+				break;
+			}
+			if (mousePositionReleased.Size() > 400.f)
+			{
+				float differenceFactor = mousePositionReleased.Size() / 400.f;
+				mousePositionReleased = mousePositionReleased / differenceFactor;
+				UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
+			}
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			
+			mMesh->SetSimulatePhysics(true);
 			mMesh->AddImpulse(mousePositionReleased * 2000.f, NAME_None, false);
 		}
 		break;
@@ -640,7 +668,7 @@ bool AGolfBall::lineTrace()
 		world->LineTraceMultiByChannel(
 			lineTraceResults,
 			GetActorLocation(),
-			GetActorLocation() + GetActorUpVector() * -400,
+			GetActorLocation() + FVector(0.f, 0.f, -1.f) * -700,
 			ECollisionChannel::ECC_Pawn,
 			traceParams,
 			FCollisionResponseParams::DefaultResponseParam);
@@ -674,7 +702,8 @@ void AGolfBall::constructTransform(FVector hitLocation, FVector impactNormal)
 
 void AGolfBall::tickWalking(float DeltaTime)
 {
-	mMesh->SetWorldRotation(currentRotation);
+	if(onGround)
+		mMesh->SetWorldRotation(currentRotation);
 
 	bValidInput = true;
 
@@ -758,7 +787,7 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	if(onGround)
 		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed, NAME_None, true);
 
-	if(!onGround)
+	if(!onGround && mMesh->GetPhysicsLinearVelocity().Size() < 2000.f)
 		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/8.f, NAME_None, true);
 
 	if (onPlatform && onGround)
@@ -886,8 +915,8 @@ void AGolfBall::debugMouse()
 {
 	debugMouseX = FString::SanitizeFloat(mouseX);
 	debugMouseY = FString::SanitizeFloat(572.f - mouseY);
-	//if (GEngine)
-		//GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
 }
 
 void AGolfBall::drawDebugObjectsTick()
@@ -895,7 +924,6 @@ void AGolfBall::drawDebugObjectsTick()
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetForwardVector() * 200, FColor::Red, false, 0, (uint8)'\000', 6.f);
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetUpVector() * 200, FColor::Green, false, 0, (uint8)'\000', 6.f);
 	DrawDebugLine(GetWorld(), mMesh->GetComponentLocation(), mMesh->GetComponentLocation() + mMesh->GetRightVector() * 200, FColor::Blue, false, 0, (uint8)'\000', 6.f);
-
 }
 
 bool AGolfBall::timerFunction(float timerLength, float DeltaTime)

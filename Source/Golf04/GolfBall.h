@@ -198,6 +198,7 @@ public:
 	TArray<FHitResult> lineTraceResults;
 	FCollisionQueryParams traceParams;
 	bool onGround = false;
+	bool bDoubleJumping = false;
 	bool alignWithSurface = false;
 	FVector impactPoint;
 	FVector surfaceNormal;
