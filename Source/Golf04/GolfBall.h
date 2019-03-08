@@ -204,7 +204,6 @@ public:
 	TArray<FHitResult> lineTraceResults;
 	FCollisionQueryParams traceParams;
 	bool onGround = false;
-	bool bDoubleJumping = false;
 	bool alignWithSurface = false;
 	FVector impactPoint;
 	FVector surfaceNormal;
@@ -213,6 +212,7 @@ public:
 	float walkingDirection = 0.f;
 	bool onPlatform = false;
 	FVector platformOffset;
+	float PhysVelPrevFrame;
 
 	void lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime);
 	float lerpTimer = 0.f;
@@ -263,6 +263,7 @@ public:
 	void debugMouse();
 	void drawDebugObjectsTick();
 	bool timerFunction(float timerLength, float DeltaTime);
+	float clock = 0.f;
 	
 	void printLoadedGame();
 

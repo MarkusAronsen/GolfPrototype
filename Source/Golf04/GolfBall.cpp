@@ -184,7 +184,7 @@ void AGolfBall::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	onGround = sphereTrace();
-	alignWithSurface = lineTrace();
+
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 
 	switch (state)
@@ -200,8 +200,23 @@ void AGolfBall::Tick(float DeltaTime)
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 
 		UE_LOG(LogTemp, Warning, TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size());
-		
-		if (mMesh->GetPhysicsLinearVelocity().Size() < 100.f)
+
+		if (PhysVelPrevFrame < mMesh->GetPhysicsLinearVelocity().Size() && mMesh->GetLinearDamping() > 0.8f)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ACCELERATING"));
+			mMesh->SetLinearDamping(0.6f);
+			mMesh->SetAngularDamping(0.1f);
+		}
+		if (mMesh->GetPhysicsLinearVelocity().Size() < 700.f && mMesh->GetLinearDamping() < 100.f)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("DAMPENING = %f"), mMesh->GetLinearDamping());
+			mMesh->SetLinearDamping(mMesh->GetLinearDamping() + DeltaTime);
+			mMesh->SetAngularDamping(mMesh->GetAngularDamping() + DeltaTime);
+		}
+
+		PhysVelPrevFrame = mMesh->GetPhysicsLinearVelocity().Size();
+
+		if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f)
 			canLaunch = true;
 		else
 			canLaunch = false;
@@ -209,6 +224,7 @@ void AGolfBall::Tick(float DeltaTime)
 
 	case WALKING:
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		alignWithSurface = lineTrace();
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
@@ -221,23 +237,18 @@ void AGolfBall::Tick(float DeltaTime)
 				newRotationTransform.Rotator().Roll),
 			lerpTime * DeltaTime);
 
-		if (onGround)
-		{
+		if (onGround && mMesh->GetLinearDamping() < 19.f)
 			mMesh->SetLinearDamping(20.f);
-			bDoubleJumping = false;
-		}
-		if (!onGround)
-			mMesh->SetLinearDamping(1.f);
+		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
+			mMesh->SetLinearDamping(0.f);
 
 		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(3, 1.f, FColor::Yellow, velocityString);
+			GEngine->AddOnScreenDebugMessage(3, 0.1f, FColor::Yellow, velocityString);
 		
 		break;
 
 	case CLIMBING:
 		world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
-		//if(mMesh->IsSimulatingPhysics())
-			//mMesh->AddForce(gravitation/2 * DeltaTime, NAME_None, true);
 		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		break;
 
@@ -252,7 +263,6 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case AWAITING_LEVELSELECT_INPUT:
-		//mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mMesh->SetLinearDamping(100.f);
 		mouseCameraPitch();
@@ -451,10 +461,7 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	if(!onGround)
-		mMesh->AddImpulse(FVector(0.f, 0.f, 3500.f), NAME_None, true);
-	if (onGround)
-		mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f) + mMesh->GetPhysicsLinearVelocity(), NAME_None, true);
+	mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f), NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
@@ -494,11 +501,6 @@ void AGolfBall::spacebarPressed()
 	}
 	if (state == WALKING && onGround)
 		jump();
-	if (state == WALKING && !onGround && !bDoubleJumping)
-	{
-		jump();
-		bDoubleJumping = true;
-	}
 }
 
 void AGolfBall::WClicked()
@@ -543,24 +545,25 @@ void AGolfBall::DReleased()
 
 void AGolfBall::setLMBPressed()
 {
-	LMBPressed = true;
 	switch (state)
 	{
 	case GOLF:
-		if(canLaunch && PowerBarWidget)
-			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
-
-		break;
-	case WALKING:
-		break;
-	case CLIMBING:
-		if (!mMesh->IsSimulatingPhysics())
+		if (canLaunch && PowerBarWidget)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("CLICKED"));
-			mousePositionClicked = FVector(0.f, mouseX, mouseY);
+			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
+			LMBPressed = true;
 		}
 		break;
+	case WALKING:
+		LMBPressed = true;
+		break;
+	case CLIMBING:
+		LMBPressed = true;
+		if (!mMesh->IsSimulatingPhysics())
+			mousePositionClicked = FVector(0.f, mouseX, mouseY);
+		break;
 	case FLYING:
+		LMBPressed = true;
 		break;
 	}
 }
@@ -570,6 +573,8 @@ void AGolfBall::setLMBReleased()
 	switch (state)
 	{
 	case GOLF:
+		mMesh->SetLinearDamping(0.6);
+		mMesh->SetAngularDamping(0.1);
 		mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 		currentLaunchPower = 0.f;
 		if(PowerBarWidget)
@@ -676,7 +681,7 @@ bool AGolfBall::lineTrace()
 		world->LineTraceMultiByChannel(
 			lineTraceResults,
 			GetActorLocation(),
-			GetActorLocation() + FVector(0.f, 0.f, -1.f) * -700,
+			GetActorLocation() + FVector(0.f, 0.f, -400.f),
 			ECollisionChannel::ECC_Pawn,
 			traceParams,
 			FCollisionResponseParams::DefaultResponseParam);
@@ -710,7 +715,7 @@ void AGolfBall::constructTransform(FVector hitLocation, FVector impactNormal)
 
 void AGolfBall::tickWalking(float DeltaTime)
 {
-	if(onGround)
+	if (onGround)
 		mMesh->SetWorldRotation(currentRotation);
 
 	bValidInput = true;
@@ -752,11 +757,6 @@ void AGolfBall::tickWalking(float DeltaTime)
 	}
 	else
 		bIsWalking = false;
-
-	//if (GEngine)
-		//GEngine->AddOnScreenDebugMessage(4, 1.f, FColor::Yellow, (TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size()), true);
-	
-	//UE_LOG(LogTemp, Warning, TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size());
 
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
@@ -936,7 +936,6 @@ void AGolfBall::drawDebugObjectsTick()
 
 bool AGolfBall::timerFunction(float timerLength, float DeltaTime)
 {
-	static float clock = 0.f;
 	clock += DeltaTime;
 
 	if (clock > timerLength)
