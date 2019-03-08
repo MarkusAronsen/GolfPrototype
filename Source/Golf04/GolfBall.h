@@ -8,6 +8,7 @@
 #include "Checkpoint.h"
 #include "GolfGameInstance.h"
 #include "TransformationObject.h"
+#include "SecretLevelManager.h"
 
 #include "Runtime/UMG/Public/UMG.h"
 #include "Components/SphereComponent.h"
@@ -183,9 +184,6 @@ public:
 	void setLMBPressed();
 	void setLMBReleased();
 
-	UFUNCTION(BlueprintImplementableEvent)
-		void onGolfStrokeEvent();
-
 	void mouseCameraPitch();
 	void mouseCameraYaw();
 	float cameraSpeed;
@@ -271,4 +269,8 @@ public:
 	void setMeshVisibility();
 
 	void pauseGame();
+
+	//Secret levels
+	ASecretLevelManager* secretLevelManagerInstance = nullptr;
+	bool bPlayingSecretLevel = false;
 };

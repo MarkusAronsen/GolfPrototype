@@ -175,6 +175,21 @@ void AGolfBall::BeginPlay()
 
 	GEngine->SetMaxFPS(60.f);
 
+	//If level name contains "SecretLevel", retrieve secret level manager from level
+	if (UGameplayStatics::GetCurrentLevelName(this).Contains(TEXT("SecretLevel"), ESearchCase::IgnoreCase))
+	{
+		TArray<AActor*> secretLevelManager;
+		UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
+		if (secretLevelManager[0])
+			secretLevelManagerInstance = Cast<ASecretLevelManager>(secretLevelManager[0]);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Secret level manager not found"));
+
+		bPlayingSecretLevel = true;
+		UE_LOG(LogTemp, Warning, TEXT("Playing secret level"));
+	}
+
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
@@ -558,8 +573,12 @@ void AGolfBall::setLMBReleased()
 		currentLaunchPower = 0.f;
 		if(PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+		
+		if (bPlayingSecretLevel)
+		{
+			secretLevelManagerInstance->incrementBowlingThrow();
+		}
 
-		onGolfStrokeEvent();
 		break;
 	case WALKING:
 		break;
