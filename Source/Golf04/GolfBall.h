@@ -183,6 +183,9 @@ public:
 	void setLMBPressed();
 	void setLMBReleased();
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void onGolfStrokeEvent();
+
 	void mouseCameraPitch();
 	void mouseCameraYaw();
 	float cameraSpeed;

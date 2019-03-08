@@ -558,6 +558,8 @@ void AGolfBall::setLMBReleased()
 		currentLaunchPower = 0.f;
 		if(PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+
+		onGolfStrokeEvent();
 		break;
 	case WALKING:
 		break;
@@ -1005,7 +1007,6 @@ void AGolfBall::pauseGame()
 	UGameplayStatics::SetGamePaused(this, true);
 	PauseWidget->AddToViewport();
 	PauseWidget->SetVisibility(ESlateVisibility::Visible);
-
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 }
