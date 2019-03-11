@@ -32,6 +32,7 @@ AGolfBall::AGolfBall()
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(mMesh);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
+	mCamera->Activate();
 
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
@@ -180,7 +181,7 @@ void AGolfBall::BeginPlay()
 	{
 		TArray<AActor*> secretLevelManager;
 		UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
-		if (secretLevelManager[0])
+		if (secretLevelManager.Num() > 0)
 			secretLevelManagerInstance = Cast<ASecretLevelManager>(secretLevelManager[0]);
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Secret level manager not found"));
@@ -214,17 +215,13 @@ void AGolfBall::Tick(float DeltaTime)
 		else if (LMBPressed && canLaunch)
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 
-		UE_LOG(LogTemp, Warning, TEXT("%f"), mMesh->GetPhysicsLinearVelocity().Size());
-
 		if (PhysVelPrevFrame < mMesh->GetPhysicsLinearVelocity().Size() && mMesh->GetLinearDamping() > 0.8f)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ACCELERATING"));
 			mMesh->SetLinearDamping(0.6f);
 			mMesh->SetAngularDamping(0.1f);
 		}
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 700.f && mMesh->GetLinearDamping() < 100.f)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("DAMPENING = %f"), mMesh->GetLinearDamping());
 			mMesh->SetLinearDamping(mMesh->GetLinearDamping() + DeltaTime);
 			mMesh->SetAngularDamping(mMesh->GetAngularDamping() + DeltaTime);
 		}
@@ -308,6 +305,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	InputComponent->BindAction("Spacebar", IE_Pressed, this, &AGolfBall::spacebarPressed);
+	InputComponent->BindAction("Spacebar", IE_Released, this, &AGolfBall::spacebarReleased);
 	InputComponent->BindAction("Left Shift", IE_Pressed, this, &AGolfBall::leftShiftPressed);
 	InputComponent->BindAction("W", IE_Pressed, this, &AGolfBall::WClicked);
 	InputComponent->BindAction("W", IE_Released, this, &AGolfBall::WReleased);
@@ -516,6 +514,18 @@ void AGolfBall::spacebarPressed()
 	}
 	if (state == WALKING && onGround)
 		jump();
+
+	if (state == PLINKO && secretLevelManagerInstance->plinkoLaunchReady)
+	{
+		secretLevelManagerInstance->startChargingPlinko();
+	}
+}
+
+void AGolfBall::spacebarReleased()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Spacebar released"));
+	if (state == PLINKO)
+		secretLevelManagerInstance->plinkoLaunch();
 }
 
 void AGolfBall::WClicked()

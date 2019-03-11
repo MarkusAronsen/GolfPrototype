@@ -13,7 +13,8 @@ class AGolfBall;
 
 enum SecretLevelState
 {
-	BOWLING = 0
+	BOWLING = 0,
+	PLINKO = 1
 };
 
 
@@ -36,7 +37,7 @@ public:
 
 	int secretState = -1;
 
-	//Bowling
+	//Bowling-----------------------
 	TArray<AActor*> bowlingPins;
 
 	int bowlingThrows = 0;
@@ -44,6 +45,7 @@ public:
 	void incrementBowlingThrow();
 	void removeFallenPins();
 	void bowlingFinished();
+	int getBowlingScore();
 
 	float ballThrownTimer = 0.f;
 	bool bBallIsThrown = false;
@@ -52,5 +54,26 @@ public:
 	float respawnTimer = 0.f;
 
 	int numPins = 10;
+
+	int bowlingScore = 0;
+	//-----------------------------
+
+	//Plinko-----------------------
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float plinkoLaunchPower = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float plinkoMaxLaunchPower = 30000;
+
+
+	bool plinkoLaunchReady = true;
+	bool incrementPlinkoPower = false;
+	void startChargingPlinko();
+	void plinkoLaunch();
+
+	int plinkoScore = 0;
+
+	void registerPlinkoScore(int value);
 };
 

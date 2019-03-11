@@ -19,8 +19,12 @@ void ASecretLevelManager::BeginPlay()
 	{
 		secretState = BOWLING;
 		UGameplayStatics::GetAllActorsOfClass(this, ABowlingPin::StaticClass(), bowlingPins);
+		UE_LOG(LogTemp, Warning, TEXT("Found %i pins"), bowlingPins.Num());
 	}
-
+	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel02"), ESearchCase::IgnoreCase) == 0)
+	{
+		secretState = PLINKO;
+	}
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
 }
@@ -28,6 +32,7 @@ void ASecretLevelManager::BeginPlay()
 // Called every frame
 void ASecretLevelManager::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
 
 	switch (secretState)
 	{
@@ -64,21 +69,38 @@ void ASecretLevelManager::Tick(float DeltaTime)
 				{
 					Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
 					removeFallenPins();
+					if (bowlingScore == 10)
+						bowlingFinished();
 				}
 				else if (bowlingThrows == 2)
 				{
 					removeFallenPins();
 					bowlingFinished();
+					UE_LOG(LogTemp, Warning, TEXT("Bowling score: %i"), getBowlingScore());
 				}
 			}
 		}
+		break;
+
+	case PLINKO:
+
+		if(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state != Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PLINKO)
+			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PLINKO;
+
+		if (incrementPlinkoPower)
+		{
+			if(plinkoLaunchPower <= plinkoMaxLaunchPower)
+				plinkoLaunchPower += 15000 * DeltaTime;
+		}
+
 		break;
 
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("no secret state set (tick)"));
 		break;
 	}
-	Super::Tick(DeltaTime);
+
+	UE_LOG(LogTemp, Warning, TEXT("%f"), plinkoLaunchPower);
 }
 
 void ASecretLevelManager::incrementBowlingThrow()
@@ -92,12 +114,14 @@ void ASecretLevelManager::removeFallenPins()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Removing fallen pins"));
 
-	for (int i = 0; i < numPins; i++)
+	for (int i = numPins - 1; i >= 0; i--)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("%f"), (Cast<ABowlingPin>(bowlingPins[i])->GetActorUpVector() - FVector(0, 0, 1)).Size());
 		if ((Cast<ABowlingPin>(bowlingPins[i])->GetActorUpVector() - FVector(0, 0, 1)).Size() > 0.2f)
 		{
 			bowlingPins[i]->Destroy();
+			bowlingPins.RemoveAt(i, 1);
+			numPins--;
+			bowlingScore++;
 		}
 	}
 
@@ -106,4 +130,32 @@ void ASecretLevelManager::removeFallenPins()
 void ASecretLevelManager::bowlingFinished()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Bowling finished"));
+
+	//TODO: give player return to level hud? return player to level on timer? display secret level score?
+}
+
+int ASecretLevelManager::getBowlingScore()
+{
+	return bowlingScore;
+}
+
+void ASecretLevelManager::registerPlinkoScore(int value)
+{
+	plinkoScore += value;
+	Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
+
+	UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i"), plinkoScore);
+}
+
+void ASecretLevelManager::startChargingPlinko()
+{
+	plinkoLaunchReady = false;
+	incrementPlinkoPower = true;
+}
+
+void ASecretLevelManager::plinkoLaunch()
+{
+	Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->AddImpulse(FVector(0.f, 0.f, plinkoLaunchPower), NAME_None, true);
+	plinkoLaunchPower = 0.f;
+	incrementPlinkoPower = false;
 }
