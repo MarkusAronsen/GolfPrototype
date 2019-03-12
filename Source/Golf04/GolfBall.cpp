@@ -213,7 +213,16 @@ void AGolfBall::Tick(float DeltaTime)
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
 		else if (LMBPressed && canLaunch)
+		{
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
+			if (dirIndicator)
+			{
+				indicatorStretch += DeltaTime;
+				dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
+				dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
+				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
+			}
+		}
 
 		if (PhysVelPrevFrame < mMesh->GetPhysicsLinearVelocity().Size() && mMesh->GetLinearDamping() > 0.8f)
 		{
@@ -577,6 +586,14 @@ void AGolfBall::setLMBPressed()
 		{
 			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
 			LMBPressed = true;
+			if (ToSpawn && world)
+			{
+				spawnInfo.Owner = this;
+				spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+				dirIndicator = world->SpawnActor<ADirectionIndicator>(ToSpawn, GetActorLocation() + 
+					FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall, 
+					FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f), spawnInfo);
+			}
 		}
 		break;
 	case WALKING:
@@ -598,6 +615,12 @@ void AGolfBall::setLMBReleased()
 	switch (state)
 	{
 	case GOLF:
+		if (dirIndicator)
+		{
+			indicatorColor = FVector::ZeroVector;
+			indicatorStretch = 0.f;
+			dirIndicator->Destroy();
+		}
 		mMesh->SetLinearDamping(0.6);
 		mMesh->SetAngularDamping(0.1);
 		mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);

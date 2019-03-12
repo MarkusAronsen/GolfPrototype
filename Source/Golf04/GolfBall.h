@@ -9,6 +9,7 @@
 #include "GolfGameInstance.h"
 #include "TransformationObject.h"
 #include "SecretLevelManager.h"
+#include "DirectionIndicator.h"
 
 #include "Runtime/UMG/Public/UMG.h"
 #include "Components/SphereComponent.h"
@@ -138,6 +139,14 @@ public:
 		float currentLaunchPower = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float maxLaunchPower = 10000.f;
+
+	ADirectionIndicator* dirIndicator = nullptr;
+	FActorSpawnParameters spawnInfo;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<ADirectionIndicator> ToSpawn;
+	float distanceFromBall = 100.f;
+	float indicatorStretch = 0.f;
+	FVector indicatorColor = FVector(0.f, 0.f, 0.f);
 
 	float cameraFadeTimer = 1.f;
 	UCameraComponent* topDownCamera;
