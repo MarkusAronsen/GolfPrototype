@@ -24,6 +24,18 @@ void ASecretLevelManager::BeginPlay()
 	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel02"), ESearchCase::IgnoreCase) == 0)
 	{
 		secretState = PLINKO;
+		if (PlinkoPowerBarWidget_BP)
+		{
+			PlinkoPowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PlinkoPowerBarWidget_BP);
+			if (PlinkoPowerBarWidget)
+			{
+				PlinkoPowerBarWidget->AddToViewport();
+				PlinkoPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+		else
+			UE_LOG(LogTemp, Warning, TEXT("PlinkoPowerBarWidget not initialized"));
+
 	}
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
@@ -99,8 +111,6 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state set (tick)"));
 		break;
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("%f"), plinkoLaunchPower);
 }
 
 void ASecretLevelManager::incrementBowlingThrow()
@@ -142,15 +152,21 @@ int ASecretLevelManager::getBowlingScore()
 void ASecretLevelManager::registerPlinkoScore(int value)
 {
 	plinkoScore += value;
+	plinkoAttempts++;
 	Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
+	plinkoLaunchReady = true;
 
-	UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i"), plinkoScore);
+	UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i, attempt %i"), plinkoScore, plinkoAttempts);
+	if (plinkoScore == 3)
+		plinkoFinished();
 }
 
 void ASecretLevelManager::startChargingPlinko()
 {
 	plinkoLaunchReady = false;
 	incrementPlinkoPower = true;
+
+	PlinkoPowerBarWidget->SetVisibility(ESlateVisibility::Visible);
 }
 
 void ASecretLevelManager::plinkoLaunch()
@@ -158,4 +174,13 @@ void ASecretLevelManager::plinkoLaunch()
 	Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->AddImpulse(FVector(0.f, 0.f, plinkoLaunchPower), NAME_None, true);
 	plinkoLaunchPower = 0.f;
 	incrementPlinkoPower = false;
+
+	PlinkoPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+}
+
+void ASecretLevelManager::plinkoFinished()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Plinko finished"));
+
+	//TODO: give player return to level hud? return player to level on timer? display secret level score?
 }
