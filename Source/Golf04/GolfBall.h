@@ -129,7 +129,8 @@ public:
 		CLIMBING = 2,
 		FLYING = 3,
 		LEVEL_SELECT = 4,
-		AWAITING_LEVELSELECT_INPUT = 5
+		AWAITING_LEVELSELECT_INPUT = 5,
+		PLINKO = 6
 	};
 	int state;
 
@@ -181,6 +182,7 @@ public:
 	void DClicked();
 	void DReleased();
 	void spacebarPressed();
+	void spacebarReleased();
 	void setLMBPressed();
 	void setLMBReleased();
 
