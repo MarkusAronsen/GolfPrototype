@@ -38,10 +38,11 @@ void APlinkoObject::Tick(float DeltaTime)
 	if (overlapped)
 	{
 		settleTimer += DeltaTime;
-		if (DeltaTime >= 2.f)
+		if (settleTimer >= 3.f)
 		{
-
 			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->registerPlinkoScore(scoreValue);
+			overlapped = false;
+			settleTimer = 0.f;
 		}
 	}
 

@@ -66,6 +66,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float plinkoMaxLaunchPower = 30000;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* PlinkoPowerBarWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> PlinkoPowerBarWidget_BP;
 
 	bool plinkoLaunchReady = true;
 	bool incrementPlinkoPower = false;
@@ -75,5 +80,9 @@ public:
 	int plinkoScore = 0;
 
 	void registerPlinkoScore(int value);
+
+	int plinkoAttempts = 0;
+
+	void plinkoFinished();
 };
 
