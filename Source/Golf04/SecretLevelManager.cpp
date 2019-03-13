@@ -37,6 +37,12 @@ void ASecretLevelManager::BeginPlay()
 			UE_LOG(LogTemp, Warning, TEXT("PlinkoPowerBarWidget not initialized"));
 
 	}
+	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel03"), ESearchCase::IgnoreCase) == 0)
+	{
+		secretState = BILLIARDS;
+	}
+
+
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
 }
@@ -104,6 +110,10 @@ void ASecretLevelManager::Tick(float DeltaTime)
 			if(plinkoLaunchPower <= plinkoMaxLaunchPower)
 				plinkoLaunchPower += 15000 * DeltaTime;
 		}
+
+		break;
+
+	case BILLIARDS:
 
 		break;
 

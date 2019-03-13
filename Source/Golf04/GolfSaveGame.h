@@ -10,7 +10,7 @@
 #include "GolfSaveGame.generated.h"
 
 //class AGolfSaveInstance;
-const int NUM_LEVELS = 7;
+const int NUM_LEVELS = 8;
 
 USTRUCT(BlueprintType)
 struct FLevelData
@@ -56,6 +56,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save data")
 		int userIndex;
 
+
+	//Cool and smart and sensible code
 	UPROPERTY(BlueprintReadOnly)
-		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData(), FLevelData(), FLevelData(), FLevelData(), FLevelData() };
+		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData(), 
+										FLevelData(), FLevelData(), FLevelData(), 
+										FLevelData(), FLevelData() };
 };

@@ -34,6 +34,8 @@ AGolfBall::AGolfBall()
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	mCamera->Activate();
 
+	mSpringArm->bDoCollisionTest = false;
+
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
