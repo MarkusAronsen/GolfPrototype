@@ -34,6 +34,8 @@ AGolfBall::AGolfBall()
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	mCamera->Activate();
 
+	mSpringArm->bDoCollisionTest = false;
+
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
@@ -189,6 +191,20 @@ void AGolfBall::BeginPlay()
 		bPlayingSecretLevel = true;
 		UE_LOG(LogTemp, Warning, TEXT("Playing secret level"));
 	}
+
+	//Occlusion outlining
+	mMesh->bRenderCustomDepth = true;
+	mWingsMeshLeft->bRenderCustomDepth = true;
+	mWingsMeshRight->bRenderCustomDepth = true;
+	mLegsMesh->bRenderCustomDepth = true;
+
+	mMesh->CustomDepthStencilValue = 1;
+	mWingsMeshLeft->CustomDepthStencilValue = 1;
+	mWingsMeshRight->CustomDepthStencilValue = 1;
+	mLegsMesh->CustomDepthStencilValue = 1;
+
+
+
 
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));

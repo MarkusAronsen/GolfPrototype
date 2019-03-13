@@ -15,7 +15,7 @@ enum SecretLevelState
 {
 	BOWLING = 0,
 	PLINKO = 1,
-	HANGMAN = 3
+	BILLIARDS = 2,
 };
 
 
@@ -38,7 +38,7 @@ public:
 
 	int secretState = -1;
 
-	//Bowling-----------------------
+	//Bowling---------------------------------------------------------
 	TArray<AActor*> bowlingPins;
 
 	int bowlingThrows = 0;
@@ -57,10 +57,10 @@ public:
 	int numPins = 10;
 
 	int bowlingScore = 0;
-	//-----------------------------
+	//----------------------------------------------------------------
 
-	//Plinko-----------------------
 
+	//Plinko----------------------------------------------------------
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		float plinkoLaunchPower = 0.f;
 
@@ -86,13 +86,9 @@ public:
 
 	void plinkoFinished();
 
-	//-------------- Hangman ------------------
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-		UUserWidget* HangmanWidget = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
-		TSubclassOf<class UUserWidget> HangmanWidget_BP;
+	//----------------------------------------------------------------	
+	
+	//Billiards-------------------------------------------------------
 
 
 };
