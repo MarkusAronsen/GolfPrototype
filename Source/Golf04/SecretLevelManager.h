@@ -14,7 +14,8 @@ class AGolfBall;
 enum SecretLevelState
 {
 	BOWLING = 0,
-	PLINKO = 1
+	PLINKO = 1,
+	HANGMAN = 3
 };
 
 
@@ -84,5 +85,15 @@ public:
 	int plinkoAttempts = 0;
 
 	void plinkoFinished();
+
+	//-------------- Hangman ------------------
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* HangmanWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> HangmanWidget_BP;
+
+
 };
 

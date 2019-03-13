@@ -106,7 +106,6 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		}
 
 		break;
-
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("no secret state set (tick)"));
 		break;

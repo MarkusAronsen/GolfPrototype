@@ -33,5 +33,25 @@ public:
 	//TArray<AActor*> laserGrid;
 	//float gridTimer = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		FString UsedLetters = "";
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		FString targetWord1 = "Sander Platou Aaseth";
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		FString targetWord2 = "Julie Kristoffersen";
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		FString targetWord3 = "Simon Pettersen";
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		FString targetWord4 = "Markus Strand Aronsen";
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		int triesLeft = 8;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		bool gameWon = false;
+
 };
