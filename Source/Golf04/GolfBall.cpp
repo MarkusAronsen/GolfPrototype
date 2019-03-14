@@ -233,11 +233,13 @@ void AGolfBall::Tick(float DeltaTime)
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 			if (dirIndicator)
 			{
-				dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
 				dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
 				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
 				if (currentLaunchPower <= maxLaunchPower)
+				{
 					indicatorStretch += DeltaTime;
+					dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
+				}
 			}
 		}
 
