@@ -190,6 +190,9 @@ void AGolfBall::BeginPlay()
 
 		bPlayingSecretLevel = true;
 		UE_LOG(LogTemp, Warning, TEXT("Playing secret level"));
+
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel04") == 0)
+			mMesh->SetSimulatePhysics(false);
 	}
 
 	//Occlusion outlining
@@ -380,7 +383,6 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
 	InputComponent->BindAction("P", IE_Pressed, this, &AGolfBall::pauseGame);
-	InputComponent->BindAction("AnyKey", IE_Pressed, this, &AGolfBall::keyPressed);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
@@ -591,6 +593,8 @@ void AGolfBall::spacebarReleased()
 void AGolfBall::WClicked()
 {
 	WPressed = true;
+	if (state == PACMAN)
+		secretLevelManagerInstance->buffer = FVector(1.f, 0.f, 0.f);
 }
 
 void AGolfBall::WReleased()
@@ -601,6 +605,13 @@ void AGolfBall::WReleased()
 void AGolfBall::AClicked()
 {
 	APressed = true;
+	if (state == PACMAN && !secretLevelManagerInstance->gameStarted)
+	{
+		secretLevelManagerInstance->gameStarted = true;
+		SetActorRotation(FVector(0.f, -1.f, 0.f).Rotation());
+	}
+	if (state == PACMAN && secretLevelManagerInstance->gameStarted)
+		secretLevelManagerInstance->buffer = FVector(0.f, -1.f, 0.f);
 }
 
 void AGolfBall::AReleased()
@@ -611,6 +622,8 @@ void AGolfBall::AReleased()
 void AGolfBall::SClicked()
 {
 	SPressed = true;
+	if (state == PACMAN)
+		secretLevelManagerInstance->buffer = FVector(-1.f, 0.f, 0.f);
 }
 
 void AGolfBall::SReleased()
@@ -621,6 +634,13 @@ void AGolfBall::SReleased()
 void AGolfBall::DClicked()
 {
 	DPressed = true;
+	if (state == PACMAN && !secretLevelManagerInstance->gameStarted)
+	{ 
+		secretLevelManagerInstance->gameStarted = true;
+		SetActorRotation(FVector(0.f, 1.f, 0.f).Rotation());
+	}
+	if (state == PACMAN && secretLevelManagerInstance->gameStarted)
+		secretLevelManagerInstance->buffer = FVector(0.f, 1.f, 0.f);
 }
 
 void AGolfBall::DReleased()
@@ -1151,9 +1171,4 @@ void AGolfBall::pauseGame()
 	PauseWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
-}
-
-void AGolfBall::keyPressed()
-{
-
 }
