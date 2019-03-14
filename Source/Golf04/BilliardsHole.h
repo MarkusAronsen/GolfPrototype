@@ -2,9 +2,16 @@
 
 #pragma once
 
+#include "BilliardBall.h"
+
+#include "Components/SphereComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "BilliardsHole.generated.h"
+
+class AGOlfBall;
 
 UCLASS()
 class GOLF04_API ABilliardsHole : public AActor
@@ -23,4 +30,15 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY(VisibleAnywhere)
+		UShapeComponent* CollisionBox = nullptr;
+
+	UFUNCTION()
+		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult &SweepResult);
+
+	float settleTimer = 0.f;
+	bool startSettleTimer = false;
+	AActor* OtherBillardBall = nullptr;
 };

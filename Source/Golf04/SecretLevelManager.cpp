@@ -194,3 +194,15 @@ void ASecretLevelManager::plinkoFinished()
 
 	//TODO: give player return to level hud? return player to level on timer? display secret level score?
 }
+
+void ASecretLevelManager::registerBilliards()
+{
+	billiardsScore++;
+}
+
+void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Billiards finished. %s"), lostTo8Ball ? TEXT("Player lost to 8Ball") : TEXT("Player did not lose to 8Ball"));
+
+	//TODO: give player return to level hud? return player to level on timer? display secret level score?
+}
