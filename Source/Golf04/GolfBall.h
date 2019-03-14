@@ -286,6 +286,5 @@ public:
 	//Secret levels
 	ASecretLevelManager* secretLevelManagerInstance = nullptr;
 	bool bPlayingSecretLevel = false;
-
 	FVector billiardsLaunchDirection;
 };

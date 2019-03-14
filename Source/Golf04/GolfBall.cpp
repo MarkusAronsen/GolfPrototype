@@ -225,13 +225,17 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
+
 		else if (LMBPressed && canLaunch)
 		{
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 			if (dirIndicator)
 			{
-				indicatorStretch += DeltaTime;
-				dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
+				if (currentLaunchPower <= maxLaunchPower)
+				{
+					indicatorStretch += DeltaTime;
+					dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
+				}
 				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
 				
 				if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03"))
@@ -248,7 +252,6 @@ void AGolfBall::Tick(float DeltaTime)
 				}
 				else
 					dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
-
 
 			}
 		}
@@ -377,6 +380,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
 	InputComponent->BindAction("P", IE_Pressed, this, &AGolfBall::pauseGame);
+	InputComponent->BindAction("AnyKey", IE_Pressed, this, &AGolfBall::keyPressed);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
@@ -1147,4 +1151,9 @@ void AGolfBall::pauseGame()
 	PauseWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+}
+
+void AGolfBall::keyPressed()
+{
+
 }
