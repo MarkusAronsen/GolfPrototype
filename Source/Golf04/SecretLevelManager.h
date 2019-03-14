@@ -10,12 +10,14 @@
 #include "SecretLevelManager.generated.h"
 
 class AGolfBall;
+class APacmanPathNode;
 
 enum SecretLevelState
 {
 	BOWLING = 0,
 	PLINKO = 1,
 	BILLIARDS = 2,
+	PACMAN = 3
 };
 
 
@@ -99,5 +101,12 @@ public:
 
 	void billiardsFinished(bool lostTo8Ball);
 	//----------------------------------------------------------------
+
+	//Pacman----------------------------------------------------------
+	FVector buffer;
+	bool overlappingNode = false;
+	APacmanPathNode* pacmanNode = nullptr;
+	bool gameStarted = false;
+
 };
 

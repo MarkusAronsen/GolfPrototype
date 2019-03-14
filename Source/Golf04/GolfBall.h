@@ -131,7 +131,8 @@ public:
 		FLYING = 3,
 		LEVEL_SELECT = 4,
 		AWAITING_LEVELSELECT_INPUT = 5,
-		PLINKO = 6
+		PLINKO = 6,
+		PACMAN = 7
 	};
 	int state;
 
