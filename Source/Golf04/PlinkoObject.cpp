@@ -22,7 +22,7 @@ void APlinkoObject::BeginPlay()
 	{
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &APlinkoObject::OnOverlapBegin);
 		CollisionBox->OnComponentEndOverlap.AddDynamic(this, &APlinkoObject::OnOverlapEnd);
-	}
+	}	
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Plinko object no collision box"));
