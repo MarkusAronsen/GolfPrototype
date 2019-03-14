@@ -204,9 +204,6 @@ void AGolfBall::BeginPlay()
 	mLegsMesh->CustomDepthStencilValue = 1;
 
 
-
-
-
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
@@ -228,18 +225,34 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
+
 		else if (LMBPressed && canLaunch)
 		{
 			currentLaunchPower = currentLaunchPower + launchPowerIncrement * DeltaTime;
 			if (dirIndicator)
 			{
-				dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
-				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
 				if (currentLaunchPower <= maxLaunchPower)
 				{
 					indicatorStretch += DeltaTime;
 					dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
 				}
+				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
+				
+				if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03"))
+				{
+
+					//TODO: fix this probably, or just use the debug line idk
+					/*
+					FVector2D playerScreenLocation;
+					world->GetFirstPlayerController()->ProjectWorldLocationToScreen(GetActorLocation(), playerScreenLocation);
+					float mouseCoordX, mouseCoordY;
+					world->GetFirstPlayerController()->GetMousePosition(mouseCoordX, mouseCoordY);
+
+					dirIndicator->SetActorRotation((FVector(playerScreenLocation.X, playerScreenLocation.Y, 0) - FVector(mouseCoordX, mouseCoordY, 0)).Rotation());*/
+				}
+				else
+					dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
+
 			}
 		}
 
@@ -310,6 +323,24 @@ void AGolfBall::Tick(float DeltaTime)
 		tickWalking(DeltaTime);
 		break;
 	};
+
+	//Playing billiards
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) == 0)
+	{
+		FVector2D playerScreenLocation;
+		world->GetFirstPlayerController()->ProjectWorldLocationToScreen(GetActorLocation(), playerScreenLocation);
+		float mouseCoordX, mouseCoordY;
+		world->GetFirstPlayerController()->GetMousePosition(mouseCoordX, mouseCoordY);
+
+		billiardsLaunchDirection = FVector(playerScreenLocation.X, playerScreenLocation.Y, 0) - FVector(mouseCoordX, mouseCoordY, 0);
+		billiardsLaunchDirection.Normalize();
+		billiardsLaunchDirection = billiardsLaunchDirection.RotateAngleAxis(-90, FVector(0, 0, 1));
+		//UE_LOG(LogTemp, Warning, TEXT("Player location: %s, mouse location: %s"), *playerScreenLocation.ToString(), *FVector2D(mouseCoordX, mouseCoordY).ToString());
+
+		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + billiardsLaunchDirection * currentLaunchPower * 0.1, FColor::Turquoise, false, 0, (uint8)'\000', 50);
+
+	}
+
 
 	FVector debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
 	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
@@ -606,7 +637,7 @@ void AGolfBall::setLMBPressed()
 		{
 			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
 			LMBPressed = true;
-			if (ToSpawn && world)
+			if (ToSpawn && world && UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
 			{
 				spawnInfo.Owner = this;
 				spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
@@ -643,14 +674,26 @@ void AGolfBall::setLMBReleased()
 		}
 		mMesh->SetLinearDamping(0.6);
 		mMesh->SetAngularDamping(0.1);
-		mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+
+		if(UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
+			mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Ball launched (billiards)"));
+			mMesh->AddImpulse(billiardsLaunchDirection * currentLaunchPower * 350.f, NAME_None, false);
+			if(currentLaunchPower > 100)
+				secretLevelManagerInstance->billiardsShotsUsed++;
+		}
 		currentLaunchPower = 0.f;
+		
 		if(PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-		
+
 		if (bPlayingSecretLevel)
 		{
-			secretLevelManagerInstance->incrementBowlingThrow();
+			FString levelName = UGameplayStatics::GetCurrentLevelName(this);
+			if (levelName.Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
+				secretLevelManagerInstance->incrementBowlingThrow();
 		}
 
 		break;

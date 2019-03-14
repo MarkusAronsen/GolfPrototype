@@ -14,7 +14,6 @@ ABilliardBall::ABilliardBall()
 void ABilliardBall::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame

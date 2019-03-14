@@ -78,6 +78,7 @@ public:
 	void startChargingPlinko();
 	void plinkoLaunch();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int plinkoScore = 0;
 
 	void registerPlinkoScore(int value);
@@ -89,7 +90,14 @@ public:
 	//----------------------------------------------------------------	
 	
 	//Billiards-------------------------------------------------------
+	void registerBilliards();
 
+	int billiardsScore = 0;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int billiardsShotsUsed = 0;
+
+	void billiardsFinished(bool lostTo8Ball);
+	//----------------------------------------------------------------
 };
 
