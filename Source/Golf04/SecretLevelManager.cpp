@@ -128,10 +128,13 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state != Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PACMAN)
 			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PACMAN;
 
+		//Has player started moving?
 		if(gameStarted)
 		{ 
+			//Is player currently at node?
 			if (pacmanNode && (pacmanNode->GetActorLocation() - playerLocation).Size() < 5.f)
 			{
+				//Is player attemting to move in legal direction at node? If yes, set player rotation and consume buffer, set player to move forward
 				if (pacmanNode->up && buffer.X > 0.5f)
 				{
 					Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(1.f, 0.f, 0.f).Rotation());
@@ -160,13 +163,39 @@ void ASecretLevelManager::Tick(float DeltaTime)
 					buffer = FVector::ZeroVector;
 					walkForward = true;
 				}
-				else if ((buffer.Y > 0.5 && !pacmanNode->right) || (buffer.Y < -0.5 && !pacmanNode->left) || (buffer.X > 0.5 && !pacmanNode->up) || (buffer.X < -0.5 && !pacmanNode->down))
-					walkForward = false;
 
+				//Is player attempting to move in an illegal direction at node?
+				else if ((buffer.Y > 0.5 && !pacmanNode->right) || (buffer.Y < -0.5 && !pacmanNode->left) || (buffer.X > 0.5 && !pacmanNode->up) || (buffer.X < -0.5 && !pacmanNode->down))
+				{
+					walkForward = false;
+					//Test if player should be allowed to continue moving past node
+					if ((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5f && pacmanNode->up) ||
+						(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5f && pacmanNode->down) ||
+						(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5f && pacmanNode->right) ||
+						(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5f && pacmanNode->left))
+					{
+						if (buffer == FVector::ZeroVector)
+							walkForward = false;
+						else
+							walkForward = true;
+					}
+					else
+						walkForward = false;
+				}				
+
+				if ((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5f && !pacmanNode->up) ||
+					(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5f && !pacmanNode->down) ||
+					(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5f && !pacmanNode->right) ||
+					(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5f && !pacmanNode->left))
+					walkForward = false;
 			}
+
+
 			if (walkForward)
 				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(playerLocation + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * 250.f * DeltaTime);
 
+
+			pacmanSwitchDirection();
 		}
 
 
@@ -313,4 +342,28 @@ void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
 	UE_LOG(LogTemp, Warning, TEXT("Billiards finished. %s"), lostTo8Ball ? TEXT("Player lost to 8Ball") : TEXT("Player did not lose to 8Ball"));
 
 	//TODO: give player return to level hud? return player to level on timer? display secret level score?
+}
+
+void ASecretLevelManager::pacmanSwitchDirection()
+{
+	if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5 && buffer.X < -0.5)
+	{
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(-1.f, 0.f, 0.f).Rotation());
+		buffer = FVector::ZeroVector;
+	}
+	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5 && buffer.X > 0.5)
+	{
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(1.f, 0.f, 0.f).Rotation());
+		buffer = FVector::ZeroVector;
+	}
+	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5 && buffer.Y < -0.5)
+	{
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0.f, -1.f, 0.f).Rotation());
+		buffer = FVector::ZeroVector;
+	}
+	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5 && buffer.Y > 0.5)
+	{
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0.f, 1.f, 0.f).Rotation());
+		buffer = FVector::ZeroVector;
+	}
 }

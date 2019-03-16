@@ -53,4 +53,6 @@ public:
 	UShapeComponent* CollisionBox = nullptr;
 
 	TArray<AActor*> secretLevelManager;
+
+	void drawDebugObjects();
 };

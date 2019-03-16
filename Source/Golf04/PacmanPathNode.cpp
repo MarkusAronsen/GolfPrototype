@@ -36,6 +36,8 @@ void APacmanPathNode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	drawDebugObjects();
+
 }
 
 void APacmanPathNode::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor,
@@ -58,4 +60,16 @@ void APacmanPathNode::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AA
 		UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
 		Cast<ASecretLevelManager>(secretLevelManager[0])->overlappingNode = false;
 	}
+}
+
+void APacmanPathNode::drawDebugObjects()
+{
+	if(up)
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(150, 0, 0), FColor::Red, false, 0, (uint8)'\000', 10.f);
+	if(down)
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(-150, 0, 0), FColor::Blue, false, 0, (uint8)'\000', 10.f);
+	if(left)
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0, -150, 0), FColor::Yellow, false, 0, (uint8)'\000', 10.f);
+	if(right)
+		DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + FVector(0, 150, 0), FColor::Green, false, 0, (uint8)'\000', 10.f);
 }
