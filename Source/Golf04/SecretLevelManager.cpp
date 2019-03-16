@@ -168,12 +168,18 @@ void ASecretLevelManager::Tick(float DeltaTime)
 				((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * -1).X < -0.5f && buffer.X < -0.5))
 				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(buffer.Rotation());
 		}
-		if(((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5 && pacmanNode->up && (pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f) ||
-		   ((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5 && pacmanNode->down && (pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f) ||
-			((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5 && pacmanNode->right && (pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f) ||
-			((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5 && pacmanNode->left && (pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f))
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * DeltaTime * 100.f);
-		
+		if (pacmanNode)
+		{
+			if (((((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5f) && pacmanNode->up && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f))) ||
+				((((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5f) && pacmanNode->down && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f)) ||
+				(((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5f) && pacmanNode->right && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f)) ||
+				(((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5f) && pacmanNode->left && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f))))
+				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * DeltaTime * 100.f);
+
+		}
+		else
+			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * DeltaTime * 100.f);
+
 		}
 
 		
