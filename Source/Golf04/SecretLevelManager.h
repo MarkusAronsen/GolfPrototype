@@ -107,6 +107,7 @@ public:
 	bool overlappingNode = false;
 	APacmanPathNode* pacmanNode = nullptr;
 	bool gameStarted = false;
+	bool walkForward = false;
 
 };
 
