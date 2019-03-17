@@ -22,6 +22,9 @@ void APacmanGhost::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if(pathNode)
+		UE_LOG(LogTemp, Warning, TEXT("buffer: %i, distance from path node is %f"), directionBuffer, (GetActorLocation() - pathNode->GetActorLocation()).Size());
+
 	if (directionBuffer != -1 && pathNode && (GetActorLocation() - pathNode->GetActorLocation()).Size() < 20)
 	{
 		switch (directionBuffer)
@@ -43,10 +46,17 @@ void APacmanGhost::Tick(float DeltaTime)
 			break;
 		}
 		directionBuffer = -1;
+
 	}
 
-	SetActorLocation(GetActorLocation() + direction * 300);
+	if (!activated)
+	{
+		activateTimer += DeltaTime;
+		if (activateTimer >= timeToActivate)
+			activated = true;
+	}
 
-	UE_LOG(LogTemp, Warning, TEXT(""))
+	if(activated)
+	SetActorLocation(GetActorLocation() + direction * DeltaTime * 250);
 }
 

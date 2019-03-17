@@ -49,4 +49,8 @@ public:
 	FVector direction;
 
 	APacmanPathNode* pathNode = nullptr;
+
+	bool activated = false;
+
+	float activateTimer = 0.f;
 };
