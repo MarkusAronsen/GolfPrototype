@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <ctime>
+
 #include "Components/BoxComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "SecretLevelManager.h"
@@ -11,6 +13,7 @@
 #include "PacmanPathNode.generated.h"
 
 class AGolfBall;
+class APacmanGhost;
 
 UCLASS()
 class GOLF04_API APacmanPathNode : public AActor

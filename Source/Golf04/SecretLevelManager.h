@@ -109,6 +109,8 @@ public:
 	bool gameStarted = false;
 	bool walkForward = false;
 
+	float pacmanMoveSpeed = 400;
+
 	void pacmanSwitchDirection();
 };
 

@@ -2,6 +2,8 @@
 
 #include "PacmanPathNode.h"
 #include "GolfBall.h"
+#include "PacmanGhost.h"
+
 
 // Sets default values
 APacmanPathNode::APacmanPathNode()
@@ -16,6 +18,8 @@ void APacmanPathNode::BeginPlay()
 {
 	Super::BeginPlay();
 
+	srand(time(nullptr));
+
 	CollisionBox = this->FindComponentByClass<UShapeComponent>();
 
 	if (CollisionBox)
@@ -26,7 +30,7 @@ void APacmanPathNode::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Launchpad no collision box"));
+		UE_LOG(LogTemp, Warning, TEXT("Pacman path node no collision box"));
 	}
 	
 }
@@ -49,6 +53,24 @@ void APacmanPathNode::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent, 
 		UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
 		Cast<ASecretLevelManager>(secretLevelManager[0])->overlappingNode = true;
 		Cast<ASecretLevelManager>(secretLevelManager[0])->pacmanNode = this;
+	}
+
+	if (OtherActor->IsA(APacmanGhost::StaticClass()))
+	{
+		Cast<APacmanGhost>(OtherActor)->pathNode = this;
+
+		if (up)
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::UP);
+		if (down)
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::DOWN);
+		if (left)
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::LEFT);
+		if (right)
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::RIGHT);
+
+		Cast<APacmanGhost>(OtherActor)->directionBuffer = Cast<APacmanGhost>(OtherActor)->legalDirections[rand() % Cast<APacmanGhost>(OtherActor)->legalDirections.Num()];
+
+		Cast<APacmanGhost>(OtherActor)->legalDirections.Empty();
 	}
 }
 

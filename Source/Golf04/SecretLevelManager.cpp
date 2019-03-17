@@ -132,7 +132,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		if(gameStarted)
 		{ 
 			//Is player currently at node?
-			if (pacmanNode && (pacmanNode->GetActorLocation() - playerLocation).Size() < 5.f)
+			if (pacmanNode && (pacmanNode->GetActorLocation() - playerLocation).Size() < 20.f)
 			{
 				//Is player attemting to move in legal direction at node? If yes, set player rotation and consume buffer, set player to move forward
 				if (pacmanNode->up && buffer.X > 0.5f)
@@ -192,7 +192,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 
 
 			if (walkForward)
-				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(playerLocation + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * 250.f * DeltaTime);
+				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(playerLocation + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * pacmanMoveSpeed * DeltaTime);
 
 
 			pacmanSwitchDirection();
