@@ -346,6 +346,13 @@ void AGolfBall::Tick(float DeltaTime)
 
 
 	FVector debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
+	if (debugMouseLine.Size() < 150.f)
+		debugMouseLine = FVector::ZeroVector;
+	if (debugMouseLine.Size() > 402.f)
+	{
+		float ratio = debugMouseLine.Size() / 400.f;
+		debugMouseLine = debugMouseLine / ratio;
+	}
 	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
@@ -724,7 +731,7 @@ void AGolfBall::setLMBReleased()
 		{
 			mousePositionReleased = FVector(0.f, mouseX, mouseY);
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
-			if (mousePositionReleased.Size() < 50.f)
+			if (mousePositionReleased.Size() < 150.f)
 			{ 
 				UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
 				break;
@@ -738,7 +745,7 @@ void AGolfBall::setLMBReleased()
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 			
 			mMesh->SetSimulatePhysics(true);
-			mMesh->AddImpulse(mousePositionReleased * 2000.f, NAME_None, false);
+			mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
 		}
 		break;
 	case FLYING:
