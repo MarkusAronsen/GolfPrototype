@@ -435,6 +435,7 @@ void AGolfBall::levelInit()
 
 void AGolfBall::golfInit()
 {
+	FVector ballVelocity;
 	lerpTimer = 0.f;
 	mSpringArm->TargetArmLength = 500.f;
 
@@ -459,7 +460,9 @@ void AGolfBall::golfInit()
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
+		ballVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->RecreatePhysicsState();
+		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mMesh->SetLinearDamping(0.6f);
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
@@ -468,7 +471,9 @@ void AGolfBall::golfInit()
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
+		ballVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->RecreatePhysicsState();
+		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mMesh->SetAngularDamping(0.8f);
 
 		mWorldSettings->GlobalGravityZ = -8000.f;
@@ -767,7 +772,7 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
-	lerpTimer = 0.f;
+	//lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
 
