@@ -53,4 +53,11 @@ public:
 	bool activated = false;
 
 	float activateTimer = 0.f;
+
+	UPROPERTY(EditAnywhere)
+		FString name = TEXT("No name");
+
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void announceGhost(const FString &ghostName);
 };

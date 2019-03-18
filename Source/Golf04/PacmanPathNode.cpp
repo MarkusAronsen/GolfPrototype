@@ -40,7 +40,7 @@ void APacmanPathNode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	drawDebugObjects();
+	//drawDebugObjects();
 
 }
 

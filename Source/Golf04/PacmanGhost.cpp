@@ -53,7 +53,10 @@ void APacmanGhost::Tick(float DeltaTime)
 	{
 		activateTimer += DeltaTime;
 		if (activateTimer >= timeToActivate)
+		{
+			announceGhost(name);
 			activated = true;
+		}
 	}
 
 	if(activated)

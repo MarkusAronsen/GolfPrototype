@@ -112,5 +112,7 @@ public:
 	float pacmanMoveSpeed = 400;
 
 	void pacmanSwitchDirection();
+
+	int pacmanScore = 0;
 };
 
