@@ -4,6 +4,7 @@
 
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "BowlingPin.h"
+#include "RunnerFloor.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -17,7 +18,8 @@ enum SecretLevelState
 	BOWLING = 0,
 	PLINKO = 1,
 	BILLIARDS = 2,
-	PACMAN = 3
+	PACMAN = 3,
+	RUNNER = 4
 };
 
 
@@ -114,5 +116,10 @@ public:
 	void pacmanSwitchDirection();
 
 	int pacmanScore = 0;
+	//----------------------------------------------------------------
+
+	//Runner----------------------------------------------------------
+
+
 };
 
