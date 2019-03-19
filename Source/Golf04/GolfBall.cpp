@@ -200,6 +200,7 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->bRenderCustomDepth = true;
 	mWingsMeshRight->bRenderCustomDepth = true;
 	mLegsMesh->bRenderCustomDepth = true;
+	mLegsMesh->CastShadow = false;
 
 	mMesh->CustomDepthStencilValue = 1;
 	mWingsMeshLeft->CustomDepthStencilValue = 1;
@@ -240,7 +241,8 @@ void AGolfBall::Tick(float DeltaTime)
 					dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
 				}
 				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
-				
+				dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
+
 				if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03"))
 				{
 
@@ -253,9 +255,6 @@ void AGolfBall::Tick(float DeltaTime)
 
 					dirIndicator->SetActorRotation((FVector(playerScreenLocation.X, playerScreenLocation.Y, 0) - FVector(mouseCoordX, mouseCoordY, 0)).Rotation());*/
 				}
-				else
-					dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
-
 			}
 		}
 
