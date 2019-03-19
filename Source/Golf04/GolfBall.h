@@ -132,7 +132,8 @@ public:
 		LEVEL_SELECT = 4,
 		AWAITING_LEVELSELECT_INPUT = 5,
 		PLINKO = 6,
-		PACMAN = 7
+		PACMAN = 7,
+		RUNNER = 8
 	};
 	int state;
 

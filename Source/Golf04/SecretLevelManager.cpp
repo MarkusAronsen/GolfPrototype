@@ -48,6 +48,11 @@ void ASecretLevelManager::BeginPlay()
 		buffer = FVector::ZeroVector;
 	}
 
+	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
+	{
+		secretState = RUNNER;
+	}
+
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
 }
@@ -197,61 +202,12 @@ void ASecretLevelManager::Tick(float DeltaTime)
 
 			pacmanSwitchDirection();
 		}
+		break;
 
+	case RUNNER:
+		if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state != Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PACMAN)
+			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PACMAN;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-		/*if (buffer != FVector::ZeroVector)
-		{
-			if (((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * -1).Y > 0.5f && buffer.Y > 0.5) ||
-				((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * -1).Y < -0.5f && buffer.Y < -0.5) ||
-				((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * -1).X > 0.5f && buffer.X > 0.5) || 
-				((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * -1).X < -0.5f && buffer.X < -0.5))
-				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(buffer.Rotation());
-		}
-		if (pacmanNode)
-		{
-			if (((((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5f) && pacmanNode->up && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f))) ||
-				((((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5f) && pacmanNode->down && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f)) ||
-				(((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5f) && pacmanNode->right && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f)) ||
-				(((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5f) && pacmanNode->left && ((pacmanNode->GetActorLocation() - playerLocation).Size()) < 5.f))))
-				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * DeltaTime * 100.f);
-
-		}
-		else
-			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector() * DeltaTime * 100.f);
-
-		if ((Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5f && pacmanNode->up && (pacmanNode->GetActorLocation() - playerLocation).Size() < 5.f) ||
-			(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5f && pacmanNode->down && (pacmanNode->GetActorLocation() - playerLocation).Size() < 5.f) ||
-			(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5f && pacmanNode->right && (pacmanNode->GetActorLocation() - playerLocation).Size() < 5.f) ||
-			(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5f && pacmanNode->left && (pacmanNode->GetActorLocation() - playerLocation).Size() < 5.f))
-		{
-			direction = buffer;
-			UE_LOG(LogTemp, Warning, TEXT("CALLING CODE XD"));
-		}
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation()
-			+ direction * DeltaTime * 100.f);
-		}*/
-
-		
 		break;
 
 	default:
