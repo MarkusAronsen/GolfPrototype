@@ -346,6 +346,13 @@ void AGolfBall::Tick(float DeltaTime)
 
 
 	FVector debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
+	if (debugMouseLine.Size() < 150.f)
+		debugMouseLine = FVector::ZeroVector;
+	if (debugMouseLine.Size() > 402.f)
+	{
+		float ratio = debugMouseLine.Size() / 400.f;
+		debugMouseLine = debugMouseLine / ratio;
+	}
 	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
@@ -428,6 +435,7 @@ void AGolfBall::levelInit()
 
 void AGolfBall::golfInit()
 {
+	FVector ballVelocity;
 	lerpTimer = 0.f;
 	mSpringArm->TargetArmLength = 500.f;
 
@@ -452,7 +460,9 @@ void AGolfBall::golfInit()
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
+		ballVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->RecreatePhysicsState();
+		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mMesh->SetLinearDamping(0.6f);
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
@@ -461,7 +471,9 @@ void AGolfBall::golfInit()
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
+		ballVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->RecreatePhysicsState();
+		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mMesh->SetAngularDamping(0.8f);
 
 		mWorldSettings->GlobalGravityZ = -8000.f;
@@ -724,7 +736,7 @@ void AGolfBall::setLMBReleased()
 		{
 			mousePositionReleased = FVector(0.f, mouseX, mouseY);
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
-			if (mousePositionReleased.Size() < 50.f)
+			if (mousePositionReleased.Size() < 150.f)
 			{ 
 				UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
 				break;
@@ -738,7 +750,7 @@ void AGolfBall::setLMBReleased()
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 			
 			mMesh->SetSimulatePhysics(true);
-			mMesh->AddImpulse(mousePositionReleased * 2000.f, NAME_None, false);
+			mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
 		}
 		break;
 	case FLYING:
@@ -760,7 +772,7 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
-	lerpTimer = 0.f;
+	//lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
 

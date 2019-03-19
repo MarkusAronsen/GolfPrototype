@@ -230,7 +230,7 @@ public:
 
 	void lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime);
 	float lerpTimer = 0.f;
-	float lerpTime = 10.f;
+	float lerpTime = 15.f;
 	FRotator currentRotation;
 
 	float movementSpeed = 2000000.f;
