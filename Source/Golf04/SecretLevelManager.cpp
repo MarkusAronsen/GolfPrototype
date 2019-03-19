@@ -205,9 +205,11 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		break;
 
 	case RUNNER:
-		if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state != Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PACMAN)
-			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::PACMAN;
+		if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state != Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING)
+			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING;
 
+		runnerMoveSpeed += DeltaTime * 7.5f;
+		UE_LOG(LogTemp, Warning, TEXT("Runner move speed: %f"), runnerMoveSpeed);
 		break;
 
 	default:

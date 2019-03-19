@@ -4,9 +4,9 @@
 
 #include "Engine/World.h"
 
-#include <ctime>
-
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "RunnerFloor.h"
+#include "SecretLevelManager.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -35,4 +35,6 @@ public:
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class ARunnerFloor> RunnerFloorSpawn;
+
+	class ASecretLevelManager* secretLevelManagerInstance = nullptr;
 };

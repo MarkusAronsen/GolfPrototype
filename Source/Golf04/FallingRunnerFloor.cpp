@@ -15,7 +15,14 @@ void AFallingRunnerFloor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	s_NumSpawned++;
+	TArray<AActor*> secretLevelManager;
+	UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
+	if (secretLevelManager.Num() > 0)
+		secretLevelManagerInstance = Cast<ASecretLevelManager>(secretLevelManager[0]);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Secret level manager not found"));
+
+	//s_NumSpawned++;
 }
 
 // Called every frame
@@ -36,13 +43,13 @@ void AFallingRunnerFloor::Tick(float DeltaTime)
 
 		if (GetActorLocation().X < 500)
 		{
-			SetActorLocation(GetActorLocation() + FVector(-1, 0, -3) * DeltaTime * s_MoveSpeed);
+			SetActorLocation(GetActorLocation() + FVector(-1, 0, -3) * DeltaTime * secretLevelManagerInstance->runnerMoveSpeed);
 		}
 		else
-			SetActorLocation(GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * s_MoveSpeed);
+			SetActorLocation(GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * secretLevelManagerInstance->runnerMoveSpeed);
 	}
 
-	if (GetActorLocation().X < -450)
+	if (GetActorLocation().X < -500)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Removed falling floor"));
 		//spawnNewFloor();
@@ -52,7 +59,5 @@ void AFallingRunnerFloor::Tick(float DeltaTime)
 
 void AFallingRunnerFloor::spawnNewFloor()
 {
-	GetWorld()->SpawnActor<ARunnerFloor>(RunnerFloorSpawn, FVector(2000, GetActorLocation().Y, 0), FRotator::ZeroRotator);
-
-	UE_LOG(LogTemp, Warning, TEXT("s_NumSpawned: %i"), s_NumSpawned);
+	GetWorld()->SpawnActor<ARunnerFloor>(RunnerFloorSpawn, FVector(4000, GetActorLocation().Y, 0), FRotator::ZeroRotator);
 }
