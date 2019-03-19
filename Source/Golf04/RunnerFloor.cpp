@@ -14,8 +14,15 @@ ARunnerFloor::ARunnerFloor()
 void ARunnerFloor::BeginPlay()
 {
 	Super::BeginPlay();
+	TArray<AActor*> secretLevelManager;
+	UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
+	if (secretLevelManager.Num() > 0)
+		secretLevelManagerInstance = Cast<ASecretLevelManager>(secretLevelManager[0]);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Secret level manager not found"));
 
-	s_NumSpawned++;
+
+	//s_NumSpawned++;
 }
 
 // Called every frame
@@ -23,9 +30,9 @@ void ARunnerFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	s_MoveSpeed += DeltaTime * 0.1;
+	//s_MoveSpeed += DeltaTime * 0.1;
 
-	UE_LOG(LogTemp, Warning, TEXT("s_MoveSpeed: %f"), s_MoveSpeed);
+	//UE_LOG(LogTemp, Warning, TEXT("s_MoveSpeed: %f"), s_MoveSpeed);		
 
 	/*if (GetActorLocation().Z < 0)
 	{
@@ -36,10 +43,10 @@ void ARunnerFloor::Tick(float DeltaTime)
 		//if (GetActorLocation().Z != 0)
 			//SetActorLocation(FVector(GetActorLocation().X, GetActorLocation().Y, 0));
 
-		SetActorLocation(GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * s_MoveSpeed);
+		SetActorLocation(GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * secretLevelManagerInstance->runnerMoveSpeed);
 	}
 		
-	if (GetActorLocation().X < -450)
+	if (GetActorLocation().X < -500)
 	{
 		spawnNewFloor();
 		Destroy();
@@ -48,15 +55,14 @@ void ARunnerFloor::Tick(float DeltaTime)
 
 void ARunnerFloor::spawnNewFloor()
 {
-	if (s_NumSpawned % 25 == 0)
-		GetWorld()->SpawnActor<AFallingRunnerFloor>(FallingFloorSpawn, FVector(2000, GetActorLocation().Y, 0), FRotator::ZeroRotator);
+	if (secretLevelManagerInstance->objectsSpawned % 27 == 0 && secretLevelManagerInstance->objectsSpawned != 0)
+		GetWorld()->SpawnActor<AFallingRunnerFloor>(FallingFloorSpawn, FVector(4000, GetActorLocation().Y, 0), FRotator::ZeroRotator);
 	else
-		GetWorld()->SpawnActor<ARunnerFloor>(RunnerFloorSpawn, FVector(2000, GetActorLocation().Y, 0), FRotator::ZeroRotator);
+		GetWorld()->SpawnActor<ARunnerFloor>(RunnerFloorSpawn, FVector(4000, GetActorLocation().Y, 0), FRotator::ZeroRotator);
 
-	if (s_NumSpawned > 300)
-		s_NumSpawned = 0;
+	//if (secretLevelManagerInstance->objectsSpawned > 300)
+		//secretLevelManagerInstance->objectsSpawned = 0;
 		
-
-	UE_LOG(LogTemp, Warning, TEXT("s_NumSpawned: %i"), s_NumSpawned);
-	
+	secretLevelManagerInstance->objectsSpawned++;
+	UE_LOG(LogTemp, Warning, TEXT("s_NumSpawned: %i"), secretLevelManagerInstance->objectsSpawned);
 }

@@ -168,6 +168,12 @@ void AGolfBall::BeginPlay()
 	//-
 
 	state = GOLF;
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
+	{
+		state = WALKING;
+	}
+
 	if (mMesh)
 	{
 		golfInit();
