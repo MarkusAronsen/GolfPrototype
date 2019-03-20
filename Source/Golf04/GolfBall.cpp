@@ -161,7 +161,7 @@ void AGolfBall::BeginPlay()
 
 	if (walkAnim)
 	{
-	mLegsMesh->SetAnimInstanceClass(walkAnim->GetAnimBlueprintGeneratedClass());
+		mLegsMesh->SetAnimInstanceClass(walkAnim->GetAnimBlueprintGeneratedClass());
 	}
 	else
 	UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
