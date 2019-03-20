@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "MallocLeakDetection.h"
+
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "BowlingPin.h"
 #include "RunnerFloor.h"
@@ -120,6 +122,7 @@ public:
 
 	//Runner----------------------------------------------------------
 
-
+	int objectsSpawned = 0;
+	float runnerMoveSpeed = 200.f;
 };
 
