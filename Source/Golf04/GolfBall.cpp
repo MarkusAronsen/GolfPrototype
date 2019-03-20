@@ -48,15 +48,15 @@ void AGolfBall::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UStaticMesh* loadedPlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Models/low_poly_golfball.low_poly_golfball"));
+	UStaticMesh* loadedPlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/Game/GBH/Models/Characters/GolfBall_body_asset_static.GolfBall_body_asset_static'"));
 	mMesh->SetStaticMesh(loadedPlayerMesh);
 
-	USkeletalMesh* loadedLeftWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
-	USkeletalMesh* loadedRightWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Models/Wings/WingsSkeletalMesh.WingsSkeletalMesh"));
+	USkeletalMesh* loadedLeftWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/WingsSkeletalMesh.WingsSkeletalMesh'"));
+	USkeletalMesh* loadedRightWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/WingsSkeletalMesh.WingsSkeletalMesh'"));
 	mWingsMeshLeft->SetSkeletalMesh(loadedLeftWingMesh);
 	mWingsMeshRight->SetSkeletalMesh(loadedRightWingMesh);
 
-	USkeletalMesh* loadedLegsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Models/Feet/FeetSkeletalMesh.FeetSkeletalMesh"));
+	USkeletalMesh* loadedLegsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/FeetSkeletalMesh.FeetSkeletalMesh'"));
 	mLegsMesh->SetSkeletalMesh(loadedLegsMesh);
 
 	mMesh->SetAngularDamping(0.1f);
@@ -148,8 +148,8 @@ void AGolfBall::BeginPlay()
 	cameraSpeed = Cast<UGolfGameInstance>(GetGameInstance())->cameraSpeed;
 
 	//Load animations and use them if they exist
-	UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Wings/FlyingAnim.FlyingAnim'"));
-	UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/Models/Feet/WalkingAnimation.WalkingAnimation'"));
+	UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/FlyingAnim.FlyingAnim'"));
+	UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/WalkingAnimation.WalkingAnimation'"));
 
 	if (flyingAnim)
 	{
