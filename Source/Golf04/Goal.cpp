@@ -46,9 +46,7 @@ void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherAct
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
 		levelTimeElapsed = UGameplayStatics::GetUnpausedTimeSeconds(this);
-
 		saveLevelData();
-
 		UGameplayStatics::OpenLevel(this, "LevelSelect");
 	}
 }

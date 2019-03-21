@@ -80,14 +80,15 @@ void ASecretLevelManager::Tick(float DeltaTime)
 	switch (secretState)
 	{
 	case BOWLING:
-		if (bBallIsThrown)
+		if (bBallIsThrown && Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->GetPhysicsLinearVelocity().Size() < 1.f && !Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->bRespawning)
 		{
 			ballThrownTimer += DeltaTime;
-			if (ballThrownTimer >= 2.f)
+			if (ballThrownTimer >= 0.05f)
 			{
 				ballThrownTimer = 0.f;
-				bBallIsThrown = false;
-				bAllowedToRespawn = true;
+				//bBallIsThrown = false;
+				//bAllowedToRespawn = true;
+				bStartRespawn = true;
 			}
 		}
 
@@ -102,11 +103,12 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		
 		if (bStartRespawn)
 		{
-			respawnTimer += DeltaTime;
-			if (respawnTimer > 2.f)
-			{
-				respawnTimer = 0.f;
-				bStartRespawn = false;
+			//respawnTimer += DeltaTime;
+			//if (respawnTimer > 2.f)
+			//{
+				//respawnTimer = 0.f;
+				
+			bStartRespawn = false;
 
 				if (bowlingThrows == 1)
 				{
@@ -123,7 +125,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 					secretLevelFinished();
 					UE_LOG(LogTemp, Warning, TEXT("Bowling score: %i"), getBowlingScore());
 				}
-			}
+			//}
 		}
 		break;
 
@@ -254,13 +256,13 @@ int ASecretLevelManager::getSecretLevelPerformance()
 	//return plinko performance
 	if (levelName.Compare(TEXT("SecretLevel02"), ESearchCase::IgnoreCase) == 0)
 	{
-		if (plinkoScore < 1)
+		if (plinkoScore < 350)
 			return 0;
-		if (plinkoScore < 5)
+		if (plinkoScore < 500)
 			return 1;
-		if (plinkoScore < 7)
+		if (plinkoScore < 1000)
 			return 2;
-		if (plinkoScore == 10)
+		if (plinkoScore == 1500)
 			return 3;
 	}
 
@@ -289,7 +291,7 @@ void ASecretLevelManager::secretLevelFinished(bool lostTo8Ball)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s is finished"), *UGameplayStatics::GetCurrentLevelName(this));
 	SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Visible);
-
+	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 }
 
@@ -336,8 +338,8 @@ void ASecretLevelManager::registerPlinkoScore(int value)
 	Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
 	plinkoLaunchReady = true;
 
-	UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i, attempt %i"), plinkoScore, plinkoAttempts);
-	if (plinkoScore == 3)
+	//UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i, attempt %i"), plinkoScore, plinkoAttempts);
+	if (plinkoAttempts == 3)
 		secretLevelFinished();
 		//plinkoFinished();
 }
