@@ -50,6 +50,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> SecretLevelFinishedWidget_BP;
 
+
+	int getSecretLevelPerformance();
+	void secretLevelFinished(bool lostTo8Ball = false);
+
 	//Bowling---------------------------------------------------------
 	TArray<AActor*> bowlingPins;
 
@@ -111,7 +115,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int billiardsShotsUsed = 0;
 
-	void billiardsFinished(bool lostTo8Ball);
+	//void billiardsFinished(bool lostTo8Ball);
 
 	int getBilliardsScore();
 	//----------------------------------------------------------------

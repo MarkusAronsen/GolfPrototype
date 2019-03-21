@@ -64,8 +64,6 @@ void ASecretLevelManager::BeginPlay()
 		{
 			SecretLevelFinishedWidget->AddToViewport();
 			SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Hidden);
-
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 		}
 	}
 	else
@@ -115,12 +113,14 @@ void ASecretLevelManager::Tick(float DeltaTime)
 					Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
 					removeFallenPins();
 					if (bowlingScore == 10)
-						bowlingFinished();
+						//bowlingFinished();
+						secretLevelFinished();
 				}
 				else if (bowlingThrows == 2)
 				{
 					removeFallenPins();
-					bowlingFinished();
+					//bowlingFinished();
+					secretLevelFinished();
 					UE_LOG(LogTemp, Warning, TEXT("Bowling score: %i"), getBowlingScore());
 				}
 			}
@@ -233,6 +233,66 @@ void ASecretLevelManager::Tick(float DeltaTime)
 	}
 }
 
+int ASecretLevelManager::getSecretLevelPerformance()
+{
+	FString levelName = UGameplayStatics::GetCurrentLevelName(this);
+
+	//return bowling performance
+	if (levelName.Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) == 0)
+	{
+
+		if (bowlingScore < 1)
+			return 0;
+		if (bowlingScore < 5)
+			return 1;
+		if (bowlingScore < 7)
+			return 2;
+	    if (bowlingScore == 10)
+			return 3;
+	}
+
+	//return plinko performance
+	if (levelName.Compare(TEXT("SecretLevel02"), ESearchCase::IgnoreCase) == 0)
+	{
+		if (plinkoScore < 1)
+			return 0;
+		if (plinkoScore < 5)
+			return 1;
+		if (plinkoScore < 7)
+			return 2;
+		if (plinkoScore == 10)
+			return 3;
+	}
+
+	//return billiards performance
+	if (levelName.Compare(TEXT("SecretLevel03"), ESearchCase::IgnoreCase) == 0)
+	{
+
+	}
+
+	//return pacman performance
+	if (levelName.Compare(TEXT("SecretLevel04"), ESearchCase::IgnoreCase) == 0)
+	{
+
+	}
+
+	//return runner performance
+	if (levelName.Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
+	{
+
+	}
+
+	return 0;
+}
+
+void ASecretLevelManager::secretLevelFinished(bool lostTo8Ball)
+{
+	UE_LOG(LogTemp, Warning, TEXT("%s is finished"), *UGameplayStatics::GetCurrentLevelName(this));
+	SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Visible);
+
+	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+}
+
 void ASecretLevelManager::incrementBowlingThrow()
 {
 	bowlingThrows++;
@@ -257,12 +317,12 @@ void ASecretLevelManager::removeFallenPins()
 
 }
 
-void ASecretLevelManager::bowlingFinished()
+/*void ASecretLevelManager::bowlingFinished()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Bowling finished"));
 
 	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}
+}*/
 
 int ASecretLevelManager::getBowlingScore()
 {
@@ -278,7 +338,8 @@ void ASecretLevelManager::registerPlinkoScore(int value)
 
 	UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i, attempt %i"), plinkoScore, plinkoAttempts);
 	if (plinkoScore == 3)
-		plinkoFinished();
+		secretLevelFinished();
+		//plinkoFinished();
 }
 
 void ASecretLevelManager::startChargingPlinko()
@@ -298,24 +359,24 @@ void ASecretLevelManager::plinkoLaunch()
 	PlinkoPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-void ASecretLevelManager::plinkoFinished()
+/*void ASecretLevelManager::plinkoFinished()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Plinko finished"));
 
 	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}
+}*/
 
 void ASecretLevelManager::registerBilliards()
 {
 	billiardsScore++;
 }
 
-void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
+/*void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Billiards finished. %s"), lostTo8Ball ? TEXT("Player lost to 8Ball") : TEXT("Player did not lose to 8Ball"));
 
 	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}
+}*/
 
 int ASecretLevelManager::getBilliardsScore()
 {
