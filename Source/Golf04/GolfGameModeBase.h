@@ -49,6 +49,9 @@ public:
 		FString targetWord4 = "Markus Strand Aronsen";
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		FString targetWord = "";
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
 		int triesLeft = 8;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
