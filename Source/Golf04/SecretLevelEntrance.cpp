@@ -28,7 +28,7 @@ void ASecretLevelEntrance::BeginPlay()
 
 	}
 
-	
+	secretLevelParentName = UGameplayStatics::GetCurrentLevelName(this);
 }
 
 // Called every frame
@@ -43,6 +43,7 @@ void ASecretLevelEntrance::OnOverlap(UPrimitiveComponent * OverlappedComponent, 
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
+		Cast<UGolfGameInstance>(GetGameInstance())->secretLevelParentName = secretLevelParentName;
 		UGameplayStatics::OpenLevel(this, FName(*SecretLevelName));
 	}
 }

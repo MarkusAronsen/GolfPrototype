@@ -50,8 +50,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> SecretLevelFinishedWidget_BP;
 
-	FString secretLevelParent;
-
 	//Bowling---------------------------------------------------------
 	TArray<AActor*> bowlingPins;
 

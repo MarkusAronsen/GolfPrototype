@@ -26,4 +26,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float cameraSpeed = 1.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	FString secretLevelParentName = TEXT("no name");
 };

@@ -34,7 +34,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		FString SecretLevelName = TEXT("none");
 
-	FString SecretLevelParentName;
+	FString secretLevelParentName;
 
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
