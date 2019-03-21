@@ -242,7 +242,10 @@ public:
 	void respawnAtCheckpoint();
 	void respawnAtCheckpointTick(float deltaTime);
 	FVector SpawnPosition;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bRespawning = false;
+
 	bool bStartRespawnCameraFade = false;
 	float timeToCameraFadeEnd = 0.f;
 

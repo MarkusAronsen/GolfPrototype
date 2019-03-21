@@ -9,7 +9,7 @@ ALevelSelecter::ALevelSelecter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"), true);
-	mCollisionBox->SetSphereRadius(400, true);
+	mCollisionBox->SetSphereRadius(100, true);
 }
 
 // Called when the game starts or when spawned

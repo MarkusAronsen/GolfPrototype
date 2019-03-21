@@ -83,7 +83,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		if (bBallIsThrown && Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->GetPhysicsLinearVelocity().Size() < 1.f && !Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->bRespawning)
 		{
 			ballThrownTimer += DeltaTime;
-			if (ballThrownTimer >= 0.05f)
+			if (ballThrownTimer >= 0.5f)
 			{
 				ballThrownTimer = 0.f;
 				//bBallIsThrown = false;
@@ -92,14 +92,14 @@ void ASecretLevelManager::Tick(float DeltaTime)
 			}
 		}
 
-		if (bAllowedToRespawn)
+		/*if (bAllowedToRespawn)
 		{
 			if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->GetPhysicsLinearVelocity().Size() < 1.f)
 			{
 				bAllowedToRespawn = false;
 				bStartRespawn = true;
 			}
-		}
+		}*/
 		
 		if (bStartRespawn)
 		{
@@ -115,7 +115,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 					Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
 					removeFallenPins();
 					if (bowlingScore == 10)
-						//bowlingFinished();
+						//bowlingFinished();	
 						secretLevelFinished();
 				}
 				else if (bowlingThrows == 2)

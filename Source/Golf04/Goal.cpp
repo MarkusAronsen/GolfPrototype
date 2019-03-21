@@ -22,6 +22,7 @@ void AGoal::BeginPlay()
 	if (CollisionBox)
 	{
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGoal::OnOverlap);
+		CollisionBox->OnComponentEndOverlap.AddDynamic(this, &AGoal::OnEndOverlap);
 	}
 	else
 	{
@@ -37,6 +38,18 @@ void AGoal::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (startSettleTimer)
+	{
+		settleTimer += DeltaTime;
+		if (settleTimer >= 1.f)
+		{
+			settleTimer = 0.f;
+			startSettleTimer = false;
+			levelTimeElapsed = UGameplayStatics::GetUnpausedTimeSeconds(this);
+			saveLevelData();
+			UGameplayStatics::OpenLevel(this, "LevelSelect");
+		}
+	}
 }
 
 void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -45,10 +58,16 @@ void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherAct
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
-		levelTimeElapsed = UGameplayStatics::GetUnpausedTimeSeconds(this);
-		saveLevelData();
-		UGameplayStatics::OpenLevel(this, "LevelSelect");
+		settleTimer = 0.f;
+		startSettleTimer = true;
 	}
+}
+
+void AGoal::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
+	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
+{
+	startSettleTimer = false;
+	settleTimer = 0.f;
 }
 
 void AGoal::saveLevelData()

@@ -99,6 +99,7 @@ void AGolfBall::BeginPlay()
 	world = GetWorld();
 
 	mController = GetWorld()->GetFirstPlayerController();
+
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
 	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>
@@ -1056,6 +1057,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	if (bStartRespawnCameraFade)
 	{
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(0.f, 2.f), cameraFadeTimer);
+
 		bStartRespawnCameraFade = false;
 	}
 	timeToCameraFadeEnd += deltaTime;
@@ -1064,7 +1066,9 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+					
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
+
 		bRespawning = false;
 		timeToCameraFadeEnd = 0.f;
 
