@@ -99,6 +99,7 @@ void AGolfBall::BeginPlay()
 	world = GetWorld();
 
 	mController = GetWorld()->GetFirstPlayerController();
+
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
 	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>
@@ -278,7 +279,16 @@ void AGolfBall::Tick(float DeltaTime)
 		PhysVelPrevFrame = mMesh->GetPhysicsLinearVelocity().Size();
 
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f)
-			canLaunch = true;
+		{
+			if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) == 0)
+			{
+				if(mMesh->GetPhysicsLinearVelocity().Size() < 1)
+					canLaunch = true;
+			}
+			else
+				canLaunch = true;
+		}
+			
 		else
 			canLaunch = false;
 		break;
@@ -672,7 +682,7 @@ void AGolfBall::setLMBPressed()
 	switch (state)
 	{
 	case GOLF:
-		if (canLaunch && PowerBarWidget)
+		if (canLaunch && PowerBarWidget && !bRespawning)
 		{
 			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
 			LMBPressed = true;
@@ -714,8 +724,22 @@ void AGolfBall::setLMBReleased()
 		mMesh->SetLinearDamping(0.6);
 		mMesh->SetAngularDamping(0.1);
 
-		if(UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
-			mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
+		{
+
+			if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && !secretLevelManagerInstance->bBallIsThrown)
+			{
+				secretLevelManagerInstance->incrementBowlingThrow();
+				mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+			}
+			else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && secretLevelManagerInstance->bBallIsThrown)
+			{
+
+			}
+			else
+				mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+
+		}
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Ball launched (billiards)"));
@@ -727,14 +751,7 @@ void AGolfBall::setLMBReleased()
 		
 		if(PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-
-		if (bPlayingSecretLevel)
-		{
-			FString levelName = UGameplayStatics::GetCurrentLevelName(this);
-			if (levelName.Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
-				secretLevelManagerInstance->incrementBowlingThrow();
-		}
-
+	
 		break;
 	case WALKING:
 		break;
@@ -953,8 +970,8 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	if(!onGround && mMesh->GetPhysicsLinearVelocity().Size() < 1000.f)
 		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/8.f, NAME_None, true);
 
-	if (onPlatform && onGround)
-		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+if (onPlatform && onGround)
+platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
 }
 
 void AGolfBall::animationControlTick(float deltaTime)
@@ -985,7 +1002,7 @@ void AGolfBall::respawnAtCheckpoint()
 	if (UGameplayStatics::DoesSaveGameExist(LoadGameInstance->slotName, LoadGameInstance->userIndex))
 	{
 		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
-		
+
 		int levelIndex = -1;
 
 		for (int i = 0; i < NUM_LEVELS; i++)
@@ -1004,7 +1021,7 @@ void AGolfBall::respawnAtCheckpoint()
 
 			for (int i = 0; i < checkpoints.Num(); i++)
 			{
-				if (LoadGameInstance->levelData[levelIndex].currentCheckpoint == Cast<ACheckpoint>(checkpoints[i])->checkpointIndex 
+				if (LoadGameInstance->levelData[levelIndex].currentCheckpoint == Cast<ACheckpoint>(checkpoints[i])->checkpointIndex
 					&& Cast<ACheckpoint>(checkpoints[i])->checkpointIndex != -1)
 				{
 					checkpoint = Cast<ACheckpoint>(checkpoints[i]);
@@ -1040,6 +1057,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	if (bStartRespawnCameraFade)
 	{
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(0.f, 2.f), cameraFadeTimer);
+
 		bStartRespawnCameraFade = false;
 	}
 	timeToCameraFadeEnd += deltaTime;
@@ -1048,9 +1066,14 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+					
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
+
 		bRespawning = false;
 		timeToCameraFadeEnd = 0.f;
+
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
+			secretLevelManagerInstance->bBallIsThrown = false;
 	}
 }
 

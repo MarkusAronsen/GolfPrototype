@@ -50,8 +50,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> SecretLevelFinishedWidget_BP;
 
-
+	UFUNCTION(BlueprintCallable)
 	int getSecretLevelPerformance();
+
 	void secretLevelFinished(bool lostTo8Ball = false);
 
 	//Bowling---------------------------------------------------------
@@ -61,7 +62,7 @@ public:
 
 	void incrementBowlingThrow();
 	void removeFallenPins();
-	void bowlingFinished();
+	//void bowlingFinished();
 	int getBowlingScore();
 
 	float ballThrownTimer = 0.f;
@@ -102,7 +103,7 @@ public:
 
 	int plinkoAttempts = 0;
 
-	void plinkoFinished();
+	//void plinkoFinished();
 
 	//----------------------------------------------------------------	
 	
