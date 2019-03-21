@@ -35,12 +35,16 @@ void ABilliardsHole::Tick(float DeltaTime)
 		if (settleTimer >= 2.f)
 		{
 			if (Cast<ABilliardBall>(OtherBillardBall)->is8Ball)
-				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->billiardsFinished(true);
+				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->secretLevelFinished(true);
 
 			OtherBillardBall->Destroy();
 			settleTimer = 0.f;
 			startSettleTimer = false;
 			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->registerBilliards();
+
+			UGameplayStatics::GetAllActorsOfClass(this, ABilliardBall::StaticClass(), BilliardBalls);
+			if (BilliardBalls.Num() == 1)
+				Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->secretLevelFinished();
 		}
 
 	}

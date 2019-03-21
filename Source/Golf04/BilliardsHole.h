@@ -41,4 +41,6 @@ public:
 	float settleTimer = 0.f;
 	bool startSettleTimer = false;
 	AActor* OtherBillardBall = nullptr;
+
+	TArray<AActor*> BilliardBalls;
 };
