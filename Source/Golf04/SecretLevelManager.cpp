@@ -55,6 +55,21 @@ void ASecretLevelManager::BeginPlay()
 
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
+
+
+	if (SecretLevelFinishedWidget_BP)
+	{
+		SecretLevelFinishedWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), SecretLevelFinishedWidget_BP);
+		if (SecretLevelFinishedWidget)
+		{
+			SecretLevelFinishedWidget->AddToViewport();
+			SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Hidden);
+
+			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("SecretLevelFinishedWidget not initialized"));
 }
 
 // Called every frame
@@ -302,6 +317,11 @@ void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
 	//TODO: give player return to level hud? return player to level on timer? display secret level score?
 }
 
+int ASecretLevelManager::getBilliardsScore()
+{
+	return billiardsScore;
+}
+
 void ASecretLevelManager::pacmanSwitchDirection()
 {
 	if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5 && buffer.X < -0.5)
@@ -324,4 +344,24 @@ void ASecretLevelManager::pacmanSwitchDirection()
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0.f, 1.f, 0.f).Rotation());
 		buffer = FVector::ZeroVector;
 	}
+}
+
+int ASecretLevelManager::getPacmanScore()
+{
+	return pacmanScore;
+}
+
+void ASecretLevelManager::pacmanFinished()
+{
+	//etc
+}
+
+float ASecretLevelManager::getRunnerScore()
+{
+	return runnerScore;
+}
+
+void ASecretLevelManager::runnerFinished()
+{
+	//.
 }

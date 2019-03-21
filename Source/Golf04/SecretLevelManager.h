@@ -44,6 +44,14 @@ public:
 
 	int secretState = -1;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* SecretLevelFinishedWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> SecretLevelFinishedWidget_BP;
+
+	FString secretLevelParent;
+
 	//Bowling---------------------------------------------------------
 	TArray<AActor*> bowlingPins;
 
@@ -62,6 +70,7 @@ public:
 
 	int numPins = 10;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int bowlingScore = 0;
 	//----------------------------------------------------------------
 
@@ -98,12 +107,15 @@ public:
 	//Billiards-------------------------------------------------------
 	void registerBilliards();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int billiardsScore = 0;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int billiardsShotsUsed = 0;
 
 	void billiardsFinished(bool lostTo8Ball);
+
+	int getBilliardsScore();
 	//----------------------------------------------------------------
 
 	//Pacman----------------------------------------------------------
@@ -117,12 +129,24 @@ public:
 
 	void pacmanSwitchDirection();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int pacmanScore = 0;
+
+	int getPacmanScore();
+
+	void pacmanFinished();
 	//----------------------------------------------------------------
 
 	//Runner----------------------------------------------------------
-
 	int objectsSpawned = 0;
 	float runnerMoveSpeed = 200.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	float runnerScore = 0;
+
+	float getRunnerScore();
+
+	void runnerFinished();
+	//----------------------------------------------------------------
 };
 
