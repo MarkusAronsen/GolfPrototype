@@ -59,7 +59,6 @@ void AGolfBall::BeginPlay()
 	USkeletalMesh* loadedLegsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/FeetSkeletalMesh.FeetSkeletalMesh'"));
 	mLegsMesh->SetSkeletalMesh(loadedLegsMesh);
 
-	mMesh->SetAngularDamping(0.1f);
 	mWorldSettings = GetWorldSettings();
 	mWorldSettings->bGlobalGravitySet = true;
 
@@ -177,6 +176,7 @@ void AGolfBall::BeginPlay()
 	if (mMesh)
 	{
 		golfInit();
+
 		mMesh->SetEnableGravity(true);
 	}
 	else
@@ -206,6 +206,7 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->bRenderCustomDepth = true;
 	mWingsMeshRight->bRenderCustomDepth = true;
 	mLegsMesh->bRenderCustomDepth = true;
+	mLegsMesh->CastShadow = false;
 
 	mMesh->CustomDepthStencilValue = 1;
 	mWingsMeshLeft->CustomDepthStencilValue = 1;
@@ -246,7 +247,8 @@ void AGolfBall::Tick(float DeltaTime)
 					dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
 				}
 				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
-				
+				dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
+
 				if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03"))
 				{
 
@@ -259,9 +261,6 @@ void AGolfBall::Tick(float DeltaTime)
 
 					dirIndicator->SetActorRotation((FVector(playerScreenLocation.X, playerScreenLocation.Y, 0) - FVector(mouseCoordX, mouseCoordY, 0)).Rotation());*/
 				}
-				else
-					dirIndicator->SetActorRotation(FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f));
-
 			}
 		}
 
@@ -286,7 +285,7 @@ void AGolfBall::Tick(float DeltaTime)
 
 	case WALKING:
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
-		alignWithSurface = lineTrace();
+		lineTraceHit = lineTrace();
 		mouseCameraPitch();
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
@@ -469,6 +468,7 @@ void AGolfBall::golfInit()
 		ballVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->RecreatePhysicsState();
 		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
+		mMesh->SetAngularDamping(0.8f);
 		mMesh->SetLinearDamping(0.6f);
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
@@ -481,6 +481,7 @@ void AGolfBall::golfInit()
 		mMesh->RecreatePhysicsState();
 		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mMesh->SetAngularDamping(0.8f);
+		mMesh->SetLinearDamping(0.8);
 
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
@@ -820,7 +821,7 @@ bool AGolfBall::sphereTrace()
 		world->SweepMultiByChannel(
 			hitResults,
 			mMesh->GetComponentToWorld().GetLocation(),
-			mMesh->GetComponentToWorld().GetLocation() - FVector(0, 0, 120),
+			mMesh->GetComponentToWorld().GetLocation() + (GetActorUpVector() * -120.f),
 			FQuat::Identity,
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape(),
@@ -870,7 +871,7 @@ void AGolfBall::constructTransform(FVector hitLocation, FVector impactNormal)
 
 void AGolfBall::tickWalking(float DeltaTime)
 {
-	if (onGround)
+	if (lineTraceHit)
 		mMesh->SetWorldRotation(currentRotation);
 
 	bValidInput = true;
@@ -906,12 +907,9 @@ void AGolfBall::tickWalking(float DeltaTime)
 	{ 
 		if (WPressed || APressed || SPressed || DPressed)
 		{ 
-			bIsWalking = true;
 			movementTransformation(DeltaTime);
 		}
 	}
-	else
-		bIsWalking = false;
 
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
@@ -950,7 +948,9 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	if(onGround)
 		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed, NAME_None, true);
 
-	if(!onGround && mMesh->GetPhysicsLinearVelocity().Size() < 2000.f)
+	UE_LOG(LogTemp, Warning, TEXT("%f"), GetActorRotation().Pitch);
+
+	if(!onGround && mMesh->GetPhysicsLinearVelocity().Size() < 1000.f)
 		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/8.f, NAME_None, true);
 
 	if (onPlatform && onGround)
