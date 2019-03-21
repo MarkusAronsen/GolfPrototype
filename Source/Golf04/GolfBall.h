@@ -217,7 +217,7 @@ public:
 	TArray<FHitResult> hitResults;
 	TArray<FHitResult> lineTraceResults;
 	FCollisionQueryParams traceParams;
-	bool alignWithSurface = false;
+	bool lineTraceHit = false;
 	FVector impactPoint;
 	FVector surfaceNormal;
 	FTransform newRotationTransform;
@@ -257,9 +257,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		bool bFlyingAnimShouldPlay = false;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		bool bIsWalking = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		bool onGround = false;

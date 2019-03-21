@@ -209,7 +209,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING;
 
 		runnerMoveSpeed += DeltaTime * 7.5f;
-		UE_LOG(LogTemp, Warning, TEXT("Runner move speed: %f"), runnerMoveSpeed);
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * runnerMoveSpeed);
 		break;
 
 	default:
