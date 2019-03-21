@@ -50,6 +50,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
 		int triesLeft = 8;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
+		int count = -1;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
 		bool gameWon = false;
