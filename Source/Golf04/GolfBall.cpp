@@ -732,10 +732,10 @@ void AGolfBall::setLMBReleased()
 				secretLevelManagerInstance->incrementBowlingThrow();
 				mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 			}
-			else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && secretLevelManagerInstance->bBallIsThrown)
+			/*else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && secretLevelManagerInstance->bBallIsThrown)
 			{
 
-			}
+			}*/
 			else
 				mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 

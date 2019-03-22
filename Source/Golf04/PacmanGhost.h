@@ -2,13 +2,18 @@
 
 #pragma once
 
+#include "Components/ShapeComponent.h"
+
 #include "PacmanPathNode.h"
+#include "SecretLevelManager.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PacmanGhost.generated.h"
 
-namespace golf {
+class AGolfBall;
+
+namespace GBH {
 
 	enum directions {
 		UP = 0,
@@ -37,10 +42,17 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 
+	UShapeComponent* CollisionBox = nullptr;
+
+	UFUNCTION()
+		void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult &SweepResult);
+
 	UPROPERTY(EditAnywhere)
 		float timeToActivate;
 
-	TArray<golf::directions> legalDirections;
+	TArray<GBH::directions> legalDirections;
 
 	UPROPERTY(EditAnywhere)
 	int directionBuffer = -1;
@@ -49,7 +61,7 @@ public:
 	FVector direction;
 
 	APacmanPathNode* pathNode = nullptr;
-
+	ASecretLevelManager* secretLevelManagerInstance = nullptr;
 	bool activated = false;
 
 	float activateTimer = 0.f;

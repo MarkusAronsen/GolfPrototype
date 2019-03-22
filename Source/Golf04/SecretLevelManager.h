@@ -128,6 +128,11 @@ public:
 	bool gameStarted = false;
 	bool walkForward = false;
 
+	int pacmanLives = 3;
+	void hitGhost();
+
+	float activateTimer = 0.f;
+
 	float pacmanMoveSpeed = 400;
 
 	void pacmanSwitchDirection();
