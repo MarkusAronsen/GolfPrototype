@@ -41,7 +41,7 @@ void AGoal::Tick(float DeltaTime)
 	if (startSettleTimer)
 	{
 		settleTimer += DeltaTime;
-		if (settleTimer >= 1.f)
+		if (settleTimer >= 4.f)
 		{
 			settleTimer = 0.f;
 			startSettleTimer = false;
