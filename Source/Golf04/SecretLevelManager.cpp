@@ -47,7 +47,6 @@ void ASecretLevelManager::BeginPlay()
 		secretState = PACMAN;
 		buffer = FVector::ZeroVector;
 	}
-
 	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
 	{
 		secretState = RUNNER;
