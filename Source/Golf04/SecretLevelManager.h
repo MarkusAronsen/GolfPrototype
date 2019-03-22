@@ -3,6 +3,7 @@
 #pragma once
 
 #include "MallocLeakDetection.h"
+#include "Engine/world.h"
 
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "BowlingPin.h"
@@ -14,6 +15,7 @@
 
 class AGolfBall;
 class APacmanPathNode;
+class APacmanGhost;
 
 enum SecretLevelState
 {
@@ -130,6 +132,9 @@ public:
 
 	int pacmanLives = 3;
 	void hitGhost();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void hitGhostEvent();
 
 	float activateTimer = 0.f;
 

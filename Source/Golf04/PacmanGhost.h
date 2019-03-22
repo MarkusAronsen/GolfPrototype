@@ -72,4 +72,12 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void announceGhost(const FString &ghostName);
+
+
+	//Reset
+	FVector initialPosition;
+	FVector initialDirection;
+
+	UFUNCTION(BlueprintCallable)
+	void resetGhosts();
 };

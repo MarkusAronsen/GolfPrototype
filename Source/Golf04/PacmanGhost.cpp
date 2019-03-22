@@ -30,6 +30,10 @@ void APacmanGhost::BeginPlay()
 		secretLevelManagerInstance = Cast<ASecretLevelManager>(secretLevelManager[0]);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Secret level manager not found"));
+
+
+	initialPosition = GetActorLocation();
+	initialDirection = direction;
 }
 
 // Called every frame
@@ -88,3 +92,9 @@ void APacmanGhost::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 	}
 }
 
+void APacmanGhost::resetGhosts()
+{
+	SetActorLocation(initialPosition);
+	direction = initialDirection;
+	activated = false;
+}

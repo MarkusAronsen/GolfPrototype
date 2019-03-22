@@ -3,6 +3,7 @@
 #include "SecretLevelManager.h"
 #include "GolfBall.h"
 #include "PacmanPathNode.h"
+#include "PacmanGhost.h"
 
 // Sets default values
 ASecretLevelManager::ASecretLevelManager()
@@ -392,14 +393,26 @@ int ASecretLevelManager::getBilliardsScore()
 void ASecretLevelManager::hitGhost()
 {
 	pacmanLives--;
-
 	if (pacmanLives == 0)
+	{
+		hitGhostEvent();
+		walkForward = false;
 		secretLevelFinished();
-
+	}
 	else
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(FVector(-1067, 0, 113));
+		hitGhostEvent();
+		walkForward = false;
+		/*Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(FVector(-1067, 0, 113));
+		TArray<AActor*> ghosts;
+		UGameplayStatics::GetAllActorsOfClass(this, APacmanGhost::StaticClass(), ghosts);
+
+		for (int i = 0; i < ghosts.Num(); i++)
+		{
+			Cast<APacmanGhost>(ghosts[i])->reset();
+		}*/
 	}
+	activateTimer = 0.f;
 }
 
 void ASecretLevelManager::pacmanSwitchDirection()
