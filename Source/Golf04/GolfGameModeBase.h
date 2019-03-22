@@ -37,16 +37,10 @@ public:
 		FString UsedLetters = "";
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
-		FString targetWord1 = "Sander Platou Aaseth";
+		TArray <FString> targetWords;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
-		FString targetWord2 = "Julie Kristoffersen";
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
-		FString targetWord3 = "Simon Pettersen";
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
-		FString targetWord4 = "Markus Strand Aronsen";
+		TArray <FString> targetRoles;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
 		FString targetWord = "";
