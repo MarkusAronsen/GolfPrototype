@@ -60,13 +60,13 @@ void APacmanPathNode::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent, 
 		Cast<APacmanGhost>(OtherActor)->pathNode = this;
 
 		if (up)
-			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::UP);
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->GBH::directions::UP);
 		if (down)
-			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::DOWN);
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->GBH::directions::DOWN);
 		if (left)
-			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::LEFT);
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->GBH::directions::LEFT);
 		if (right)
-			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->golf::directions::RIGHT);
+			Cast<APacmanGhost>(OtherActor)->legalDirections.Add(Cast<APacmanGhost>(OtherActor)->GBH::directions::RIGHT);
 
 		Cast<APacmanGhost>(OtherActor)->directionBuffer = Cast<APacmanGhost>(OtherActor)->legalDirections[rand() % Cast<APacmanGhost>(OtherActor)->legalDirections.Num()];
 

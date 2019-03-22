@@ -37,7 +37,7 @@ void APacmanPellet::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->pacmanScore++;
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->pacmanScore += 10;
 		Destroy();
 	}
 }

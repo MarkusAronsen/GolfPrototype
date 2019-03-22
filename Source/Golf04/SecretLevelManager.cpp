@@ -121,6 +121,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 				else if (bowlingThrows == 2)
 				{
 					removeFallenPins();
+					Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
 					//bowlingFinished();
 					secretLevelFinished();
 					UE_LOG(LogTemp, Warning, TEXT("Bowling score: %i"), getBowlingScore());
@@ -219,6 +220,9 @@ void ASecretLevelManager::Tick(float DeltaTime)
 
 			pacmanSwitchDirection();
 		}
+
+		activateTimer += DeltaTime;
+
 		break;
 
 	case RUNNER:
@@ -383,6 +387,19 @@ void ASecretLevelManager::registerBilliards()
 int ASecretLevelManager::getBilliardsScore()
 {
 	return billiardsScore;
+}
+
+void ASecretLevelManager::hitGhost()
+{
+	pacmanLives--;
+
+	if (pacmanLives == 0)
+		secretLevelFinished();
+
+	else
+	{
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(FVector(-1067, 0, 113));
+	}
 }
 
 void ASecretLevelManager::pacmanSwitchDirection()
