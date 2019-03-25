@@ -310,14 +310,6 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
 
-		currentRotation = FMath::Lerp(
-			GetActorRotation(),
-			FRotator(
-				newRotationTransform.Rotator().Pitch,
-				mController->GetControlRotation().Yaw + walkingDirection,
-				newRotationTransform.Rotator().Roll),
-			lerpTime * DeltaTime);
-
 		if (onGround && mMesh->GetLinearDamping() < 19.f)
 			mMesh->SetLinearDamping(20.f);
 		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
@@ -467,7 +459,6 @@ void AGolfBall::levelInit()
 void AGolfBall::golfInit()
 {
 	FVector ballVelocity;
-	mSpringArm->TargetArmLength = 500.f;
 
 	mSpringArm->bEnableCameraLag = true;
 	mSpringArm->bEnableCameraRotationLag = true;
@@ -562,9 +553,9 @@ void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRot
 {
 	if (lerpTimer < 0.8f)
 	{
-		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, DeltaTime);
-		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, DeltaTime);
-		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, DeltaTime));
+		mSpringArm->RelativeRotation = FMath::RInterpTo(mSpringArm->RelativeRotation, springToRot, DeltaTime, 3.f);
+		mSpringArm->TargetArmLength = FMath::FInterpTo(mSpringArm->TargetArmLength, springToLength, DeltaTime, 3.f);
+		mCamera->SetRelativeRotation(FMath::RInterpTo(mCamera->RelativeRotation, camToRot, DeltaTime, 3.f));
 		lerpTimer += DeltaTime;
 	}
 }
@@ -981,6 +972,14 @@ void AGolfBall::tickWalking(float DeltaTime)
 		if (WPressed || APressed || SPressed || DPressed)
 		{ 
 			movementTransformation(DeltaTime);
+
+			currentRotation = FMath::Lerp(
+				GetActorRotation(),
+				FRotator(
+					newRotationTransform.Rotator().Pitch,
+					mController->GetControlRotation().Yaw + walkingDirection,
+					newRotationTransform.Rotator().Roll),
+				lerpTime * DeltaTime);
 		}
 	}
 
