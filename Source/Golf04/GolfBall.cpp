@@ -640,11 +640,21 @@ void AGolfBall::WClicked()
 	WPressed = true;
 	if (state == PACMAN)
 		secretLevelManagerInstance->buffer = FVector(1.f, 0.f, 0.f);
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateW = true;
+	}
 }
 
 void AGolfBall::WReleased()
 {
 	WPressed = false;
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateW = false;
+	}
 }
 
 void AGolfBall::AClicked()
@@ -657,11 +667,21 @@ void AGolfBall::AClicked()
 	}
 	if (state == PACMAN && secretLevelManagerInstance->gameStarted)
 		secretLevelManagerInstance->buffer = FVector(0.f, -1.f, 0.f);
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateA = true;
+	}
 }
 
 void AGolfBall::AReleased()
 {
 	APressed = false;
+	
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateA = false;
+	}
 }
 
 void AGolfBall::SClicked()
@@ -669,11 +689,21 @@ void AGolfBall::SClicked()
 	SPressed = true;
 	if (state == PACMAN)
 		secretLevelManagerInstance->buffer = FVector(-1.f, 0.f, 0.f);
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateS = true;
+	}
 }
 
 void AGolfBall::SReleased()
 {
 	SPressed = false;
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateS = false;
+	}
 }
 
 void AGolfBall::DClicked()
@@ -686,11 +716,21 @@ void AGolfBall::DClicked()
 	}
 	if (state == PACMAN && secretLevelManagerInstance->gameStarted)
 		secretLevelManagerInstance->buffer = FVector(0.f, 1.f, 0.f);
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateD = true;
+	}
 }
 
 void AGolfBall::DReleased()
 {
 	DPressed = false;
+
+	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	{
+		secretLevelManagerInstance->mazeRotateD = false;
+	}
 }
 
 void AGolfBall::setLMBPressed()

@@ -52,6 +52,30 @@ void ASecretLevelManager::BeginPlay()
 	{
 		secretState = RUNNER;
 	}
+	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel06"), ESearchCase::IgnoreCase) == 0)
+	{
+
+		secretState = MAZE;
+
+		TArray<AActor*> mazeArr;
+
+		UGameplayStatics::GetAllActorsOfClass(this, APhysicsMaze::StaticClass(), mazeArr);
+
+		if (mazeArr.Num() == 1)
+			mazePtr = Cast<APhysicsMaze>(mazeArr[0]);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Maze not initialized"));
+
+		UGameplayStatics::GetAllActorsOfClass(this, APhysicsMazeRotator::StaticClass(), mazeArr);
+		if (mazeArr.Num() == 2)
+		{
+			mazeRotator1 = Cast<APhysicsMazeRotator>(mazeArr[0]);
+			mazeRotator2 = Cast<APhysicsMazeRotator>(mazeArr[1]);
+		}
+			
+		else
+			UE_LOG(LogTemp, Warning, TEXT("Maze rotators not initialized"));
+	}
 
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
@@ -232,6 +256,37 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		runnerMoveSpeed += DeltaTime * 7.5f;
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * runnerMoveSpeed);
 		break;
+
+	case MAZE:
+
+		//mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + (mouseY * cameraSpeed), -10.f, 30.f);
+
+		if (mazeRotateW)
+		{
+			mazePtr->SetActorRotation(FRotator(FMath::Clamp(mazePtr->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazePtr->GetActorRotation().Yaw, mazePtr->GetActorRotation().Roll));
+			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
+		}
+
+		if(mazeRotateS)
+		{
+			mazePtr->SetActorRotation(FRotator(FMath::Clamp(mazePtr->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazePtr->GetActorRotation().Yaw, mazePtr->GetActorRotation().Roll));
+			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
+		}
+
+		if (mazeRotateA)
+		{
+			mazePtr->SetActorRotation(FRotator(mazePtr->GetActorRotation().Pitch, mazePtr->GetActorRotation().Yaw, FMath::Clamp(mazePtr->GetActorRotation().Roll - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue)));
+			mazeRotator2->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator2->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator2->GetActorRotation().Yaw, mazeRotator2->GetActorRotation().Roll));
+		}
+
+		if (mazeRotateD)
+		{
+			mazePtr->SetActorRotation(FRotator(mazePtr->GetActorRotation().Pitch, mazePtr->GetActorRotation().Yaw, FMath::Clamp(mazePtr->GetActorRotation().Roll + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue)));
+			mazeRotator2->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator2->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator2->GetActorRotation().Yaw, mazeRotator2->GetActorRotation().Roll));
+		}
+
+		break;
+
 
 	default:
 		UE_LOG(LogTemp, Warning, TEXT("no secret state set (tick)"));
