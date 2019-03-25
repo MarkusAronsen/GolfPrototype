@@ -10,6 +10,9 @@ ALevelSelecter::ALevelSelecter()
 
 	mCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("Collision"), true);
 	mCollisionBox->SetSphereRadius(100, true);
+
+	mOuterCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("OuterCollision"), true);
+	mOuterCollisionBox->SetSphereRadius(800, true);
 }
 
 // Called when the game starts or when spawned
@@ -25,6 +28,16 @@ void ALevelSelecter::BeginPlay()
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Level selecter no collision box"));
+	}
+
+	if (mOuterCollisionBox)
+	{
+		mOuterCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALevelSelecter::OnOverlapBeginOuter);
+		mOuterCollisionBox->SetWorldLocation(GetActorLocation());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Level selecter outer no collision box"));
 	}
 
 	if (LevelSelectWidget_BP)
@@ -77,5 +90,15 @@ void ALevelSelecter::OnOverlapEnd(UPrimitiveComponent * OverlappedComp, AActor *
 			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->states::WALKING;
 			Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->currentLevelSelecter = nullptr;
 		}
+	}
+}
+
+void ALevelSelecter::OnOverlapBeginOuter(UPrimitiveComponent * OverlappedComponent, 
+	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, 
+	bool bFromSweep, const FHitResult & SweepResult)
+{
+	if (OtherActor->IsA(AGolfBall::StaticClass()))
+	{
+		outerOverlapCustomEvent();
 	}
 }
