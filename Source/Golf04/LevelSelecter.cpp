@@ -12,7 +12,7 @@ ALevelSelecter::ALevelSelecter()
 	mCollisionBox->SetSphereRadius(100, true);
 
 	mOuterCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("OuterCollision"), true);
-	mOuterCollisionBox->SetSphereRadius(400, true);
+	mOuterCollisionBox->SetSphereRadius(800, true);
 }
 
 // Called when the game starts or when spawned
@@ -33,6 +33,7 @@ void ALevelSelecter::BeginPlay()
 	if (mOuterCollisionBox)
 	{
 		mOuterCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ALevelSelecter::OnOverlapBeginOuter);
+		mOuterCollisionBox->SetWorldLocation(GetActorLocation());
 	}
 	else
 	{
@@ -96,5 +97,8 @@ void ALevelSelecter::OnOverlapBeginOuter(UPrimitiveComponent * OverlappedCompone
 	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, 
 	bool bFromSweep, const FHitResult & SweepResult)
 {
-
+	if (OtherActor->IsA(AGolfBall::StaticClass()))
+	{
+		outerOverlapCustomEvent();
+	}
 }
