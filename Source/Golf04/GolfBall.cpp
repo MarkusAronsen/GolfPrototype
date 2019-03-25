@@ -226,11 +226,21 @@ void AGolfBall::Tick(float DeltaTime)
 	onGround = sphereTrace();
 
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
+	FString angularVelocityString = mMesh->GetPhysicsAngularVelocity().ToString();
+	/*FString springArmString = FString::SanitizeFloat(mSpringArm->TargetArmLength);
+	FString cameraRotationString = mCamera->RelativeRotation.ToString();
+	FString springArmRotationString = mSpringArm->RelativeRotation.ToString();
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(5, 0.1f, FColor::Yellow, springArmString);
+		GEngine->AddOnScreenDebugMessage(6, 0.1f, FColor::Yellow, springArmRotationString);
+		GEngine->AddOnScreenDebugMessage(7, 0.1f, FColor::Yellow, cameraRotationString);
+	}*/
 
 	switch (state)
 	{
 	case GOLF:
-		//mMesh->AddForce(gravitation * DeltaTime, NAME_None, true);
 		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mouseCameraPitch();
 		mouseCameraYaw();
@@ -314,7 +324,10 @@ void AGolfBall::Tick(float DeltaTime)
 			mMesh->SetLinearDamping(0.f);
 
 		if (GEngine)
+		{
 			GEngine->AddOnScreenDebugMessage(3, 0.1f, FColor::Yellow, velocityString);
+			GEngine->AddOnScreenDebugMessage(4, 0.1f, FColor::Yellow, angularVelocityString);
+		}
 		
 		break;
 
@@ -374,7 +387,10 @@ void AGolfBall::Tick(float DeltaTime)
 	
 	if (world)
 		drawDebugObjectsTick();
-	debugMouse();
+	
+
+	//
+	//debugMouse();
 
 	if(bRespawning)
 		respawnAtCheckpointTick(DeltaTime);
@@ -451,7 +467,6 @@ void AGolfBall::levelInit()
 void AGolfBall::golfInit()
 {
 	FVector ballVelocity;
-	lerpTimer = 0.f;
 	mSpringArm->TargetArmLength = 500.f;
 
 	mSpringArm->bEnableCameraLag = true;
@@ -496,6 +511,7 @@ void AGolfBall::golfInit()
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
 
+	lerpTimer = 0.f;
 	setMeshVisibility();
 
 }
@@ -546,9 +562,9 @@ void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRot
 {
 	if (lerpTimer < 0.8f)
 	{
-		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, lerpTime * DeltaTime);
-		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, lerpTime * DeltaTime);
-		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, lerpTime * DeltaTime));
+		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, DeltaTime);
+		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, DeltaTime);
+		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, DeltaTime));
 		lerpTimer += DeltaTime;
 	}
 }
