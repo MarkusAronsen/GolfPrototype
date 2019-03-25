@@ -6,8 +6,12 @@
 #include "Engine/world.h"
 
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+#include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
+
 #include "BowlingPin.h"
 #include "RunnerFloor.h"
+#include "PhysicsMaze.h"
+#include "PhysicsMazeRotator.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -23,7 +27,8 @@ enum SecretLevelState
 	PLINKO = 1,
 	BILLIARDS = 2,
 	PACMAN = 3,
-	RUNNER = 4
+	RUNNER = 4,
+	MAZE = 5
 };
 
 
@@ -161,5 +166,20 @@ public:
 
 	void runnerFinished();
 	//----------------------------------------------------------------
+
+	//Maze------------------------------------------------------------
+	class APhysicsMaze* mazePtr = nullptr;
+	class APhysicsMazeRotator* mazeRotator1 = nullptr;
+	class APhysicsMazeRotator* mazeRotator2 = nullptr;
+
+	bool mazeRotateW = false;
+	bool mazeRotateS = false;
+	bool mazeRotateA = false;
+	bool mazeRotateD = false;
+
+	float mazeRotateValue = 0.5f;
+	float mazeMinMaxValue = 5.f;
+	//----------------------------------------------------------------
+
 };
 
