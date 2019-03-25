@@ -35,9 +35,17 @@ public:
 		void OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION()
+		void OnOverlapBeginOuter(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent* OtherComponent, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult &SweepResult);
+
 
 	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USphereComponent* mCollisionBox = nullptr;
+
+	UPROPERTY(Category = "Component", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class USphereComponent* mOuterCollisionBox = nullptr;
 
 	UPROPERTY(EditAnywhere, BluePrintReadOnly, Category = "Level Name")
 		FString levelName;
