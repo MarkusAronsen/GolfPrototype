@@ -10,8 +10,8 @@ UGolfSaveGame::UGolfSaveGame()
 	slotName = TEXT("SaveSlot");
 	userIndex = 0;
 
-	levelData[0].levelName = TEXT("TestLevel01");
-	levelData[1].levelName = TEXT("TestLevel02");
+	levelData[0].levelName = TEXT("Level01");
+	levelData[1].levelName = TEXT("Level02");
 	levelData[2].levelName = TEXT("TestLevel03");
 	levelData[3].levelName = TEXT("TestLevel04");
 	levelData[4].levelName = TEXT("TestLevel05");
