@@ -287,6 +287,12 @@ public:
 
 	void pauseGame();
 
+	//Dialogue
+	UFUNCTION(BlueprintImplementableEvent)
+		void printDialogue(const TArray<FString> &displayText);
+
+
+
 	//Secret levels
 	ASecretLevelManager* secretLevelManagerInstance = nullptr;
 	bool bPlayingSecretLevel = false;

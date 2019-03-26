@@ -12,7 +12,7 @@ ALevelSelecter::ALevelSelecter()
 	mCollisionBox->SetSphereRadius(100, true);
 
 	mOuterCollisionBox = CreateDefaultSubobject<USphereComponent>(TEXT("OuterCollision"), true);
-	mOuterCollisionBox->SetSphereRadius(800, true);
+	mOuterCollisionBox->SetSphereRadius(1000, true);
 }
 
 // Called when the game starts or when spawned
