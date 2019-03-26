@@ -315,6 +315,14 @@ void AGolfBall::Tick(float DeltaTime)
 		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
 			mMesh->SetLinearDamping(0.f);
 
+		currentRotation = FMath::Lerp(
+			GetActorRotation(),
+			FRotator(
+				newRotationTransform.Rotator().Pitch,
+				mController->GetControlRotation().Yaw + walkingDirection,
+				newRotationTransform.Rotator().Roll),
+			lerpTime * DeltaTime);
+
 		if (GEngine)
 		{
 			GEngine->AddOnScreenDebugMessage(3, 0.1f, FColor::Yellow, velocityString);
@@ -972,14 +980,6 @@ void AGolfBall::tickWalking(float DeltaTime)
 		if (WPressed || APressed || SPressed || DPressed)
 		{ 
 			movementTransformation(DeltaTime);
-
-			currentRotation = FMath::Lerp(
-				GetActorRotation(),
-				FRotator(
-					newRotationTransform.Rotator().Pitch,
-					mController->GetControlRotation().Yaw + walkingDirection,
-					newRotationTransform.Rotator().Roll),
-				lerpTime * DeltaTime);
 		}
 	}
 
