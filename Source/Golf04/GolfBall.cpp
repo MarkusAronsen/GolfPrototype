@@ -1206,6 +1206,19 @@ void AGolfBall::printLoadedGame()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
 	}
+
+	TArray<FString> dialogue;
+
+	dialogue.Empty();
+
+	dialogue.Add("Line 1");
+
+	dialogue.Add("Line 2");
+
+	dialogue.Add("Line 3");
+	
+	printDialogue(dialogue);
+
 }
 
 void AGolfBall::setMeshVisibility()
