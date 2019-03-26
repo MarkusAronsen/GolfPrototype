@@ -310,8 +310,8 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
 
-		if (onGround && mMesh->GetLinearDamping() < 14.f)
-			mMesh->SetLinearDamping(14.5f);
+		if (onGround && mMesh->GetLinearDamping() < 19.f)
+			mMesh->SetLinearDamping(20.f);
 		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
 			mMesh->SetLinearDamping(0.f);
 
@@ -891,7 +891,7 @@ bool AGolfBall::sphereTrace()
 		world->SweepMultiByChannel(
 			hitResults,
 			mMesh->GetComponentToWorld().GetLocation(),
-			mMesh->GetComponentToWorld().GetLocation() + (GetActorUpVector() * -120.f),
+			mMesh->GetComponentToWorld().GetLocation() + (FVector(0.f, 0.f, 1.f) * -120.f),
 			FQuat::Identity,
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape(),
