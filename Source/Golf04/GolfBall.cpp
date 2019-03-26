@@ -310,18 +310,18 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
 
-		currentRotation = FMath::Lerp(
-			GetActorRotation(),
-			FRotator(
-				newRotationTransform.Rotator().Pitch,
-				mController->GetControlRotation().Yaw + walkingDirection,
-				newRotationTransform.Rotator().Roll),
-			lerpTime * DeltaTime);
-
 		if (onGround && mMesh->GetLinearDamping() < 19.f)
 			mMesh->SetLinearDamping(20.f);
 		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
 			mMesh->SetLinearDamping(0.f);
+
+		currentRotation = FMath::Lerp(
+			GetActorRotation(),
+			FRotator(
+				newRotationTransform.Rotator().Pitch,
+				walkingDirection,
+				newRotationTransform.Rotator().Roll),
+			lerpTime * DeltaTime);
 
 		if (GEngine)
 		{
@@ -467,7 +467,6 @@ void AGolfBall::levelInit()
 void AGolfBall::golfInit()
 {
 	FVector ballVelocity;
-	mSpringArm->TargetArmLength = 500.f;
 
 	mSpringArm->bEnableCameraLag = true;
 	mSpringArm->bEnableCameraRotationLag = true;
@@ -493,8 +492,6 @@ void AGolfBall::golfInit()
 		ballVelocity = mMesh->GetPhysicsLinearVelocity();
 		mMesh->RecreatePhysicsState();
 		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
-		mMesh->SetAngularDamping(0.8f);
-		mMesh->SetLinearDamping(0.6f);
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
 	if (state == WALKING && mMesh && mMesh->IsValidLowLevel())
@@ -506,7 +503,6 @@ void AGolfBall::golfInit()
 		mMesh->RecreatePhysicsState();
 		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mMesh->SetAngularDamping(0.8f);
-		mMesh->SetLinearDamping(0.8);
 
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
@@ -562,9 +558,9 @@ void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRot
 {
 	if (lerpTimer < 0.8f)
 	{
-		mSpringArm->RelativeRotation = FMath::Lerp(mSpringArm->RelativeRotation, springToRot, DeltaTime);
-		mSpringArm->TargetArmLength = FMath::Lerp(mSpringArm->TargetArmLength, springToLength, DeltaTime);
-		mCamera->SetRelativeRotation(FMath::Lerp(mCamera->RelativeRotation, camToRot, DeltaTime));
+		mSpringArm->RelativeRotation = FMath::RInterpTo(mSpringArm->RelativeRotation, springToRot, DeltaTime, 3.f);
+		mSpringArm->TargetArmLength = FMath::FInterpTo(mSpringArm->TargetArmLength, springToLength, DeltaTime, 3.f);
+		mCamera->SetRelativeRotation(FMath::RInterpTo(mCamera->RelativeRotation, camToRot, DeltaTime, 3.f));
 		lerpTimer += DeltaTime;
 	}
 }
@@ -582,6 +578,7 @@ void AGolfBall::walkFunction(float deltaTime)
 void AGolfBall::jump()
 {
 	mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f), NAME_None, true);
+	mMesh->AddAngularImpulse(mMesh->GetPhysicsAngularVelocity() * 0.005f, NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
@@ -894,7 +891,7 @@ bool AGolfBall::sphereTrace()
 		world->SweepMultiByChannel(
 			hitResults,
 			mMesh->GetComponentToWorld().GetLocation(),
-			mMesh->GetComponentToWorld().GetLocation() + (GetActorUpVector() * -120.f),
+			mMesh->GetComponentToWorld().GetLocation() + (FVector(0.f, 0.f, 1.f) * -120.f),
 			FQuat::Identity,
 			ECC_Visibility,
 			mCollisionBox->GetCollisionShape(),
@@ -950,29 +947,29 @@ void AGolfBall::tickWalking(float DeltaTime)
 	bValidInput = true;
 
 	if (APressed && DPressed && SPressed && !WPressed)
-		walkingDirection = 180.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 180.f;
 	else if (APressed && DPressed && WPressed && !SPressed)
-		walkingDirection = 0.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 0.f;
 	else if (SPressed && WPressed && DPressed && !APressed)
-		walkingDirection = 90.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 90.f;
 	else if (SPressed && WPressed && APressed && !DPressed)
-		walkingDirection = -90.f;
+		walkingDirection = mController->GetControlRotation().Yaw - 90.f;
 	else if (WPressed && APressed && !SPressed && !DPressed)
-		walkingDirection = -45.f;
+		walkingDirection = mController->GetControlRotation().Yaw - 45.f;
 	else if (WPressed && DPressed && !APressed && !SPressed)
-		walkingDirection = 45.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 45.f;
 	else if (SPressed && APressed && !WPressed && !DPressed)
-		walkingDirection = -135.f;
+		walkingDirection = mController->GetControlRotation().Yaw - 135.f;
 	else if (SPressed && DPressed && !WPressed && !APressed)
-		walkingDirection = 135.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 135.f;
 	else if (SPressed && !DPressed && !WPressed && !APressed)
-		walkingDirection = 180.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 180.f;
 	else if (APressed && !DPressed && !WPressed && !SPressed)
-		walkingDirection = -90.f;
+		walkingDirection = mController->GetControlRotation().Yaw - 90.f;
 	else if (DPressed && !SPressed && !WPressed && !APressed)
-		walkingDirection = 90.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 90.f;
 	else if (WPressed && !DPressed && !SPressed && !APressed)
-		walkingDirection = 0.f;
+		walkingDirection = mController->GetControlRotation().Yaw + 0.f;
 	else
 		bValidInput = false;
 
@@ -1010,7 +1007,7 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	//Reusing variables and snapRotation is camera + inputDirection rotation
 	FRotator targetRotation = FRotator(
 		newRotationTransform.Rotator().Pitch,
-		mController->GetControlRotation().Yaw + walkingDirection,
+		walkingDirection,
 		newRotationTransform.Rotator().Roll);
 
 	FVector newRightVector = FVector::CrossProduct(surfaceNormal, targetRotation.Vector());
