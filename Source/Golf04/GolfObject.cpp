@@ -39,7 +39,6 @@ void AGolfObject::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * 
 	{
 		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::GOLF;
 		static_cast<AGolfBall*>(OtherActor)->golfInit();
-		static_cast<AGolfBall*>(OtherActor)->lerpTimer = 0.f;
 	}
 }
 
