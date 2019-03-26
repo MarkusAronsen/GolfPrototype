@@ -383,8 +383,8 @@ void AGolfBall::Tick(float DeltaTime)
 	if(LMBPressed && state == CLIMBING)
 		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
 	
-	if (world)
-		drawDebugObjectsTick();
+	/*if (world)
+		drawDebugObjectsTick();*/
 	
 
 	//
@@ -1204,6 +1204,19 @@ void AGolfBall::printLoadedGame()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
 	}
+
+	TArray<FString> dialogue;
+
+	dialogue.Empty();
+
+	dialogue.Add("The Saint Paul River is a river of western Africa. Its headwaters are in southeastern Guinea. Its upper portion in Guinea is known as the Diani River or Niandi River, and forms part of the boundary between Guinea and Liberia.");
+
+	dialogue.Add("The river then enters Liberia about 50 km(31 mi) north of Gbarnga and crosses Liberia in a southwesterly direction.It empties into the Atlantic Ocean at Cape Mesurado in Monrovia near Bushrod Island, separating Monrovia from its suburb Brewerville.");
+
+	dialogue.Add("Line 3");
+	
+	printDialogue(dialogue);
+
 }
 
 void AGolfBall::setMeshVisibility()
