@@ -183,7 +183,7 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("mMesh not initialized"));
 
-	GEngine->SetMaxFPS(60.f);
+	//GEngine->SetMaxFPS(60.f);
 
 	//If level name contains "SecretLevel", retrieve secret level manager from level
 	if (UGameplayStatics::GetCurrentLevelName(this).Contains(TEXT("SecretLevel"), ESearchCase::IgnoreCase))
