@@ -25,17 +25,28 @@ public:
 
 	float offset = 0.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Translation")
 		float Xoffset = 1.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Translation")
 		float Yoffset = 1.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Translation")
 		float Zoffset = 1.f;
 
-
-
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = "Translation")
 		float floatSpeed = 1.f;
+
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+		bool rotatePitch = false;
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+		bool rotateYaw = false;
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+		bool rotateRoll = false;
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+		float rotateSpeed = 0.f;
 };

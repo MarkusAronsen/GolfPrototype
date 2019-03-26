@@ -28,5 +28,12 @@ void AObjectFloater::Tick(float DeltaTime)
 
 	if (offset > 2.f * PI)
 		offset = 0.f;
+
+	if (rotatePitch)
+		AddActorLocalRotation(FRotator(rotateSpeed, 0, 0));
+	if (rotateYaw)
+		AddActorLocalRotation(FRotator(0, rotateSpeed, 0));
+	if (rotateRoll)
+		AddActorLocalRotation(FRotator(0, 0, rotateSpeed));
 }
 

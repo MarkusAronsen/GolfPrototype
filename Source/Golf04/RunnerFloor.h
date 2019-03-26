@@ -4,11 +4,7 @@
 
 #include "Engine/World.h"
 
-#include <ctime>
-
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
-#include "FallingRunnerFloor.h"
-#include "SecretLevelManager.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -16,6 +12,9 @@
 
 //static int s_NumSpawned = 0;
 //static float s_MoveSpeed = 300;
+
+class ASecretLevelManager;
+class AFallingRunnerFloor;
 
 UCLASS()
 class GOLF04_API ARunnerFloor : public AActor
