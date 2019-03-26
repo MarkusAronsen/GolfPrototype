@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "RunnerFloor.h"
+#include "SecretLevelManager.h"
+#include "FallingRunnerFloor.h"
 
 // Sets default values
 ARunnerFloor::ARunnerFloor()

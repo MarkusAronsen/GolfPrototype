@@ -34,6 +34,25 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	
-	
+
+	UPROPERTY(EditAnywhere, Category = "Translation")
+		bool translateX = false;
+
+	UPROPERTY(EditAnywhere, Category = "Translation")
+		bool translateZ = false;
+
+	UPROPERTY(EditAnywhere, Category = "Translation")
+		float translateRange = 0.f;
+
+	float translateOffset = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Translation")
+		float translateSpeed = 0.f;
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+		bool rotatePitch = false;
+
+	UPROPERTY(EditAnywhere, Category = "Rotation")
+		float rotateSpeed = 0.f;
+
 };

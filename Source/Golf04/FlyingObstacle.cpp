@@ -34,6 +34,18 @@ void AFlyingObstacle::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	translateOffset += DeltaTime + translateSpeed;
+	if (translateOffset >= 2 * PI)
+		translateOffset = 0.f;
+
+	if (translateX)
+		AddActorLocalOffset(FVector(sin(translateOffset) * translateRange, 0, 0));
+	if (translateZ)
+		AddActorLocalOffset(FVector(0, 0, sin(translateOffset) * translateRange));
+
+	if (rotatePitch)
+		AddActorLocalRotation(FRotator(rotateSpeed, 0, 0));
+
 }
 
 void AFlyingObstacle::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
