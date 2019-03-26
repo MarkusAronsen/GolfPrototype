@@ -264,25 +264,28 @@ void ASecretLevelManager::Tick(float DeltaTime)
 		if (mazeRotateW)
 		{
 			mazePtr->SetActorRotation(FRotator(FMath::Clamp(mazePtr->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazePtr->GetActorRotation().Yaw, mazePtr->GetActorRotation().Roll));
-			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
+			mazeRotator2->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator2->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator2->GetActorRotation().Yaw, mazeRotator2->GetActorRotation().Roll));
+
 		}
 
 		if(mazeRotateS)
 		{
 			mazePtr->SetActorRotation(FRotator(FMath::Clamp(mazePtr->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazePtr->GetActorRotation().Yaw, mazePtr->GetActorRotation().Roll));
-			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
+			mazeRotator2->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator2->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator2->GetActorRotation().Yaw, mazeRotator2->GetActorRotation().Roll));
 		}
 
 		if (mazeRotateA)
 		{
 			mazePtr->SetActorRotation(FRotator(mazePtr->GetActorRotation().Pitch, mazePtr->GetActorRotation().Yaw, FMath::Clamp(mazePtr->GetActorRotation().Roll - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue)));
-			mazeRotator2->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator2->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator2->GetActorRotation().Yaw, mazeRotator2->GetActorRotation().Roll));
+			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
+
 		}
 
 		if (mazeRotateD)
 		{
 			mazePtr->SetActorRotation(FRotator(mazePtr->GetActorRotation().Pitch, mazePtr->GetActorRotation().Yaw, FMath::Clamp(mazePtr->GetActorRotation().Roll + mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue)));
-			mazeRotator2->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator2->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator2->GetActorRotation().Yaw, mazeRotator2->GetActorRotation().Roll));
+			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
+
 		}
 
 		break;
