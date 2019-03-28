@@ -207,13 +207,17 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->bRenderCustomDepth = true;
 	mWingsMeshRight->bRenderCustomDepth = true;
 	mLegsMesh->bRenderCustomDepth = true;
-	mLegsMesh->CastShadow = false;
 
 	mMesh->CustomDepthStencilValue = 1;
 	mWingsMeshLeft->CustomDepthStencilValue = 1;
 	mWingsMeshRight->CustomDepthStencilValue = 1;
 	mLegsMesh->CustomDepthStencilValue = 1;
 
+	//Shadows off, custom decal is used
+	mMesh->CastShadow = false;
+	mLegsMesh->CastShadow = false;
+	mWingsMeshLeft->CastShadow = false;
+	mWingsMeshRight->CastShadow = false;
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }

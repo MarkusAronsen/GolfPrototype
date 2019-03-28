@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WingsObject.h"
+#include "FlyingObstacle.h"
 
 // Sets default values
 AWingsObject::AWingsObject()
@@ -38,5 +39,13 @@ void AWingsObject::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor *
 	{
 		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::FLYING;
 		static_cast<AGolfBall*>(OtherActor)->flyingInit(this);
+
+
+		TArray<AActor*> obstacles;
+
+		UGameplayStatics::GetAllActorsOfClass(this, AFlyingObstacle::StaticClass(), obstacles);
+
+		for (int i = 0; i < obstacles.Num(); i++)
+			Cast<AFlyingObstacle>(obstacles[i])->startResetTimer = true;
 	}
 }
