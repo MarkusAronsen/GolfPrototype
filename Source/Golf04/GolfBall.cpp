@@ -241,7 +241,9 @@ void AGolfBall::Tick(float DeltaTime)
 	switch (state)
 	{
 	case GOLF:
-		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		if(bLerpingPerspective)
+			lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+
 		mouseCameraPitch();
 		mouseCameraYaw();
 		if (currentLaunchPower > maxLaunchPower)
@@ -304,7 +306,9 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case WALKING:
-		lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		if(bLerpingPerspective)
+			lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+
 		lineTraceHit = lineTrace();
 		mouseCameraPitch();
 		mouseCameraYaw();
@@ -313,7 +317,7 @@ void AGolfBall::Tick(float DeltaTime)
 		if (onGround && mMesh->GetLinearDamping() < 19.f)
 			mMesh->SetLinearDamping(20.f);
 		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
-			mMesh->SetLinearDamping(0.f);
+			mMesh->SetLinearDamping(0.1f);
 
 		currentRotation = FMath::Lerp(
 			GetActorRotation(),
@@ -321,13 +325,7 @@ void AGolfBall::Tick(float DeltaTime)
 				newRotationTransform.Rotator().Pitch,
 				walkingDirection,
 				newRotationTransform.Rotator().Roll),
-			lerpTime * DeltaTime);
-
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(3, 0.1f, FColor::Yellow, velocityString);
-			GEngine->AddOnScreenDebugMessage(4, 0.1f, FColor::Yellow, angularVelocityString);
-		}
+			15.f * DeltaTime);
 		
 		break;
 
@@ -442,7 +440,7 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 {
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		lerpTimer = 0.f;
+		bLerpingPerspective = true;
 		climbingInit(OtherActor);
 	}
 }
@@ -477,6 +475,7 @@ void AGolfBall::golfInit()
 {
 	FVector ballVelocity;
 
+	bLerpingPerspective = true;
 	mSpringArm->bEnableCameraLag = true;
 	mSpringArm->bEnableCameraRotationLag = true;
 	mSpringArm->CameraRotationLagSpeed = 10.f;
@@ -516,7 +515,6 @@ void AGolfBall::golfInit()
 		mWorldSettings->GlobalGravityZ = -8000.f;
 	}
 
-	lerpTimer = 0.f;
 	setMeshVisibility();
 	switchDecalVisibility(true);
 }
@@ -525,6 +523,7 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 {
 	state = CLIMBING;
 	
+	bLerpingPerspective = true;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
 	mMesh->RecreatePhysicsState();
@@ -549,6 +548,7 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 {
 	state = FLYING;
 
+	bLerpingPerspective = true;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
 	mMesh->RecreatePhysicsState();
@@ -567,13 +567,14 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
 {
-	if (lerpTimer < 0.8f)
-	{
+	if (!springToRot.Equals(mSpringArm->RelativeRotation, 0.001f))
 		mSpringArm->RelativeRotation = FMath::RInterpTo(mSpringArm->RelativeRotation, springToRot, DeltaTime, 3.f);
+	if (!FMath::IsNearlyEqual(springToLength, mSpringArm->TargetArmLength, 0.001f))
 		mSpringArm->TargetArmLength = FMath::FInterpTo(mSpringArm->TargetArmLength, springToLength, DeltaTime, 3.f);
+	if (!camToRot.Equals(mCamera->RelativeRotation, 0.001f))
 		mCamera->SetRelativeRotation(FMath::RInterpTo(mCamera->RelativeRotation, camToRot, DeltaTime, 3.f));
-		lerpTimer += DeltaTime;
-	}
+	if (camToRot.Equals(mCamera->RelativeRotation, 0.5f) && FMath::IsNearlyEqual(springToLength, mSpringArm->TargetArmLength, 0.5f) && springToRot.Equals(mSpringArm->RelativeRotation, 0.5f))
+		bLerpingPerspective = false;
 }
 
 void AGolfBall::walkFunction(float deltaTime)

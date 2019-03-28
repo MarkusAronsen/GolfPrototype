@@ -38,6 +38,5 @@ void AWalkObject::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * 
 	{
 		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::WALKING;
 		static_cast<AGolfBall*>(OtherActor)->golfInit();
-		static_cast<AGolfBall*>(OtherActor)->lerpTimer = 0.f;
 	}
 }

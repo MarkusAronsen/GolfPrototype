@@ -38,6 +38,5 @@ void AWingsObject::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor *
 	{
 		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::FLYING;
 		static_cast<AGolfBall*>(OtherActor)->flyingInit(this);
-		static_cast<AGolfBall*>(OtherActor)->lerpTimer = 0.f;
 	}
 }
