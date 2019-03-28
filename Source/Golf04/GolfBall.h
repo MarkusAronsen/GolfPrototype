@@ -287,6 +287,9 @@ public:
 
 	void pauseGame();
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void switchDecalVisibility(const bool visible);
+
 	//Dialogue
 	UFUNCTION(BlueprintImplementableEvent)
 		void printDialogue(const TArray<FString> &displayText);

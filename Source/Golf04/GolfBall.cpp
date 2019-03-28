@@ -382,9 +382,18 @@ void AGolfBall::Tick(float DeltaTime)
 		debugMouseLine = debugMouseLine / ratio;
 	}
 	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-	if(LMBPressed && state == CLIMBING)
-		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
-	
+	if (LMBPressed && state == CLIMBING)
+	{
+		FVector A = FVector(0, 255, 0);
+		FVector B = FVector(255, 155, 155);
+
+		FVector lineColorVector = A + FVector((debugMouseLine.Size() / 400.f), (debugMouseLine.Size() / 400.f), 0) * (B - A);
+
+		FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
+
+		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
+
+	}
 	/*if (world)
 		drawDebugObjectsTick();*/
 	
@@ -509,7 +518,7 @@ void AGolfBall::golfInit()
 
 	lerpTimer = 0.f;
 	setMeshVisibility();
-
+	switchDecalVisibility(true);
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -533,6 +542,7 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	mSpringArm->CameraLagSpeed = 5.f;
 
 	setMeshVisibility();
+	switchDecalVisibility(false);
 }
 
 void AGolfBall::flyingInit(AActor *OtherActor)
@@ -552,6 +562,7 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	mSpringArm->bInheritYaw = false;
 
 	setMeshVisibility();
+	switchDecalVisibility(false);
 }
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
