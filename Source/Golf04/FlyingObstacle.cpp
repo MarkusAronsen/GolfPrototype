@@ -19,14 +19,12 @@ void AFlyingObstacle::BeginPlay()
 	CollisionBox = this->FindComponentByClass<UBoxComponent>();
 
 	if (CollisionBox)
-	{
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFlyingObstacle::OnOverlap);
-	}
 	else
-	{
 		UE_LOG(LogTemp, Warning, TEXT("FlyingObstacle no collision box"));
-	}
 	
+	initialPosition = GetActorLocation();
+	initialRotation = GetActorRotation();
 }
 
 // Called every frame
@@ -44,8 +42,16 @@ void AFlyingObstacle::Tick(float DeltaTime)
 		AddActorLocalOffset(FVector(0, 0, sin(translateOffset) * translateRange));
 
 	if (rotatePitch)
-		AddActorLocalRotation(FRotator(rotateSpeed, 0, 0));
+		AddActorLocalRotation(FRotator(rotateSpeed * DeltaTime, 0, 0));
 
+	if (startResetTimer)
+		resetTimer += DeltaTime;
+		if (resetTimer >= 1.f)
+		{
+			startResetTimer = false;
+			resetTimer = 0.f;
+			resetFlyingObstacle();
+		}
 }
 
 void AFlyingObstacle::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
@@ -56,5 +62,12 @@ void AFlyingObstacle::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 		static_cast<AGolfBall*>(OtherActor)->golfInit();
 		static_cast<AGolfBall*>(OtherActor)->respawnAtCheckpoint();
 	}
+}
+
+void AFlyingObstacle::resetFlyingObstacle()
+{
+	SetActorLocation(initialPosition);
+	SetActorRotation(initialRotation);
+	translateOffset = 0.f;
 }
 

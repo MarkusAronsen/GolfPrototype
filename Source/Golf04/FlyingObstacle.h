@@ -55,4 +55,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Rotation")
 		float rotateSpeed = 0.f;
 
+
+	void resetFlyingObstacle();
+
+	FVector initialPosition;
+	FRotator initialRotation;
+
+	bool startResetTimer = false;
+
+	float resetTimer = 0.f;
 };
