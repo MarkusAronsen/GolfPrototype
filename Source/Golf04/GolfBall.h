@@ -238,6 +238,8 @@ public:
 	bool bLerpingPerspective = false;
 	FRotator currentRotation;
 
+	bool shouldLaunch = false;
+
 	float movementSpeed = 2000000.f;
 	bool bValidInput = false;
 	bool platformJump = false;
