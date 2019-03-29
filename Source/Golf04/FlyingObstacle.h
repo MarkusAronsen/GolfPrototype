@@ -3,11 +3,12 @@
 #pragma once
 
 #include "Components/BoxComponent.h"
-#include "GolfBall.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FlyingObstacle.generated.h"
+
+class AGolfBall;
 
 UCLASS()
 class GOLF04_API AFlyingObstacle : public AActor
@@ -55,4 +56,13 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Rotation")
 		float rotateSpeed = 0.f;
 
+
+	void resetFlyingObstacle();
+
+	FVector initialPosition;
+	FRotator initialRotation;
+
+	bool startResetTimer = false;
+
+	float resetTimer = 0.f;
 };

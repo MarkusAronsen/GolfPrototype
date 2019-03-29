@@ -34,8 +34,7 @@ AGolfBall::AGolfBall()
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	mCamera->Activate();
 
-	mSpringArm->bDoCollisionTest = false;
-
+	
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
@@ -47,6 +46,11 @@ AGolfBall::AGolfBall()
 void AGolfBall::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if(UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
+		mSpringArm->bDoCollisionTest = true;
+	else
+		mSpringArm->bDoCollisionTest = false;
 
 	UStaticMesh* loadedPlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/Game/GBH/Models/Characters/GolfBall_body_asset_static.GolfBall_body_asset_static'"));
 	mMesh->SetStaticMesh(loadedPlayerMesh);
@@ -207,13 +211,17 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->bRenderCustomDepth = true;
 	mWingsMeshRight->bRenderCustomDepth = true;
 	mLegsMesh->bRenderCustomDepth = true;
-	mLegsMesh->CastShadow = false;
 
 	mMesh->CustomDepthStencilValue = 1;
 	mWingsMeshLeft->CustomDepthStencilValue = 1;
 	mWingsMeshRight->CustomDepthStencilValue = 1;
 	mLegsMesh->CustomDepthStencilValue = 1;
 
+	//Shadows off, custom decal is used
+	mMesh->CastShadow = false;
+	mLegsMesh->CastShadow = false;
+	mWingsMeshLeft->CastShadow = false;
+	mWingsMeshRight->CastShadow = false;
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
@@ -326,6 +334,29 @@ void AGolfBall::Tick(float DeltaTime)
 	case CLIMBING:
 		world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+		debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
+		if (debugMouseLine.Size() < 150.f)
+			debugMouseLine = FVector::ZeroVector;
+		if (debugMouseLine.Size() > 402.f)
+		{
+			ratio = debugMouseLine.Size() / 400.f;
+			debugMouseLine = debugMouseLine / ratio;
+		}
+		debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+		if (LMBPressed)
+		{
+			FVector A = FVector(0, 255, 0);
+			FVector B = FVector(255, 155, 155);
+
+			FVector lineColorVector = A + FVector((debugMouseLine.Size() / 400.f), (debugMouseLine.Size() / 400.f), 0) * (B - A);
+
+			FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
+
+			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
+
+			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
+				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
+		}
 		break;
 
 	case FLYING:
@@ -364,19 +395,6 @@ void AGolfBall::Tick(float DeltaTime)
 
 	}
 
-
-	FVector debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
-	if (debugMouseLine.Size() < 150.f)
-		debugMouseLine = FVector::ZeroVector;
-	if (debugMouseLine.Size() > 402.f)
-	{
-		float ratio = debugMouseLine.Size() / 400.f;
-		debugMouseLine = debugMouseLine / ratio;
-	}
-	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-	if(LMBPressed && state == CLIMBING)
-		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, FColor::Blue, false, -1.f, (uint8)'\000', 4.f);
-	
 	/*if (world)
 		drawDebugObjectsTick();*/
 	
@@ -425,8 +443,11 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 {
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		bLerpingPerspective = true;
-		climbingInit(OtherActor);
+		//if (!Cast<AClimbObject>(OtherActor)->ignored)
+		//{
+			bLerpingPerspective = true;
+			climbingInit(OtherActor);
+		//}
 	}
 }
 
@@ -501,7 +522,7 @@ void AGolfBall::golfInit()
 	}
 
 	setMeshVisibility();
-
+	switchDecalVisibility(true);
 }
 
 void AGolfBall::climbingInit(AActor* OtherActor)
@@ -525,7 +546,10 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
 
+	currentClimbObject = OtherActor;
+
 	setMeshVisibility();
+	switchDecalVisibility(false);
 }
 
 void AGolfBall::flyingInit(AActor *OtherActor)
@@ -537,6 +561,8 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
 	mMesh->RecreatePhysicsState();
 
+	velocity = FVector::ZeroVector;
+
 	mMesh->SetSimulatePhysics(false);
 	SetActorLocation(OtherActor->GetActorLocation());
 	SetActorRotation(OtherActor->GetActorRotation());
@@ -546,6 +572,7 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	mSpringArm->bInheritYaw = false;
 
 	setMeshVisibility();
+	switchDecalVisibility(false);
 }
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
@@ -810,19 +837,20 @@ void AGolfBall::setLMBReleased()
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
 			if (mousePositionReleased.Size() < 150.f)
 			{ 
-				UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
+				//UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
 				break;
 			}
 			if (mousePositionReleased.Size() > 400.f)
 			{
 				float differenceFactor = mousePositionReleased.Size() / 400.f;
 				mousePositionReleased = mousePositionReleased / differenceFactor;
-				UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
+				//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
 			}
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 			
 			mMesh->SetSimulatePhysics(true);
 			mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+			//Cast<AClimbObject>(currentClimbObject)->ignored = true;
 		}
 		break;
 	case FLYING:

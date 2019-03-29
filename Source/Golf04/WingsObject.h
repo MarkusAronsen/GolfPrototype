@@ -9,6 +9,8 @@
 #include "GameFramework/Actor.h"
 #include "WingsObject.generated.h"
 
+class AFlyingObstacle;
+
 UCLASS()
 class GOLF04_API AWingsObject : public AActor
 {
