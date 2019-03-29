@@ -225,18 +225,12 @@ void AGolfBall::Tick(float DeltaTime)
 
 	onGround = sphereTrace();
 
+	FString sizeString = FString::SanitizeFloat(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 0.f).Size());
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
+
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 	FString angularVelocityString = mMesh->GetPhysicsAngularVelocity().ToString();
-	/*FString springArmString = FString::SanitizeFloat(mSpringArm->TargetArmLength);
-	FString cameraRotationString = mCamera->RelativeRotation.ToString();
-	FString springArmRotationString = mSpringArm->RelativeRotation.ToString();
-
-	if (GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(5, 0.1f, FColor::Yellow, springArmString);
-		GEngine->AddOnScreenDebugMessage(6, 0.1f, FColor::Yellow, springArmRotationString);
-		GEngine->AddOnScreenDebugMessage(7, 0.1f, FColor::Yellow, cameraRotationString);
-	}*/
 
 	switch (state)
 	{
@@ -1017,15 +1011,26 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	newTranslationTransform = FTransform(targetRotation.Vector(), newRightVector, surfaceNormal, impactPoint);
 
 	if(onGround)
-		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed, NAME_None, true);
+		mMesh->AddForce((newTranslationTransform.Rotator().Vector() * movementSpeed) * DeltaTime, NAME_None, true);
 
-	UE_LOG(LogTemp, Warning, TEXT("%f"), GetActorRotation().Pitch);
+	FVector XYLength = FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 0.f);
+	FVector XYNormalized = XYLength;
+	XYNormalized.Normalize(0.01f);
+	FVector inputVelocityNormalized = newTranslationTransform.Rotator().Vector();
+	float directionDistance = FMath::Clamp((inputVelocityNormalized - XYNormalized).Size() * 0.1f, 0.f, 0.1f);
+	FString distanceString = FString::SanitizeFloat(directionDistance);
 
-	if(!onGround && mMesh->GetPhysicsLinearVelocity().Size() < 1000.f)
-		mMesh->AddForce(newTranslationTransform.Rotator().Vector() * DeltaTime * movementSpeed/8.f, NAME_None, true);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Yellow, *distanceString);
 
-if (onPlatform && onGround)
-platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+	if (!onGround && XYLength.Size() < 1000.f)
+		mMesh->AddForce((newTranslationTransform.Rotator().Vector() * movementSpeed * 100.f) * DeltaTime, NAME_None, false);
+
+	if (!onGround && XYLength.Size() > 1000.f)
+		mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X * 0.98f, mMesh->GetPhysicsLinearVelocity().Y * 0.98f, mMesh->GetPhysicsLinearVelocity().Z), false, NAME_None);
+
+	if (onPlatform && onGround)
+		platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
 }
 
 void AGolfBall::animationControlTick(float deltaTime)
