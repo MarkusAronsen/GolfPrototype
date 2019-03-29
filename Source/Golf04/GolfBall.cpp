@@ -360,8 +360,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
 
-			/*if(currentClimbObject && !mMesh->IsSimulatingPhysics())
-				SetActorLocation(currentClimbObject->GetActorLocation() + debugMouseLine * -1 * 0.1);*/
+			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
+				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
 		}
 		break;
 
@@ -449,8 +449,11 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 {
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		bLerpingPerspective = true;
-		climbingInit(OtherActor);
+		//if (!Cast<AClimbObject>(OtherActor)->ignored)
+		//{
+			bLerpingPerspective = true;
+			climbingInit(OtherActor);
+		//}
 	}
 }
 
@@ -563,6 +566,8 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
 	mMesh->RecreatePhysicsState();
+
+	velocity = FVector::ZeroVector;
 
 	mMesh->SetSimulatePhysics(false);
 	SetActorLocation(OtherActor->GetActorLocation());
@@ -838,19 +843,20 @@ void AGolfBall::setLMBReleased()
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
 			if (mousePositionReleased.Size() < 150.f)
 			{ 
-				UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
+				//UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
 				break;
 			}
 			if (mousePositionReleased.Size() > 400.f)
 			{
 				float differenceFactor = mousePositionReleased.Size() / 400.f;
 				mousePositionReleased = mousePositionReleased / differenceFactor;
-				UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
+				//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
 			}
 			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 			
 			mMesh->SetSimulatePhysics(true);
 			mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+			//Cast<AClimbObject>(currentClimbObject)->ignored = true;
 		}
 		break;
 	case FLYING:
