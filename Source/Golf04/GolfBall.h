@@ -166,16 +166,23 @@ public:
 	float mouseY;
 	float frameX = 1206.f;
 	float frameY = 572.f;
-	FVector OActorForwardVector;
-	FVector mousePositionClicked;
-	FVector mousePositionReleased;
-	FVector climbingCameraPosition;
-	FRotator climbingCameraRotation;
+
+	//Flying
 	FVector position;
 	FVector velocity;
 	FVector acceleration;
 	FVector gravity = FVector(0, 0, -1.5f);
 	//FVector gravitation = FVector(0.f, 0.f, -400000.f);
+
+	//Climbing
+	FVector debugMouseLine;
+	float ratio = 0.f;
+	FVector OActorForwardVector;
+	FVector mousePositionClicked;
+	FVector mousePositionReleased;
+	FVector climbingCameraPosition;
+	FRotator climbingCameraRotation;
+	AActor* currentClimbObject;
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);

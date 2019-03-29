@@ -21,7 +21,7 @@ void AWingsObject::BeginPlay()
 	if (CollisionBox)
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AWingsObject::OnOverlap);
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Golf Object no collision box"));
+		UE_LOG(LogTemp, Warning, TEXT("Wings Object no collision box"));
 
 }
 

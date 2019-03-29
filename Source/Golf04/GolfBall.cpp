@@ -34,8 +34,7 @@ AGolfBall::AGolfBall()
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	mCamera->Activate();
 
-	mSpringArm->bDoCollisionTest = false;
-
+	
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
@@ -47,6 +46,11 @@ AGolfBall::AGolfBall()
 void AGolfBall::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if(UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
+		mSpringArm->bDoCollisionTest = true;
+	else
+		mSpringArm->bDoCollisionTest = false;
 
 	UStaticMesh* loadedPlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/Game/GBH/Models/Characters/GolfBall_body_asset_static.GolfBall_body_asset_static'"));
 	mMesh->SetStaticMesh(loadedPlayerMesh);
@@ -336,6 +340,29 @@ void AGolfBall::Tick(float DeltaTime)
 	case CLIMBING:
 		world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+		debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
+		if (debugMouseLine.Size() < 150.f)
+			debugMouseLine = FVector::ZeroVector;
+		if (debugMouseLine.Size() > 402.f)
+		{
+			ratio = debugMouseLine.Size() / 400.f;
+			debugMouseLine = debugMouseLine / ratio;
+		}
+		debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+		if (LMBPressed)
+		{
+			FVector A = FVector(0, 255, 0);
+			FVector B = FVector(255, 155, 155);
+
+			FVector lineColorVector = A + FVector((debugMouseLine.Size() / 400.f), (debugMouseLine.Size() / 400.f), 0) * (B - A);
+
+			FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
+
+			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
+
+			/*if(currentClimbObject && !mMesh->IsSimulatingPhysics())
+				SetActorLocation(currentClimbObject->GetActorLocation() + debugMouseLine * -1 * 0.1);*/
+		}
 		break;
 
 	case FLYING:
@@ -374,28 +401,6 @@ void AGolfBall::Tick(float DeltaTime)
 
 	}
 
-
-	FVector debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
-	if (debugMouseLine.Size() < 150.f)
-		debugMouseLine = FVector::ZeroVector;
-	if (debugMouseLine.Size() > 402.f)
-	{
-		float ratio = debugMouseLine.Size() / 400.f;
-		debugMouseLine = debugMouseLine / ratio;
-	}
-	debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-	if (LMBPressed && state == CLIMBING)
-	{
-		FVector A = FVector(0, 255, 0);
-		FVector B = FVector(255, 155, 155);
-
-		FVector lineColorVector = A + FVector((debugMouseLine.Size() / 400.f), (debugMouseLine.Size() / 400.f), 0) * (B - A);
-
-		FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
-
-		DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
-
-	}
 	/*if (world)
 		drawDebugObjectsTick();*/
 	
@@ -543,6 +548,8 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
+
+	currentClimbObject = OtherActor;
 
 	setMeshVisibility();
 	switchDecalVisibility(false);

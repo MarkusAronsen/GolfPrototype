@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "FlyingObstacle.h"
-
+#include "GolfBall.h"
 
 // Sets default values
 AFlyingObstacle::AFlyingObstacle()
@@ -58,9 +58,12 @@ void AFlyingObstacle::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
-		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::WALKING;
-		static_cast<AGolfBall*>(OtherActor)->golfInit();
-		static_cast<AGolfBall*>(OtherActor)->respawnAtCheckpoint();
+		if (!Cast<AGolfBall>(OtherActor)->bRespawning)
+		{
+			static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::WALKING;
+			static_cast<AGolfBall*>(OtherActor)->golfInit();
+			static_cast<AGolfBall*>(OtherActor)->respawnAtCheckpoint();
+		}
 	}
 }
 

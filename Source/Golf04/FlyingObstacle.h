@@ -3,11 +3,12 @@
 #pragma once
 
 #include "Components/BoxComponent.h"
-#include "GolfBall.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FlyingObstacle.generated.h"
+
+class AGolfBall;
 
 UCLASS()
 class GOLF04_API AFlyingObstacle : public AActor
