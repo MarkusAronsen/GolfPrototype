@@ -186,8 +186,9 @@ void AGolfBall::BeginPlay()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("mMesh not initialized"));
-
-	//GEngine->SetMaxFPS(60.f);
+	
+	if(GEngine)
+		GEngine->SetMaxFPS(60.f);
 
 	//If level name contains "SecretLevel", retrieve secret level manager from level
 	if (UGameplayStatics::GetCurrentLevelName(this).Contains(TEXT("SecretLevel"), ESearchCase::IgnoreCase))
@@ -332,10 +333,13 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case CLIMBING:
+		GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 		world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
-		lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+		if(bLerpingPerspective)
+			lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
-		if (debugMouseLine.Size() < 150.f)
+		debugMouseLine = debugMouseLine * 2.f;
+		if (debugMouseLine.Size() < 100.f)
 			debugMouseLine = FVector::ZeroVector;
 		if (debugMouseLine.Size() > 402.f)
 		{
@@ -343,8 +347,11 @@ void AGolfBall::Tick(float DeltaTime)
 			debugMouseLine = debugMouseLine / ratio;
 		}
 		debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-		if (LMBPressed)
+
+		if (mousePositionClicked.Size() > 1.f)
 		{
+			bLerpingPerspective = false;
+
 			FVector A = FVector(0, 255, 0);
 			FVector B = FVector(255, 155, 155);
 
@@ -352,7 +359,24 @@ void AGolfBall::Tick(float DeltaTime)
 
 			FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
 
-			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
+			//DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
+			
+			FVector climbRotation;
+			climbRotation = (GetActorLocation() - (currentClimbObject->GetActorLocation() + currentClimbObject->GetActorForwardVector() * 50));
+			climbRotation.Normalize();
+			FVector downVector = FVector(0, 0, -1);
+			float dotProduct = FVector::DotProduct(climbRotation, downVector);
+			float climbingDegree = (acos(dotProduct) * 180)/PI;
+			FString degreeString = FString::SanitizeFloat(dotProduct);
+
+			GEngine->AddOnScreenDebugMessage(11, 0.1f, FColor::Red, *mCamera->GetComponentRotation().ToString());
+
+			if (mousePositionClicked.Y <= mouseX)
+				climbingDegree = climbingDegree * -1;
+
+			SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree));
+
+			//mCamera->SetWorldRotation(FRotator(mCamera->GetComponentRotation().Pitch, mCamera->GetComponentRotation().Yaw, 0.f));
 
 			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
 				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
@@ -416,7 +440,8 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case AWAITING_LEVELSELECT_INPUT:
-		lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+		if(bLerpingPerspective)
+			lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mMesh->SetLinearDamping(100.f);
 		mouseCameraPitch();
 		mouseCameraYaw();
@@ -441,8 +466,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 	}
 
-	/*if (world)
-		drawDebugObjectsTick();*/
+	if (world)
+		drawDebugObjectsTick();
 	
 
 	//
@@ -631,6 +656,9 @@ void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRot
 		mCamera->SetRelativeRotation(FMath::RInterpTo(mCamera->RelativeRotation, camToRot, DeltaTime, 3.f));
 	if (camToRot.Equals(mCamera->RelativeRotation, 0.5f) && FMath::IsNearlyEqual(springToLength, mSpringArm->TargetArmLength, 0.5f) && springToRot.Equals(mSpringArm->RelativeRotation, 0.5f))
 		bLerpingPerspective = false;
+
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(12, 0.1f, FColor::Blue, TEXT("LERPING PERSPECTIVE!"));
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -837,6 +865,7 @@ void AGolfBall::setLMBPressed()
 		break;
 	case CLIMBING:
 		LMBPressed = true;
+		UE_LOG(LogTemp, Warning, TEXT("LMBPressed!"));
 		if (!mMesh->IsSimulatingPhysics())
 			mousePositionClicked = FVector(0.f, mouseX, mouseY);
 		break;
@@ -845,6 +874,7 @@ void AGolfBall::setLMBPressed()
 		break;
 	}
 }
+
 void AGolfBall::setLMBReleased()
 {
 	LMBPressed = false;
@@ -892,14 +922,21 @@ void AGolfBall::setLMBReleased()
 	case WALKING:
 		break;
 	case CLIMBING:
+
+		shouldLaunch = true;
+
 		if (!mMesh->IsSimulatingPhysics())
 		{
 			mousePositionReleased = FVector(0.f, mouseX, mouseY);
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
-			if (mousePositionReleased.Size() < 150.f)
+			mousePositionReleased = mousePositionReleased * 2.f;
+			if (mousePositionReleased.Size() < 100.f)
 			{ 
 				//UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
-				break;
+				shouldLaunch = false;
+				debugMouseLine = FVector::ZeroVector;
+				mousePositionClicked = FVector::ZeroVector;
+				mousePositionReleased = FVector::ZeroVector;
 			}
 			if (mousePositionReleased.Size() > 400.f)
 			{
@@ -907,11 +944,17 @@ void AGolfBall::setLMBReleased()
 				mousePositionReleased = mousePositionReleased / differenceFactor;
 				//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
 			}
-			mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-			
-			mMesh->SetSimulatePhysics(true);
-			mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
-			//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+			if(shouldLaunch)
+			{ 
+				mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+				mMesh->SetSimulatePhysics(true);
+				mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+				debugMouseLine = FVector::ZeroVector;
+				mousePositionClicked = FVector::ZeroVector;
+				mousePositionReleased = FVector::ZeroVector;
+				bLerpingPerspective = true;
+				//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+			}
 		}
 		break;
 	case FLYING:
