@@ -45,6 +45,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Translation")
 		float translateRange = 0.f;
 
+	UPROPERTY(VisibleAnywhere, Category = "Translation")
 	float translateOffset = 0.f;
 
 	UPROPERTY(EditAnywhere, Category = "Translation")

@@ -24,7 +24,7 @@ void AClimbingVolume::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Launchpad no collision box"));
+		UE_LOG(LogTemp, Warning, TEXT("Climbing volume no collision box"));
 	}
 	
 }

@@ -360,8 +360,54 @@ void AGolfBall::Tick(float DeltaTime)
 		break;
 
 	case FLYING:
-		lerpPerspective(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f), 2000.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+		if (!flyingGravityFlipped)
+		{
+			lerpPerspective(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f), 2000.f, FRotator(0.f, 0.f, 0.f), DeltaTime * 2.5f);
+			SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, mCamera->GetComponentRotation().Roll));
+		}
+
+		else
+		{
+			lerpPerspective(GetActorRightVector().Rotation() + FRotator(0.f, 180.f, 0.f), 2000.f, FRotator(0.f, 0.f, 180.f), DeltaTime * 2.5f);
+			SetActorRotation(FRotator(GetActorRotation().Pitch, GetActorRotation().Yaw, mCamera->GetComponentRotation().Roll));
+		}
+
+		if (easeGravityShift)
+		{
+			easeTimer += DeltaTime;
+
+			gravity = FVector::ZeroVector;
+
+			if (easeTimer >= 0.75f)
+			{
+				easeTimer = 0.f;
+				easeGravityShift = false;
+			}
+		}
+		else
+			gravity = FVector(0, 0, gravityZ);
+
 		applyForce(gravity);
+
+		/*if (flyingGravityFlipped)
+		{
+			if (gravityZ <= 1.5f)
+			{
+				gravityZ += DeltaTime * 15;
+				velocity = velocity * 0.1;
+			}
+		}
+		else
+		{
+			if (gravityZ >= -1.5f)
+			{
+				gravityZ -= DeltaTime * 15;
+				velocity = velocity * 0.1;
+			}
+
+		}*/
+		//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + (gravity * 200), FColor::Blue, false, -1.0f, (uint8)'\000', 20);
+
 		updatePosition(DeltaTime);
 		break;
 
@@ -612,13 +658,16 @@ void AGolfBall::applyForce(FVector force)
 
 void AGolfBall::updatePosition(float DeltaTime)
 {
-	velocity += acceleration;
+	if (!easeGravityShift)
+	{
+		velocity += acceleration;
 
-	position += velocity;
-	position += FVector(GetActorForwardVector() * 700 * DeltaTime);
-	acceleration = FVector::ZeroVector;
+		position += velocity;
+		position += FVector(GetActorForwardVector() * 700 * DeltaTime);
+		acceleration = FVector::ZeroVector;
 
-	SetActorLocation(position);
+		SetActorLocation(position);
+	}
 }
 void AGolfBall::stopStrike()
 {
@@ -635,8 +684,20 @@ void AGolfBall::spacebarPressed()
 	if (state == FLYING)
 	{
 		velocity = FVector::ZeroVector;
-		applyForce(FVector(0.f, 0.f, 30.f));
-		bRestartFlyingAnim = true;
+
+		if (!easeGravityShift)
+		{
+			//if (!flyingGravityFlipped)
+			applyForce(FVector(0, 0, 30));
+			//else
+				//applyForce(FVector(0, 0, -30));
+
+			bRestartFlyingAnim = true;
+		}
+		else
+			bRestartFlyingAnim = true;
+
+		
 	}
 	if (state == WALKING && onGround)
 		jump();
@@ -1158,6 +1219,9 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 
 		bRespawning = false;
 		timeToCameraFadeEnd = 0.f;
+
+		if (flyingGravityFlipped)
+			flyingGravityFlipped = false;
 
 		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
 			secretLevelManagerInstance->bBallIsThrown = false;

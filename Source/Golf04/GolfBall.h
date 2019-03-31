@@ -171,8 +171,13 @@ public:
 	FVector position;
 	FVector velocity;
 	FVector acceleration;
-	FVector gravity = FVector(0, 0, -1.5f);
+	FVector gravity = FVector(0, 0, 0);
+	float gravityZ = -1.5;
+
 	//FVector gravitation = FVector(0.f, 0.f, -400000.f);
+	bool flyingGravityFlipped = false;
+	bool easeGravityShift = false;
+	float easeTimer = 0.f;
 
 	//Climbing
 	FVector debugMouseLine;
