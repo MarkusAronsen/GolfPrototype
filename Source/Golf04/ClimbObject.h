@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "Engine/World.h"
+
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ClimbObject.generated.h"

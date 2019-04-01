@@ -152,20 +152,28 @@ void AGolfBall::BeginPlay()
 	cameraSpeed = Cast<UGolfGameInstance>(GetGameInstance())->cameraSpeed;
 
 	//Load animations and use them if they exist
-	UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/FlyingAnim.FlyingAnim'"));
-	UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/WalkingAnimation.WalkingAnimation'"));
+	//UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/FlyingAnim.FlyingAnim'"));
+	//UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/WalkingAnimation.WalkingAnimation'"));
+
+	UClass* flyingAnim = LoadObject<UClass>(nullptr, TEXT("Class'/Game/GBH/Animations/FlyingAnim.FlyingAnim_C'"));
+	UClass* walkAnim = LoadObject<UClass>(nullptr, TEXT("Class'/Game/GBH/Animations/WalkingAnimation.WalkingAnimation_C'"));
+
 
 	if (flyingAnim)
 	{
-		mWingsMeshLeft->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
-		mWingsMeshRight->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+		//mWingsMeshLeft->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+		//mWingsMeshRight->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
+		mWingsMeshLeft->SetAnimInstanceClass(flyingAnim);
+		mWingsMeshRight->SetAnimInstanceClass(flyingAnim);
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 
 	if (walkAnim)
 	{
-		mLegsMesh->SetAnimInstanceClass(walkAnim->GetAnimBlueprintGeneratedClass());
+		//mLegsMesh->SetAnimInstanceClass(walkAnim->GetAnimBlueprintGeneratedClass());
+		mLegsMesh->SetAnimInstanceClass(walkAnim);
+
 	}
 	else
 	UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
@@ -947,8 +955,10 @@ void AGolfBall::setLMBReleased()
 			if(shouldLaunch)
 			{ 
 				mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+
 				mMesh->SetSimulatePhysics(true);
 				mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+
 				debugMouseLine = FVector::ZeroVector;
 				mousePositionClicked = FVector::ZeroVector;
 				mousePositionReleased = FVector::ZeroVector;

@@ -22,7 +22,6 @@ void AKillVolume::BeginPlay()
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AKillVolume::OnOverlap);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Kill volume no collision box"));
-	
 }
 
 // Called every frame
