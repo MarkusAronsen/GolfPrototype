@@ -17,7 +17,21 @@ void AGoal::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CollisionBox = this->FindComponentByClass<USphereComponent>();
+	//CollisionBox = this->FindComponentByClass<USphereComponent>();
+
+	TSet<UActorComponent*> components = GetComponents();
+
+	for (auto& element : components)
+	{
+		if (element->ComponentHasTag("InnerCollision"))
+			CollisionBox = Cast<USphereComponent>(element);
+
+		else if (element->ComponentHasTag("OuterCollision"))
+			OuterCollisionBox = Cast<USphereComponent>(element);
+
+		else if (element->ComponentHasTag("Mesh"))
+			Mesh = Cast<UStaticMeshComponent>(element);
+	}
 
 	if (CollisionBox)
 	{
@@ -25,12 +39,24 @@ void AGoal::BeginPlay()
 		CollisionBox->OnComponentEndOverlap.AddDynamic(this, &AGoal::OnEndOverlap);
 	}
 	else
-	{
 		UE_LOG(LogTemp, Warning, TEXT("Goal no collision box"));
-
-	}
 	
+	if (OuterCollisionBox)
+	{
+		OuterCollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AGoal::OnOverlapOuter);
+		OuterCollisionBox->OnComponentEndOverlap.AddDynamic(this, &AGoal::OnEndOverlapOuter);
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Goal no outer collision box"));
+
+	if (Mesh)
+		initialZ = Mesh->GetComponentLocation().Z;
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Goal no mesh"));
+
 	levelName = UGameplayStatics::GetCurrentLevelName(this);
+
+	elevateValue = initialZ;
 }
 
 // Called every frame
@@ -41,7 +67,7 @@ void AGoal::Tick(float DeltaTime)
 	if (startSettleTimer)
 	{
 		settleTimer += DeltaTime;
-		if (settleTimer >= 4.f)
+		if (settleTimer >= 2.5f)
 		{
 			settleTimer = 0.f;
 			startSettleTimer = false;
@@ -50,6 +76,26 @@ void AGoal::Tick(float DeltaTime)
 			UGameplayStatics::OpenLevel(this, "LevelSelect");
 		}
 	}
+
+	if (elevate)
+	{
+		if (elevateValue < initialZ + 450)
+		{
+			elevateValue += DeltaTime * 1200;
+			Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, elevateValue));
+		}
+	}
+
+	if (descend)
+	{
+		if (elevateValue > initialZ)
+		{
+			elevateValue -= DeltaTime * 1200;
+			Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, elevateValue));
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("ElevateValue: %f, initialZ: %f"), elevateValue, initialZ);
 }
 
 void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -68,6 +114,21 @@ void AGoal::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * Oth
 {
 	startSettleTimer = false;
 	settleTimer = 0.f;
+}
+
+void AGoal::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent, 
+	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, 
+	bool bFromSweep, const FHitResult & SweepResult)
+{
+	elevate = true;
+	descend = false;
+}
+
+void AGoal::OnEndOverlapOuter(UPrimitiveComponent * OverlappedComponent, 
+	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
+{
+	elevate = false;
+	descend = true;
 }
 
 void AGoal::saveLevelData()
