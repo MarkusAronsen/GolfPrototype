@@ -30,8 +30,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere)
-		UShapeComponent * CollisionBox = nullptr;
+
+	USphereComponent* CollisionBox = nullptr;
+	USphereComponent* OuterCollisionBox = nullptr;
+
+	UStaticMeshComponent* Mesh = nullptr;
 
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -41,6 +44,21 @@ public:
 	UFUNCTION()
 		void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex);
+
+	UFUNCTION()
+		void OnOverlapOuter(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult &SweepResult);
+
+	UFUNCTION()
+		void OnEndOverlapOuter(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex);
+
+	bool elevate = false;
+	float elevateValue = 0.f;
+	bool descend = false;
+
+	float initialZ = 0.f;
 
 	void saveLevelData();
 
