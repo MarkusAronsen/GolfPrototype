@@ -10,6 +10,7 @@
 #include "PacmanPellet.generated.h"
 
 class AGolfBall;
+class ASecretLevelManager;
 
 UCLASS()
 class GOLF04_API APacmanPellet : public AActor
@@ -34,5 +35,8 @@ public:
 		void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
+
+	ASecretLevelManager* secretLevelManagerInstance = nullptr;
+	TArray<AActor*> secretLevelManager;
 
 };
