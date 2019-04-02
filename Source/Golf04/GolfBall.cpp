@@ -393,11 +393,10 @@ void AGolfBall::Tick(float DeltaTime)
 
 			if (currentClimbObject->bIsEdgeNode)
 			{
-				
 				if(mousePositionClicked.Y <= mouseX && debugMouseLine.Size() > 100.f)
-					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree));
+					SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree), DeltaTime, 10.f));
 				if (mousePositionClicked.Y > mouseX && debugMouseLine.Size() > 100.f)
-					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree));
+					SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree), DeltaTime, 10.f));
 			}
 
 			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
@@ -971,7 +970,6 @@ void AGolfBall::setLMBReleased()
 					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45, FVector(0, 0, 1));
 				if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y < mouseX)
 					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
-			{ 
 
 				mMesh->SetSimulatePhysics(true);
 				mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);

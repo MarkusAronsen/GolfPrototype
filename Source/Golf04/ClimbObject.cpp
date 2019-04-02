@@ -39,8 +39,8 @@ void AClimbObject::BeginPlay()
 		if(hitResults[i].GetActor()->GetName().Contains("Cube"))
 			SetActorRotation(hitResults[i].ImpactNormal.Rotation());
 	}
-
-	SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
+	if(!bIsEdgeNode)
+		SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
 
 }
 
