@@ -232,6 +232,21 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->CastShadow = false;
 	mWingsMeshRight->CastShadow = false;
 
+	//Fetch particle systems
+	particleSystems = GetComponentsByClass(UParticleSystemComponent::StaticClass());
+
+	if (particleSystems.Num() > 0)
+	{
+		for (int i = 0; i < particleSystems.Num(); i++)
+		{
+			if (Cast<UParticleSystemComponent>(particleSystems[i])->ComponentHasTag("canLaunchReady"))
+				canLaunchReadyParticles = Cast<UParticleSystemComponent>(particleSystems[i]);
+		}
+	}
+
+	if (canLaunchReadyParticles)
+		canLaunchReadyParticles->bAutoDestroy = true;
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
@@ -301,19 +316,16 @@ void AGolfBall::Tick(float DeltaTime)
 
 		PhysVelPrevFrame = mMesh->GetPhysicsLinearVelocity().Size();
 
-		if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f)
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) != 0)
 		{
-			if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) == 0)
+			if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f && !canLaunch)
 			{
-				if(mMesh->GetPhysicsLinearVelocity().Size() < 1)
-					canLaunch = true;
+				canLaunch = true;
+				canLaunchReadyParticles->Activate();
 			}
 			else
-				canLaunch = true;
+				canLaunch = false;
 		}
-			
-		else
-			canLaunch = false;
 		break;
 
 	case WALKING:
@@ -903,8 +915,12 @@ void AGolfBall::setLMBReleased()
 
 			if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && !secretLevelManagerInstance->bBallIsThrown)
 			{
-				secretLevelManagerInstance->incrementBowlingThrow();
-				mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+				if (canLaunch)
+				{
+					secretLevelManagerInstance->incrementBowlingThrow();
+					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+					canLaunch = false;
+				}
 			}
 			/*else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && secretLevelManagerInstance->bBallIsThrown)
 			{
@@ -1277,7 +1293,10 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 			flyingGravityFlipped = false;
 
 		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
+		{
 			secretLevelManagerInstance->bBallIsThrown = false;
+			canLaunch = true;
+		}
 	}
 }
 

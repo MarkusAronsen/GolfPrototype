@@ -4,6 +4,7 @@
 #include "GolfBall.h"
 #include "PacmanPathNode.h"
 #include "PacmanGhost.h"
+#include "PacmanPellet.h"
 
 // Sets default values
 ASecretLevelManager::ASecretLevelManager()
@@ -47,6 +48,7 @@ void ASecretLevelManager::BeginPlay()
 	{
 		secretState = PACMAN;
 		buffer = FVector::ZeroVector;
+		UGameplayStatics::GetAllActorsOfClass(this, APacmanPellet::StaticClass(), pellets);
 	}
 	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
 	{
@@ -104,7 +106,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 	switch (secretState)
 	{
 	case BOWLING:
-		if (bBallIsThrown && Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->GetPhysicsLinearVelocity().Size() < 1.f && !Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->bRespawning)
+		if (bBallIsThrown && Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->mMesh->GetPhysicsLinearVelocity().Size() < 1.5f && !Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->bRespawning)
 		{
 			ballThrownTimer += DeltaTime;
 			if (ballThrownTimer >= 0.5f)
