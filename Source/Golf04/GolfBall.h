@@ -187,7 +187,7 @@ public:
 	FVector mousePositionReleased;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
-	AActor* currentClimbObject;
+	AClimbObject* currentClimbObject;
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);

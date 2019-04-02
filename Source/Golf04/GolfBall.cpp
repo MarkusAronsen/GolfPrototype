@@ -234,10 +234,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 	onGround = sphereTrace();
 
-	FString sizeString = FString::SanitizeFloat(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 0.f).Size());
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
-
+	FString sizeString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
+	FString linearDampingString = FString::SanitizeFloat(mMesh->GetLinearDamping());
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 	FString angularVelocityString = mMesh->GetPhysicsAngularVelocity().ToString();
 
@@ -287,8 +285,8 @@ void AGolfBall::Tick(float DeltaTime)
 		}
 		if (mMesh->GetPhysicsLinearVelocity().Size() < 700.f && mMesh->GetLinearDamping() < 100.f)
 		{
-			mMesh->SetLinearDamping(mMesh->GetLinearDamping() + DeltaTime);
-			mMesh->SetAngularDamping(mMesh->GetAngularDamping() + DeltaTime);
+			mMesh->SetLinearDamping(mMesh->GetLinearDamping() + DeltaTime * 3);
+			mMesh->SetAngularDamping(mMesh->GetAngularDamping() + DeltaTime * 3);
 		}
 
 		PhysVelPrevFrame = mMesh->GetPhysicsLinearVelocity().Size();
@@ -306,6 +304,11 @@ void AGolfBall::Tick(float DeltaTime)
 			
 		else
 			canLaunch = false;
+
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
+		if(GEngine)
+			GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Yellow, *linearDampingString);
 		break;
 
 	case WALKING:
@@ -336,7 +339,7 @@ void AGolfBall::Tick(float DeltaTime)
 		GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 		world->GetFirstPlayerController()->GetMousePosition(mouseX, mouseY);
 		if(bLerpingPerspective)
-			lerpPerspective(GetActorRotation(), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+			lerpPerspective(GetActorRotation(), 2500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
 		debugMouseLine = debugMouseLine * 2.f;
 		if (debugMouseLine.Size() < 100.f)
@@ -373,10 +376,21 @@ void AGolfBall::Tick(float DeltaTime)
 
 			if (mousePositionClicked.Y <= mouseX)
 				climbingDegree = climbingDegree * -1;
+			
+			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() > 100.f)
+				SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree), DeltaTime, 10.f));
 
-			SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree));
+			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() <= 100.f)
+				SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, 0.f), DeltaTime, 10.f));
 
-			//mCamera->SetWorldRotation(FRotator(mCamera->GetComponentRotation().Pitch, mCamera->GetComponentRotation().Yaw, 0.f));
+			if (currentClimbObject->bIsEdgeNode)
+			{
+				
+				if(mousePositionClicked.Y <= mouseX && debugMouseLine.Size() > 100.f)
+					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree));
+				if (mousePositionClicked.Y > mouseX && debugMouseLine.Size() > 100.f)
+					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree));
+			}
 
 			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
 				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
@@ -514,11 +528,9 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 {
 	if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
-		//if (!Cast<AClimbObject>(OtherActor)->ignored)
-		//{
-			bLerpingPerspective = true;
-			climbingInit(OtherActor);
-		//}
+		currentClimbObject = Cast<AClimbObject>(OtherActor);
+		bLerpingPerspective = true;
+		climbingInit(OtherActor);
 	}
 }
 
@@ -608,7 +620,10 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	mMesh->SetSimulatePhysics(false);
 	world->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
-	SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
+	if(!currentClimbObject->bIsEdgeNode)
+		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 50.f);
+	if (currentClimbObject->bIsEdgeNode)
+		SetActorLocation(OtherActor->GetActorLocation() + OtherActor->GetActorForwardVector() * 100.f);
 	OActorForwardVector = OtherActor->GetActorForwardVector();
 	SetActorRotation(FRotator(0.f, OtherActor->GetActorRotation().Yaw + 180.f, 0.f));
 	mMesh->SetLinearDamping(0.6f);
@@ -616,8 +631,6 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 	mSpringArm->bInheritYaw = false;
 	mSpringArm->CameraLagSpeed = 5.f;
-
-	currentClimbObject = OtherActor;
 
 	setMeshVisibility();
 	switchDecalVisibility(false);
@@ -654,7 +667,7 @@ void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRot
 		mSpringArm->TargetArmLength = FMath::FInterpTo(mSpringArm->TargetArmLength, springToLength, DeltaTime, 3.f);
 	if (!camToRot.Equals(mCamera->RelativeRotation, 0.001f))
 		mCamera->SetRelativeRotation(FMath::RInterpTo(mCamera->RelativeRotation, camToRot, DeltaTime, 3.f));
-	if (camToRot.Equals(mCamera->RelativeRotation, 0.5f) && FMath::IsNearlyEqual(springToLength, mSpringArm->TargetArmLength, 0.5f) && springToRot.Equals(mSpringArm->RelativeRotation, 0.5f))
+	if (camToRot.Equals(mCamera->RelativeRotation, 0.5f) && FMath::IsNearlyEqual(springToLength, mSpringArm->TargetArmLength, 2.f) && springToRot.Equals(mSpringArm->RelativeRotation, 0.5f))
 		bLerpingPerspective = false;
 
 	if (GEngine)
@@ -727,7 +740,7 @@ void AGolfBall::spacebarPressed()
 
 		
 	}
-	if (state == WALKING && onGround)
+	if (state == WALKING && lineTraceHit)
 		jump();
 
 	if (state == PLINKO && secretLevelManagerInstance->plinkoLaunchReady)
@@ -922,9 +935,7 @@ void AGolfBall::setLMBReleased()
 	case WALKING:
 		break;
 	case CLIMBING:
-
 		shouldLaunch = true;
-
 		if (!mMesh->IsSimulatingPhysics())
 		{
 			mousePositionReleased = FVector(0.f, mouseX, mouseY);
@@ -945,8 +956,14 @@ void AGolfBall::setLMBReleased()
 				//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
 			}
 			if(shouldLaunch)
-			{ 
-				mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			{
+				if(!currentClimbObject->bIsEdgeNode)
+					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+				if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y >= mouseX)
+					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45, FVector(0, 0, 1));
+				if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y < mouseX)
+					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
+
 				mMesh->SetSimulatePhysics(true);
 				mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
 				debugMouseLine = FVector::ZeroVector;

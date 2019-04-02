@@ -23,7 +23,6 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	/*bool ignored = false;
-	float ignoreTimer = 0.f;*/
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Edge node")
+		bool bIsEdgeNode = false;
 };
