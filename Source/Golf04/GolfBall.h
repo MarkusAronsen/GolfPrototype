@@ -11,6 +11,8 @@
 #include "SecretLevelManager.h"
 #include "DirectionIndicator.h"
 
+#include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
+#include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
 #include "Runtime/UMG/Public/UMG.h"
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
@@ -187,7 +189,7 @@ public:
 	FVector mousePositionReleased;
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
-	AActor* currentClimbObject;
+	AClimbObject* currentClimbObject;
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);
@@ -307,10 +309,13 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void printDialogue(const TArray<FString> &displayText);
 
-
-
 	//Secret levels
 	ASecretLevelManager* secretLevelManagerInstance = nullptr;
 	bool bPlayingSecretLevel = false;
 	FVector billiardsLaunchDirection;
+
+	//Particle systems
+	TArray<UActorComponent*> particleSystems;
+
+	UParticleSystemComponent* canLaunchReadyParticles = nullptr;
 };

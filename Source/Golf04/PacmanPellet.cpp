@@ -2,6 +2,7 @@
 
 #include "PacmanPellet.h"
 #include "GolfBall.h"
+#include "SecretLevelManager.h"
 
 // Sets default values
 APacmanPellet::APacmanPellet()
@@ -22,6 +23,12 @@ void APacmanPellet::BeginPlay()
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &APacmanPellet::OnBeginOverlap);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Pacman pellet no collision box"));
+
+	UGameplayStatics::GetAllActorsOfClass(this, ASecretLevelManager::StaticClass(), secretLevelManager);
+	if (secretLevelManager.Num() > 0)
+		secretLevelManagerInstance = Cast<ASecretLevelManager>(secretLevelManager[0]);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find secret level manager"));
 }
 
 // Called every frame
@@ -38,6 +45,9 @@ void APacmanPellet::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->pacmanScore += 10;
+		secretLevelManagerInstance->pellets.Remove(this);
+		if (secretLevelManagerInstance->pellets.Num() == 0)
+			secretLevelManagerInstance->secretLevelFinished();
 		Destroy();
 	}
 }

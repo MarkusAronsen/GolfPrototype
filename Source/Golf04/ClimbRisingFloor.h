@@ -3,23 +3,21 @@
 #pragma once
 
 #include "Components/ShapeComponent.h"
-#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "PacmanPellet.generated.h"
+#include "ClimbRisingFloor.generated.h"
 
 class AGolfBall;
-class ASecretLevelManager;
 
 UCLASS()
-class GOLF04_API APacmanPellet : public AActor
+class GOLF04_API AClimbRisingFloor : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	APacmanPellet();
+	AClimbRisingFloor();
 
 protected:
 	// Called when the game starts or when spawned
@@ -29,14 +27,12 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UShapeComponent* CollisionBox = nullptr;
+	UPROPERTY(EditAnywhere)
+		UShapeComponent * CollisionBox = nullptr;
 
 	UFUNCTION()
-		void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
-
-	ASecretLevelManager* secretLevelManagerInstance = nullptr;
-	TArray<AActor*> secretLevelManager;
 
 };

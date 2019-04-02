@@ -20,6 +20,7 @@
 class AGolfBall;
 class APacmanPathNode;
 class APacmanGhost;
+class APacmanPellet;
 
 enum SecretLevelState
 {
@@ -146,6 +147,8 @@ public:
 	float pacmanMoveSpeed = 400;
 
 	void pacmanSwitchDirection();
+
+	TArray<AActor*> pellets;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int pacmanScore = 0;
