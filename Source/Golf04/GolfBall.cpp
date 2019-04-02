@@ -23,7 +23,7 @@ AGolfBall::AGolfBall()
 	mWingsMeshLeft = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshLeft"), true);
 	mWingsMeshRight = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshRight"), true);
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
-	//mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
+	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
 	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
@@ -38,6 +38,7 @@ AGolfBall::AGolfBall()
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
+	mArmsMesh->SetupAttachment(mMesh);
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
@@ -62,6 +63,9 @@ void AGolfBall::BeginPlay()
 
 	USkeletalMesh* loadedLegsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/FeetSkeletalMesh.FeetSkeletalMesh'"));
 	mLegsMesh->SetSkeletalMesh(loadedLegsMesh);
+
+	USkeletalMesh* loadedArmsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/arms_asset.arms_asset'"));
+	mArmsMesh->SetSkeletalMesh(loadedArmsMesh);
 
 	mWorldSettings = GetWorldSettings();
 	mWorldSettings->bGlobalGravitySet = true;
@@ -128,6 +132,7 @@ void AGolfBall::BeginPlay()
 		mLegsMesh->SetVisibility(false);
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
+		mArmsMesh->SetVisibility(false);
 		//-
 
 		//Flip left wing to create right wing
@@ -138,6 +143,12 @@ void AGolfBall::BeginPlay()
 		mLegsMesh->SetRelativeRotation(FRotator(0, -90, 0));
 		mLegsMesh->SetRelativeLocation(FVector(0, 0, -110));
 		//-
+
+		//Reposition arms
+		mArmsMesh->SetRelativeRotation(FRotator(0, -90, 0));
+		mArmsMesh->SetRelativeLocation(FVector(0.f, 0.f, -55.f));
+
+
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight not initialized"));
@@ -151,18 +162,13 @@ void AGolfBall::BeginPlay()
 
 	cameraSpeed = Cast<UGolfGameInstance>(GetGameInstance())->cameraSpeed;
 
-	//Load animations and use them if they exist
-	//UAnimBlueprint* flyingAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/FlyingAnim.FlyingAnim'"));
-	//UAnimBlueprint* walkAnim = LoadObject<UAnimBlueprint>(nullptr, TEXT("AnimBlueprint'/Game/GBH/Animations/WalkingAnimation.WalkingAnimation'"));
-
 	UClass* flyingAnim = LoadObject<UClass>(nullptr, TEXT("Class'/Game/GBH/Animations/FlyingAnim.FlyingAnim_C'"));
 	UClass* walkAnim = LoadObject<UClass>(nullptr, TEXT("Class'/Game/GBH/Animations/WalkingAnimation.WalkingAnimation_C'"));
+	UClass* climbingAnim = LoadObject<UClass>(nullptr, TEXT("Class'/Game/GBH/Animations/ClimbingAnimation.ClimbingAnimation_C'"));
 
 
 	if (flyingAnim)
 	{
-		//mWingsMeshLeft->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
-		//mWingsMeshRight->SetAnimInstanceClass(flyingAnim->GetAnimBlueprintGeneratedClass());
 		mWingsMeshLeft->SetAnimInstanceClass(flyingAnim);
 		mWingsMeshRight->SetAnimInstanceClass(flyingAnim);
 	}
@@ -170,13 +176,14 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Could not find flying animation"));
 
 	if (walkAnim)
-	{
-		//mLegsMesh->SetAnimInstanceClass(walkAnim->GetAnimBlueprintGeneratedClass());
 		mLegsMesh->SetAnimInstanceClass(walkAnim);
-
-	}
 	else
 	UE_LOG(LogTemp, Warning, TEXT("Could not find walking animation"));
+
+	if (climbingAnim)
+		mArmsMesh->SetAnimInstanceClass(climbingAnim);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Could not find the climbing animation"));
 	//-
 
 	state = GOLF;
@@ -261,6 +268,7 @@ void AGolfBall::Tick(float DeltaTime)
 	FString linearDampingString = FString::SanitizeFloat(mMesh->GetLinearDamping());
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 	FString angularVelocityString = mMesh->GetPhysicsAngularVelocity().ToString();
+	FString stringStretch;
 
 	switch (state)
 	{
@@ -385,6 +393,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 			FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
 
+			stretchRatio = debugMouseLine.Size();
+
 			//DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine, lineColor, false, -1.f, (uint8)'\000', 10.f);
 			
 			FVector climbRotation;
@@ -401,22 +411,27 @@ void AGolfBall::Tick(float DeltaTime)
 				climbingDegree = climbingDegree * -1;
 			
 			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() > 100.f)
-				SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree), DeltaTime, 10.f));
+				SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree));
 
 			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() <= 100.f)
-				SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, 0.f), DeltaTime, 10.f));
+				SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, 0.f));
 
 			if (currentClimbObject->bIsEdgeNode)
 			{
 				if(mousePositionClicked.Y <= mouseX && debugMouseLine.Size() > 100.f)
-					SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree), DeltaTime, 10.f));
+					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree));
 				if (mousePositionClicked.Y > mouseX && debugMouseLine.Size() > 100.f)
-					SetActorRotation(FMath::RInterpTo(GetActorRotation(), FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree), DeltaTime, 10.f));
+					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree));
 			}
 
 			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
 				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
 		}
+		
+		stringStretch = FString::SanitizeFloat(stretchRatio);
+		
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(5, 0.1f, FColor::Purple, *stringStretch);
 		break;
 
 	case FLYING:
@@ -634,6 +649,7 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 {
 	state = CLIMBING;
 	
+	bClimbInAir = false;
 	bLerpingPerspective = true;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 	mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
@@ -993,10 +1009,12 @@ void AGolfBall::setLMBReleased()
 				mMesh->SetSimulatePhysics(true);
 				mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
 
+				stretchRatio = 0.f;
 				debugMouseLine = FVector::ZeroVector;
 				mousePositionClicked = FVector::ZeroVector;
 				mousePositionReleased = FVector::ZeroVector;
 				bLerpingPerspective = true;
+				bClimbInAir = true;
 				//Cast<AClimbObject>(currentClimbObject)->ignored = true;
 			}
 		}
@@ -1411,45 +1429,45 @@ void AGolfBall::setMeshVisibility()
 	switch (state)
 	{
 	case GOLF:
-		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh && mArmsMesh)
 		{
 			mWingsMeshLeft->SetVisibility(false);
 			mWingsMeshRight->SetVisibility(false);
 			mLegsMesh->SetVisibility(false);
-			//mArmsMesh->SetVisibility(false);
+			mArmsMesh->SetVisibility(false);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	case WALKING:
-		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh && mArmsMesh)
 		{
 			mWingsMeshLeft->SetVisibility(false);
 			mWingsMeshRight->SetVisibility(false);
 			mLegsMesh->SetVisibility(true);
-			//mArmsMesh->SetVisibility(false);
+			mArmsMesh->SetVisibility(false);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	case CLIMBING:
-		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh && mArmsMesh)
 		{
 			mWingsMeshLeft->SetVisibility(false);
 			mWingsMeshRight->SetVisibility(false);
 			mLegsMesh->SetVisibility(false);
-			//mArmsMesh->SetVisibility(true);
+			mArmsMesh->SetVisibility(true);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
 		break;
 	case FLYING:
-		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh)
+		if (mWingsMeshLeft && mWingsMeshRight && mLegsMesh && mArmsMesh)
 		{
 			mWingsMeshLeft->SetVisibility(true);
 			mWingsMeshRight->SetVisibility(true);
 			mLegsMesh->SetVisibility(false);
-			//mArmsMesh->SetVisibility(false);
+			mArmsMesh->SetVisibility(false);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
