@@ -16,6 +16,32 @@ void AClimbObject::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	TArray<FHitResult> hitResults;
+
+	FCollisionShape sphereTrace = FCollisionShape::MakeSphere(50.f);
+	FCollisionQueryParams params = FCollisionQueryParams::DefaultQueryParam;
+	params.AddIgnoredActor(this);
+	params.ClearIgnoredComponents();
+
+	GetWorld()->SweepMultiByChannel(
+		hitResults,
+		GetActorLocation(),
+		GetActorLocation(),
+		FQuat::Identity,
+		ECC_Visibility,
+		sphereTrace,
+		params);
+
+	for (int i = 0; i < hitResults.Num(); i++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResults[i].GetActor()->GetHumanReadableName());
+			
+		if(hitResults[i].GetActor()->GetName().Contains("Cube"))
+			SetActorRotation(hitResults[i].ImpactNormal.Rotation());
+	}
+
+	SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
+
 }
 
 // Called every frame
