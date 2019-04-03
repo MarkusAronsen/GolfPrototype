@@ -284,6 +284,12 @@ public:
 
 	const float flyingAnimLength = 0.375f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float stretchRatio = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool bClimbInAir = false;
+
 	//Enter level camera pan
 	bool bCameraShouldPan;
 	void cameraPanTick();
