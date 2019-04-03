@@ -15,7 +15,7 @@ UGolfSaveGame::UGolfSaveGame()
 	levelData[2].levelName = TEXT("TestLevel03");
 	levelData[3].levelName = TEXT("TestLevel04");
 	levelData[4].levelName = TEXT("TestLevel05");
-	levelData[5].levelName = TEXT("ClimbingLevel01")
+	levelData[5].levelName = TEXT("ClimbingLevel01");
 
 	//Secret levels
 	levelData[6].levelName = TEXT("SecretLevel01");

@@ -36,11 +36,12 @@ void AClimbObject::BeginPlay()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *hitResults[i].GetActor()->GetHumanReadableName());
 			
-		if(hitResults[i].GetActor()->GetName().Contains("Cube"))
+		if(hitResults[i].GetActor()->GetName().Contains("Cube") && !bIsEdgeNode)
 			SetActorRotation(hitResults[i].ImpactNormal.Rotation());
 	}
 
-	SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
+	if(!bIsEdgeNode)
+		SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
 
 }
 

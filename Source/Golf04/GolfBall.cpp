@@ -260,7 +260,7 @@ void AGolfBall::Tick(float DeltaTime)
 	FString sizeString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 	FString linearDampingString = FString::SanitizeFloat(mMesh->GetLinearDamping());
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
-	FString angularVelocityString = mMesh->GetPhysicsAngularVelocity().ToString();
+	FString angularVelocityString = mMesh->GetPhysicsAngularVelocityInDegrees().ToString();
 
 	switch (state)
 	{
@@ -323,7 +323,7 @@ void AGolfBall::Tick(float DeltaTime)
 			}
 			else
 				canLaunch = false;
-                }
+		}
 
 		else
 			canLaunch = false;
@@ -710,7 +710,7 @@ void AGolfBall::walkFunction(float deltaTime)
 void AGolfBall::jump()
 {
 	mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f), NAME_None, true);
-	mMesh->AddAngularImpulse(mMesh->GetPhysicsAngularVelocity() * 0.005f, NAME_None, true);
+	mMesh->AddAngularImpulseInRadians(mMesh->GetPhysicsAngularVelocity() * 0.005f, NAME_None, true);
 	if (onPlatform)
 		platformJump = true;
 }
@@ -950,14 +950,14 @@ void AGolfBall::setLMBReleased()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Ball launched (billiards)"));
 			mMesh->AddImpulse(billiardsLaunchDirection * currentLaunchPower * 350.f, NAME_None, false);
-			if(currentLaunchPower > 100)
+			if (currentLaunchPower > 100)
 				secretLevelManagerInstance->billiardsShotsUsed++;
 		}
 		currentLaunchPower = 0.f;
-		
-		if(PowerBarWidget)
+
+		if (PowerBarWidget)
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-	
+
 		break;
 	case WALKING:
 		break;
@@ -969,7 +969,7 @@ void AGolfBall::setLMBReleased()
 			mousePositionReleased = mousePositionReleased - mousePositionClicked;
 			mousePositionReleased = mousePositionReleased * 2.f;
 			if (mousePositionReleased.Size() < 100.f)
-			{ 
+			{
 				//UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
 				shouldLaunch = false;
 				debugMouseLine = FVector::ZeroVector;
@@ -982,32 +982,32 @@ void AGolfBall::setLMBReleased()
 				mousePositionReleased = mousePositionReleased / differenceFactor;
 				//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
 			}
-			if(shouldLaunch)
+			if (shouldLaunch)
 			{
-				if(!currentClimbObject->bIsEdgeNode)
+				if (!currentClimbObject->bIsEdgeNode)
 					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 				if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y >= mouseX)
 					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45, FVector(0, 0, 1));
 				if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y < mouseX)
 					mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
-			{ 
+				{
 
-				mMesh->SetSimulatePhysics(true);
-				mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+					mMesh->SetSimulatePhysics(true);
+					mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
 
-				debugMouseLine = FVector::ZeroVector;
-				mousePositionClicked = FVector::ZeroVector;
-				mousePositionReleased = FVector::ZeroVector;
-				bLerpingPerspective = true;
-				//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+					debugMouseLine = FVector::ZeroVector;
+					mousePositionClicked = FVector::ZeroVector;
+					mousePositionReleased = FVector::ZeroVector;
+					bLerpingPerspective = true;
+					//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+				}
 			}
-		}
-		break;
+			break;
 	case FLYING:
 		break;
+		}
 	}
 }
-
 void AGolfBall::mouseCameraPitch()
 {
 	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
