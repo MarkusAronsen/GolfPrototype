@@ -40,7 +40,7 @@ void AClimbObject::BeginPlay()
 			SetActorRotation(hitResults[i].ImpactNormal.Rotation());
 	}
 
-	if(!bIsEdgeNode)
+        if(!bIsEdgeNode)
 		SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
 
 }
