@@ -766,7 +766,8 @@ void AGolfBall::walkFunction(float deltaTime)
 void AGolfBall::jump()
 {
 	mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f), NAME_None, true);
-	mMesh->AddAngularImpulseInRadians(mMesh->GetPhysicsAngularVelocity() * 0.005f, NAME_None, true);
+	if(WPressed || APressed || SPressed || DPressed)
+		mMesh->SetPhysicsAngularVelocityInDegrees(GetActorRightVector() * 800, false, NAME_None);
 	if (onPlatform)
 		platformJump = true;
 }

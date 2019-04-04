@@ -36,6 +36,7 @@ public:
 			bool bFromSweep, const FHitResult &SweepResult);
 
 	FVector startPos;
+	float timer = 0.f;
 
 	bool receding = false;
 

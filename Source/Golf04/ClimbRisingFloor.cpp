@@ -24,7 +24,7 @@ void AClimbRisingFloor::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("ClimbRisingFloor no collision box"));
 
-	startPos = FVector(0.f, 0.f, -1500.f);
+	startPos = GetActorLocation();
 }
 
 // Called every frame
@@ -32,15 +32,18 @@ void AClimbRisingFloor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if(Cast<AGolfBall>(GetWorld()->GetFirstPlayerController()->GetPawn())->state == Cast<AGolfBall>(GetWorld()->GetFirstPlayerController()->GetPawn())->CLIMBING && !receding)
+	if(Cast<AGolfBall>(GetWorld()->GetFirstPlayerController()->GetPawn())->state == Cast<AGolfBall>(GetWorld()->GetFirstPlayerController()->GetPawn())->CLIMBING)
 		SetActorLocation(FMath::VInterpTo(GetActorLocation(), GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation(), DeltaTime, 0.03f));
 
-	else
+	if (receding)
 	{
-		FMath::VInterpTo(GetActorLocation(), startPos, DeltaTime, 1.f);
-		
-		if (GetActorLocation().Z < -1500.f)
+		timer += DeltaTime;
+		if (timer > 1.f)
+		{
+			SetActorLocation(startPos);
+			timer = 0.f;
 			receding = false;
+		}
 	}
 
 }
@@ -56,6 +59,7 @@ void AClimbRisingFloor::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent
 		GolfBallPtr->mMesh->SetLinearDamping(9.f);
 		receding = true;
 
+		
 	}
 }
 
