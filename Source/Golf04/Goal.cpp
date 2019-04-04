@@ -95,7 +95,7 @@ void AGoal::Tick(float DeltaTime)
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("ElevateValue: %f, initialZ: %f"), elevateValue, initialZ);
+	//UE_LOG(LogTemp, Warning, TEXT("ElevateValue: %f, initialZ: %f"), elevateValue, initialZ);
 }
 
 void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,

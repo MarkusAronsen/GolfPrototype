@@ -28,13 +28,18 @@ AGolfBall::AGolfBall()
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
 	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
 
+	trailParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Trail"));
+	canLaunchReadyParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CanLaunch"));
+
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
 	mSpringArm->SetupAttachment(mMesh);
 	mCamera->SetupAttachment(mSpringArm, USpringArmComponent::SocketName);
 	mCamera->Activate();
 
-	
+	trailParticles->SetupAttachment(mMesh);
+	canLaunchReadyParticles->SetupAttachment(mMesh);
+
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
@@ -102,6 +107,19 @@ void AGolfBall::BeginPlay()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("PauseWidget not initialized"));
+	
+	if (SkipCameraPanWidget_BP)
+	{
+		SkipCameraPanWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), SkipCameraPanWidget_BP);
+		
+		if (SkipCameraPanWidget)
+		{
+			SkipCameraPanWidget->AddToViewport();
+			SkipCameraPanWidget->SetVisibility(ESlateVisibility::Hidden);	
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("SkipCameraPanWidget not initialized"));
 
 	walkMaxDuration = 30.f;
 	world = GetWorld();
@@ -153,10 +171,18 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight not initialized"));
 	
-	//Start camera pan if level is not LevelSelect
-	if (!UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) == 0)
+	//Start camera pan if level is not LevelSelect or secret level
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) != 0
+		&& !UGameplayStatics::GetCurrentLevelName(this).Contains("SecretLevel", ESearchCase::IgnoreCase))
 	{
 		bCameraShouldPan = true;
+
+		UGameplayStatics::GetAllActorsOfClass(this, ACameraActor::StaticClass(), viewTargets);
+
+		if (viewTargets.Num() != 5)
+			UE_LOG(LogTemp, Warning, TEXT("viewTargets not 4 (%i)"), viewTargets.Num() + 1);
+
+
 		UE_LOG(LogTemp, Warning, TEXT("Start camera pan"));
 	}
 
@@ -240,19 +266,21 @@ void AGolfBall::BeginPlay()
 	mWingsMeshRight->CastShadow = false;
 
 	//Fetch particle systems
-	particleSystems = GetComponentsByClass(UParticleSystemComponent::StaticClass());
+	UParticleSystem* LoadTrailParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/TrailParticles.TrailParticles'"));
 
-	if (particleSystems.Num() > 0)
-	{
-		for (int i = 0; i < particleSystems.Num(); i++)
-		{
-			if (Cast<UParticleSystemComponent>(particleSystems[i])->ComponentHasTag("canLaunchReady"))
-				canLaunchReadyParticles = Cast<UParticleSystemComponent>(particleSystems[i]);
-		}
-	}
+	if (LoadTrailParticles)
+		trailParticles->SetTemplate(LoadTrailParticles);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Trail particles not found"));
 
-	if (canLaunchReadyParticles)
-		canLaunchReadyParticles->bAutoDestroy = true;
+	UParticleSystem* LoadCanLaunchParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/GreenSparksNoLoop.GreenSparksNoLoop'"));
+
+	if (LoadCanLaunchParticles)
+		canLaunchReadyParticles->SetTemplate(LoadCanLaunchParticles);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Can launch particles not found"));
+
+
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
@@ -325,15 +353,22 @@ void AGolfBall::Tick(float DeltaTime)
 
 		if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) != 0)
 		{
-			if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f && !canLaunch)
+			if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f)
 			{
 				canLaunch = true;
-				canLaunchReadyParticles->Activate();
+				UE_LOG(LogTemp, Warning, TEXT("Activating launch ready particles"));
+				if (!canLaunchParticlesHaveActivated)
+				{
+					canLaunchReadyParticles->Activate();
+					canLaunchParticlesHaveActivated = true;
+				}
 			}
 			else
+			{
 				canLaunch = false;
+				canLaunchParticlesHaveActivated = false;
+			}
 		}
-
 		else
 			canLaunch = false;
 
@@ -529,6 +564,9 @@ void AGolfBall::Tick(float DeltaTime)
 		respawnAtCheckpointTick(DeltaTime);
 
 	animationControlTick(DeltaTime);
+
+	if (bCameraShouldPan)
+		cameraPanTick(DeltaTime);
 }
 
 
@@ -554,6 +592,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
 	InputComponent->BindAction("P", IE_Pressed, this, &AGolfBall::pauseGame);
+	InputComponent->BindAction("Enter", IE_Pressed, this, &AGolfBall::enterPressed);
 
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
@@ -761,6 +800,10 @@ void AGolfBall::stopStrike()
 }
 void AGolfBall::spacebarPressed()
 {
+	if (!bCameraShouldPan)
+	{
+
+	
 	if (state == FLYING)
 	{
 		velocity = FVector::ZeroVector;
@@ -786,6 +829,8 @@ void AGolfBall::spacebarPressed()
 	{
 		secretLevelManagerInstance->startChargingPlinko();
 	}
+	}
+
 }
 
 void AGolfBall::spacebarReleased()
@@ -797,231 +842,265 @@ void AGolfBall::spacebarReleased()
 
 void AGolfBall::WClicked()
 {
-	WPressed = true;
-	if (state == PACMAN)
-		secretLevelManagerInstance->buffer = FVector(1.f, 0.f, 0.f);
-
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateW = true;
+		WPressed = true;
+		if (state == PACMAN)
+			secretLevelManagerInstance->buffer = FVector(1.f, 0.f, 0.f);
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateW = true;
+		}
 	}
 }
 
 void AGolfBall::WReleased()
 {
-	WPressed = false;
-
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateW = false;
+		WPressed = false;
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateW = false;
+		}
 	}
 }
 
 void AGolfBall::AClicked()
 {
-	APressed = true;
-	if (state == PACMAN && !secretLevelManagerInstance->gameStarted)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->gameStarted = true;
-		SetActorRotation(FVector(0.f, -1.f, 0.f).Rotation());
-	}
-	if (state == PACMAN && secretLevelManagerInstance->gameStarted)
-		secretLevelManagerInstance->buffer = FVector(0.f, -1.f, 0.f);
+		APressed = true;
+		if (state == PACMAN && !secretLevelManagerInstance->gameStarted)
+		{
+			secretLevelManagerInstance->gameStarted = true;
+			SetActorRotation(FVector(0.f, -1.f, 0.f).Rotation());
+		}
+		if (state == PACMAN && secretLevelManagerInstance->gameStarted)
+			secretLevelManagerInstance->buffer = FVector(0.f, -1.f, 0.f);
 
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
-	{
-		secretLevelManagerInstance->mazeRotateA = true;
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateA = true;
+		}
 	}
 }
 
 void AGolfBall::AReleased()
 {
-	APressed = false;
-	
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateA = false;
+		APressed = false;
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateA = false;
+		}
 	}
 }
 
 void AGolfBall::SClicked()
 {
-	SPressed = true;
-	if (state == PACMAN)
-		secretLevelManagerInstance->buffer = FVector(-1.f, 0.f, 0.f);
-
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateS = true;
+		SPressed = true;
+		if (state == PACMAN)
+			secretLevelManagerInstance->buffer = FVector(-1.f, 0.f, 0.f);
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateS = true;
+		}
 	}
 }
 
 void AGolfBall::SReleased()
 {
-	SPressed = false;
-
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateS = false;
+
+
+		SPressed = false;
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateS = false;
+		}
 	}
 }
 
 void AGolfBall::DClicked()
 {
-	DPressed = true;
-	if (state == PACMAN && !secretLevelManagerInstance->gameStarted)
-	{ 
-		secretLevelManagerInstance->gameStarted = true;
-		SetActorRotation(FVector(0.f, 1.f, 0.f).Rotation());
-	}
-	if (state == PACMAN && secretLevelManagerInstance->gameStarted)
-		secretLevelManagerInstance->buffer = FVector(0.f, 1.f, 0.f);
-
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateD = true;
+		DPressed = true;
+		if (state == PACMAN && !secretLevelManagerInstance->gameStarted)
+		{
+			secretLevelManagerInstance->gameStarted = true;
+			SetActorRotation(FVector(0.f, 1.f, 0.f).Rotation());
+		}
+		if (state == PACMAN && secretLevelManagerInstance->gameStarted)
+			secretLevelManagerInstance->buffer = FVector(0.f, 1.f, 0.f);
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateD = true;
+		}
 	}
 }
 
 void AGolfBall::DReleased()
 {
-	DPressed = false;
-
-	if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+	if (!bCameraShouldPan)
 	{
-		secretLevelManagerInstance->mazeRotateD = false;
+		DPressed = false;
+
+		if (secretLevelManagerInstance && secretLevelManagerInstance->secretState == SecretLevelState::MAZE)
+		{
+			secretLevelManagerInstance->mazeRotateD = false;
+		}
 	}
 }
 
 void AGolfBall::setLMBPressed()
 {
-	switch (state)
+	if (!bCameraShouldPan)
 	{
-	case GOLF:
-		if (canLaunch && PowerBarWidget && !bRespawning)
+		switch (state)
 		{
-			PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
-			LMBPressed = true;
-			if (ToSpawn && world && UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
+		case GOLF:
+			if (canLaunch && PowerBarWidget && !bRespawning)
 			{
-				spawnInfo.Owner = this;
-				spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-				dirIndicator = world->SpawnActor<ADirectionIndicator>(ToSpawn, GetActorLocation() + 
-					FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall, 
-					FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f), spawnInfo);
+				PowerBarWidget->SetVisibility(ESlateVisibility::Visible);
+				LMBPressed = true;
+				if (ToSpawn && world && UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
+				{
+					spawnInfo.Owner = this;
+					spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+					dirIndicator = world->SpawnActor<ADirectionIndicator>(ToSpawn, GetActorLocation() +
+						FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall,
+						FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f), spawnInfo);
+				}
 			}
+			break;
+		case WALKING:
+			LMBPressed = true;
+			break;
+		case CLIMBING:
+			LMBPressed = true;
+			UE_LOG(LogTemp, Warning, TEXT("LMBPressed!"));
+			if (!mMesh->IsSimulatingPhysics())
+				mousePositionClicked = FVector(0.f, mouseX, mouseY);
+			break;
+		case FLYING:
+			LMBPressed = true;
+			break;
 		}
-		break;
-	case WALKING:
-		LMBPressed = true;
-		break;
-	case CLIMBING:
-		LMBPressed = true;
-		UE_LOG(LogTemp, Warning, TEXT("LMBPressed!"));
-		if (!mMesh->IsSimulatingPhysics())
-			mousePositionClicked = FVector(0.f, mouseX, mouseY);
-		break;
-	case FLYING:
-		LMBPressed = true;
-		break;
 	}
 }
 
 void AGolfBall::setLMBReleased()
 {
-	LMBPressed = false;
-	switch (state)
+	if (!bCameraShouldPan)
 	{
-	case GOLF:
-		if (dirIndicator)
-		{
-			indicatorColor = FVector::ZeroVector;
-			indicatorStretch = 0.f;
-			dirIndicator->Destroy();
-		}
-		mMesh->SetLinearDamping(0.6);
-		mMesh->SetAngularDamping(0.1);
 
-		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
-		{
 
-			if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && !secretLevelManagerInstance->bBallIsThrown)
+		LMBPressed = false;
+		switch (state)
+		{
+		case GOLF:
+			if (dirIndicator)
 			{
-				if (canLaunch)
+				indicatorColor = FVector::ZeroVector;
+				indicatorStretch = 0.f;
+				dirIndicator->Destroy();
+			}
+			mMesh->SetLinearDamping(0.6);
+			mMesh->SetAngularDamping(0.1);
+
+			if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) != 0)
+			{
+
+				if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && !secretLevelManagerInstance->bBallIsThrown)
 				{
-					secretLevelManagerInstance->incrementBowlingThrow();
-					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
-					canLaunch = false;
+					if (canLaunch)
+					{
+						secretLevelManagerInstance->incrementBowlingThrow();
+						mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+						canLaunch = false;
+					}
 				}
-			}
-			/*else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && secretLevelManagerInstance->bBallIsThrown)
-			{
+				/*else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0 && secretLevelManagerInstance->bBallIsThrown)
+				{
 
-			}*/
+				}*/
+				else
+					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
+
+			}
 			else
-				mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
-
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Ball launched (billiards)"));
-			mMesh->AddImpulse(billiardsLaunchDirection * currentLaunchPower * 350.f, NAME_None, false);
-			if (currentLaunchPower > 100)
-				secretLevelManagerInstance->billiardsShotsUsed++;
-		}
-		currentLaunchPower = 0.f;
-
-		if (PowerBarWidget)
-			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
-
-		break;
-	case WALKING:
-		break;
-	case CLIMBING:
-		shouldLaunch = true;
-		if (!mMesh->IsSimulatingPhysics())
-		{
-			mousePositionReleased = FVector(0.f, mouseX, mouseY);
-			mousePositionReleased = mousePositionReleased - mousePositionClicked;
-			mousePositionReleased = mousePositionReleased * 2.f;
-			if (mousePositionReleased.Size() < 100.f)
 			{
-				//UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
-				shouldLaunch = false;
-				debugMouseLine = FVector::ZeroVector;
-				mousePositionClicked = FVector::ZeroVector;
-				mousePositionReleased = FVector::ZeroVector;
+				UE_LOG(LogTemp, Warning, TEXT("Ball launched (billiards)"));
+				mMesh->AddImpulse(billiardsLaunchDirection * currentLaunchPower * 350.f, NAME_None, false);
+				if (currentLaunchPower > 100)
+					secretLevelManagerInstance->billiardsShotsUsed++;
 			}
-			if (mousePositionReleased.Size() > 400.f)
-			{
-				float differenceFactor = mousePositionReleased.Size() / 400.f;
-				mousePositionReleased = mousePositionReleased / differenceFactor;
-				//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
-			}
-			if (shouldLaunch)
-			{
-                            if(!currentClimbObject->bIsEdgeNode)
-                                    mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
-                            if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y >= mouseX)
-                                    mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45, FVector(0, 0, 1));
-                            if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y < mouseX)
-                                    mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
+			currentLaunchPower = 0.f;
 
-                            mMesh->SetSimulatePhysics(true);
-                            mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+			if (PowerBarWidget)
+				PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 
-                            stretchRatio = 0.f;
-                            debugMouseLine = FVector::ZeroVector;
-                            mousePositionClicked = FVector::ZeroVector;
-                            mousePositionReleased = FVector::ZeroVector;
-                            bLerpingPerspective = true;
-                            bClimbInAir = true;
-                            //Cast<AClimbObject>(currentClimbObject)->ignored = true;
-
-			}
 			break;
-	case FLYING:
-		break;
+		case WALKING:
+			break;
+		case CLIMBING:
+			shouldLaunch = true;
+			if (!mMesh->IsSimulatingPhysics())
+			{
+				mousePositionReleased = FVector(0.f, mouseX, mouseY);
+				mousePositionReleased = mousePositionReleased - mousePositionClicked;
+				mousePositionReleased = mousePositionReleased * 2.f;
+				if (mousePositionReleased.Size() < 100.f)
+				{
+					//UE_LOG(LogTemp, Warning, TEXT("%f BELOW MINIMUM SIZE"), mousePositionReleased.Size())
+					shouldLaunch = false;
+					debugMouseLine = FVector::ZeroVector;
+					mousePositionClicked = FVector::ZeroVector;
+					mousePositionReleased = FVector::ZeroVector;
+				}
+				if (mousePositionReleased.Size() > 400.f)
+				{
+					float differenceFactor = mousePositionReleased.Size() / 400.f;
+					mousePositionReleased = mousePositionReleased / differenceFactor;
+					//UE_LOG(LogTemp, Warning, TEXT("%f EXCEEDING MAX SIZE"), mousePositionReleased.Size())
+				}
+				if (shouldLaunch)
+				{
+					if (!currentClimbObject->bIsEdgeNode)
+						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+					if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y >= mouseX)
+						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45, FVector(0, 0, 1));
+					if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y < mouseX)
+						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
+
+					mMesh->SetSimulatePhysics(true);
+					mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+
+					stretchRatio = 0.f;
+					debugMouseLine = FVector::ZeroVector;
+					mousePositionClicked = FVector::ZeroVector;
+					mousePositionReleased = FVector::ZeroVector;
+					bLerpingPerspective = true;
+					bClimbInAir = true;
+					//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+
+				}
+				break;
+		case FLYING:
+			break;
+			}
 		}
 	}
 }
@@ -1061,6 +1140,14 @@ void AGolfBall::leftShiftPressed()
 
 
 	walkTimer = walkMaxDuration;
+}
+
+void AGolfBall::enterPressed()
+{
+	GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
+	bCameraShouldPan = false;
+	mCamera->Activate();
+	SkipCameraPanWidget->RemoveFromParent();
 }
 
 void AGolfBall::scrollUp()
@@ -1349,12 +1436,90 @@ void AGolfBall::confirmLevelSelection()
 
 void AGolfBall::setLevelToOpen(FString Name)
 {
-	levelToOpen = Name;
+	levelToOpen = Name;	
 }
 
-void AGolfBall::cameraPanTick()
+void AGolfBall::cameraPanTick(float deltaTime)
 {
+	//Set initial view target
+	if (currentViewTarget == 0)
+	{
+		for (int i = 0; i < viewTargets.Num(); i++)
+		{
+			if (viewTargets[i]->ActorHasTag("Target0"))
+				target = viewTargets[i];
+		}
+		if (target)
+			GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+		else
+			UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target0 not found"));
 
+		currentViewTarget++;
+
+		SkipCameraPanWidget->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	blendTimer += deltaTime;
+
+	if (blendTimer >= viewTargetBlendTime)
+	{
+		if (currentViewTarget == 5)
+		{
+			bCameraShouldPan = false;
+			return;
+		}
+
+		switch (currentViewTarget)
+		{
+		case 1:
+			for (int i = 0; i < viewTargets.Num(); i++)
+			{
+				if (viewTargets[i]->ActorHasTag("Target1"))
+					target = viewTargets[i];
+			}
+			if (target)
+				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+			else
+				UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target1 not found"));
+			break;
+
+		case 2:
+			for (int i = 0; i < viewTargets.Num(); i++)
+			{
+				if (viewTargets[i]->ActorHasTag("Target2"))
+					target = viewTargets[i];
+			}
+			if (target)
+				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+			else
+				UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target2 not found"));
+			break;
+
+		case 3:
+			for (int i = 0; i < viewTargets.Num(); i++)
+			{
+				if (viewTargets[i]->ActorHasTag("Target3"))
+					target = viewTargets[i];
+			}
+			if (target)
+				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+			else
+				UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target3 not found"));
+			break;
+
+		case 4:
+			GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+			mCamera->Activate();
+			UE_LOG(LogTemp, Warning, TEXT("Setting view target to player"));
+			SkipCameraPanWidget->RemoveFromParent();
+			break;
+		}
+		blendTimer = 0.f;
+		if (currentViewTarget < 5)
+		{
+			currentViewTarget++;
+		}
+	}
 }
 
 void AGolfBall::debugMouse()
