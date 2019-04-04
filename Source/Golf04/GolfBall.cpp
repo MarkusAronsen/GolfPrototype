@@ -656,6 +656,7 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	mMesh->RecreatePhysicsState();
 
 	mMesh->SetSimulatePhysics(false);
+	mMesh->SetGenerateOverlapEvents(true);
 	world->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameOnly());
 	if(!currentClimbObject->bIsEdgeNode)
@@ -1064,13 +1065,13 @@ void AGolfBall::leftShiftPressed()
 
 void AGolfBall::scrollUp()
 {
-	if (mSpringArm->TargetArmLength > 500.f)
+	if (mSpringArm->TargetArmLength > 500.f && !bLerpingPerspective)
 		mSpringArm->TargetArmLength -= 100.f;
 }
 
 void AGolfBall::scrollDown()
 {
-	if (mSpringArm->TargetArmLength < 2000.f)
+	if (mSpringArm->TargetArmLength < 2000.f && !bLerpingPerspective)
 		mSpringArm->TargetArmLength += 100.f;
 }
 
@@ -1316,9 +1317,9 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	timeToCameraFadeEnd += deltaTime;
 	if (timeToCameraFadeEnd >= cameraFadeTimer)
 	{
+		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
-		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
 					
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
 
