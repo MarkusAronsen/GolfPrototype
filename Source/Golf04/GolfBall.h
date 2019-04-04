@@ -61,7 +61,7 @@ public:
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class UCameraComponent* mCamera = nullptr;
 
 	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -111,6 +111,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> PauseWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* SkipCameraPanWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> SkipCameraPanWidget_BP;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkMaxDuration;
@@ -216,6 +223,7 @@ public:
 	float cameraSpeed;
 
 	void leftShiftPressed();
+	void enterPressed();
 	void scrollUp();
 	void scrollDown();
 
@@ -292,7 +300,16 @@ public:
 
 	//Enter level camera pan
 	bool bCameraShouldPan;
-	void cameraPanTick();
+	void cameraPanTick(float deltaTime);
+
+	//Non-secret, non-levelselect levels should have four view targets (camera actors), tagged "Target0", "Target1", "Target2", "Target3"
+	TArray<AActor*> viewTargets;
+	float viewTargetBlendTime = 2.f;
+	float blendTimer = 0.f;
+	int currentViewTarget = 0;
+	bool newViewTargetSet = false;
+	AActor* target = nullptr;
+		
 
 	//Debug and misc
 	FString debugMouseX;
@@ -321,7 +338,10 @@ public:
 	FVector billiardsLaunchDirection;
 
 	//Particle systems
-	TArray<UActorComponent*> particleSystems;
+	UPROPERTY(VisibleAnywhere)
+		UParticleSystemComponent* canLaunchReadyParticles = nullptr;
+	bool canLaunchParticlesHaveActivated = true;
 
-	UParticleSystemComponent* canLaunchReadyParticles = nullptr;
+	UPROPERTY(VisibleAnywhere)
+		UParticleSystemComponent* trailParticles = nullptr;
 };
