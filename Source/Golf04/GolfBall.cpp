@@ -270,6 +270,7 @@ void AGolfBall::BeginPlay()
 
 	if (LoadTrailParticles)
 		trailParticles->SetTemplate(LoadTrailParticles);
+
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Trail particles not found"));
 
@@ -280,6 +281,7 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Can launch particles not found"));
 
+	trailParticles->Deactivate();
 
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
