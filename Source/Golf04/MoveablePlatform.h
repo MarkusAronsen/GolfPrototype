@@ -30,7 +30,7 @@ public:
 
 	AGolfBall* playerPtr = nullptr;
 
-	float moveSpeed = 200.f;
+	float moveSpeed = 300.f;
 
 	UShapeComponent* CollisionBox = nullptr;
 
@@ -42,10 +42,17 @@ public:
 	UStaticMeshComponent* Pad = nullptr;
 
 
-	bool upPushed = false;
-	bool downPushed = false;
-	bool leftPushed = false;
-	bool rightPushed = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool upPushed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool downPushed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool leftPushed = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool rightPushed = false;
 
 	bool onMoveablePlatform = false;
 
