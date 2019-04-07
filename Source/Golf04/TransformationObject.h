@@ -92,4 +92,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform range")
 		float rangeZ = 12.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling platform")
+		bool bIsFalling = false;
+
+	FVector startPos;
 };

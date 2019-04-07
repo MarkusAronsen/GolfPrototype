@@ -31,8 +31,13 @@ public:
 		UShapeComponent * CollisionBox = nullptr;
 
 	UFUNCTION()
-		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
+		void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
+
+	FVector startPos;
+	float timer = 0.f;
+
+	bool receding = false;
 
 };

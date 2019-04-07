@@ -26,14 +26,14 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere)
-		UShapeComponent * CollisionBox = nullptr;
+	UShapeComponent * CollisionBox = nullptr;
 
 	UFUNCTION()
 		void OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 			bool bFromSweep, const FHitResult &SweepResult);
 
-	
+	UPROPERTY(EditAnywhere, Category = "Launch direction + power")
+		float launchPower;
 	
 };

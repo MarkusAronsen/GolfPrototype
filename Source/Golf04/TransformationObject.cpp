@@ -15,7 +15,7 @@ void ATransformationObject::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	
+	startPos = GetActorLocation();
 }
 
 // Called every frame
@@ -134,6 +134,16 @@ void ATransformationObject::Tick(float DeltaTime)
 		if (position6 > 2 * PI + PI)
 		{
 			position6 = PI;
+		}
+	}
+
+	if (bIsFalling)
+	{
+		AddActorLocalOffset(FVector(0.f, 0.f, -DeltaTime * 1000.f));
+		if (GetActorLocation().Z < startPos.Z - 3000.f)
+		{
+			SetActorLocation(startPos);
+			bIsFalling = false;
 		}
 	}
 }

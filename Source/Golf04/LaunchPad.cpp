@@ -36,13 +36,11 @@ void ALaunchPad::Tick(float DeltaTime)
 
 }
 
-void ALaunchPad::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor,
-							UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, bool bFromSweep,
-							const FHitResult & SweepResult)
+void ALaunchPad::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
-		OtherActor->FindComponentByClass<UStaticMeshComponent>()->SetPhysicsLinearVelocity(GetActorForwardVector().RotateAngleAxis(-90.f, FVector(0.f, 1.f, 0.f)) * 2000.f, true);
+		Cast<AGolfBall>(OtherActor)->mMesh->SetPhysicsLinearVelocity(GetActorUpVector() * launchPower, false);
 	}
 }
 
