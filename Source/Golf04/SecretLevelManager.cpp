@@ -101,6 +101,8 @@ void ASecretLevelManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UE_LOG(LogTemp, Warning, TEXT("Lives: %i"), pacmanLives);
+
 	FVector playerLocation = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation();
 
 	switch (secretState)

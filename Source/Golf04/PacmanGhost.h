@@ -73,6 +73,7 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void announceGhost(const FString &ghostName);
 
+	bool playerIsHit = false;
 
 	//Reset
 	FVector initialPosition;

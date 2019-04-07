@@ -24,10 +24,8 @@ UGolfSaveGame::UGolfSaveGame()
 	levelData[9].levelName = TEXT("SecretLevel04");
 	levelData[10].levelName = TEXT("SecretLevel05");
 
-
-
 	//Work in progress
-	levelData[10].levelName = TEXT("FlyingLevel01");
+	levelData[11].levelName = TEXT("FlyingLevel01");
 
 	UE_LOG(LogTemp, Warning, TEXT("Save game initialized"));
 	//UE_LOG(LogTemp, Warning, TEXT("Save game initialized, allocated level data is %i, num_levels * sizeof(FLevelData) is %i"), levelData.GetAllocatedSize(), NUM_LEVELS * sizeof(FLevelData)

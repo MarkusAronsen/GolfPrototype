@@ -30,6 +30,8 @@ AGolfBall::AGolfBall()
 
 	trailParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Trail"));
 	canLaunchReadyParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CanLaunch"));
+	transformParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Transform"));
+
 
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
@@ -39,6 +41,7 @@ AGolfBall::AGolfBall()
 
 	trailParticles->SetupAttachment(mMesh);
 	canLaunchReadyParticles->SetupAttachment(mMesh);
+	transformParticles->SetupAttachment(mMesh);
 
 	mWingsMeshLeft->SetupAttachment(mMesh);
 	mWingsMeshRight->SetupAttachment(mMesh);
@@ -120,11 +123,66 @@ void AGolfBall::BeginPlay()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("SkipCameraPanWidget not initialized"));
+	
+	if (FlyingScoreWidget_BP)
+	{
+		FlyingScoreWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), FlyingScoreWidget_BP);
+
+		if (FlyingScoreWidget)
+		{
+			FlyingScoreWidget->AddToViewport();
+			FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("FlyingScoreWidget not initialized"));
+
+	if (ClimbingScoreWidget_BP)
+	{
+		ClimbingScoreWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), ClimbingScoreWidget_BP);
+
+		if (ClimbingScoreWidget)
+		{
+			ClimbingScoreWidget->AddToViewport();
+			ClimbingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("ClimbingScoreWidget not initialized"));
+
+	if (WalkingScoreWidget_BP)
+	{
+		WalkingScoreWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), WalkingScoreWidget_BP);
+
+		if (WalkingScoreWidget)
+		{
+			WalkingScoreWidget->AddToViewport();
+			WalkingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("WalkingScoreWidget not initialized"));
+
+	if (GolfStrokesWidget_BP)
+	{
+		GolfStrokesWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), GolfStrokesWidget_BP);
+
+		if (GolfStrokesWidget)
+		{
+			GolfStrokesWidget->AddToViewport();
+			GolfStrokesWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("GolfStrokesWidget not initialized"));
 
 	walkMaxDuration = 30.f;
 	world = GetWorld();
 
 	mController = GetWorld()->GetFirstPlayerController();
+
+
+
 
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
@@ -144,7 +202,7 @@ void AGolfBall::BeginPlay()
 	traceParams.AddIgnoredComponent(mMesh);
 	traceParams.AddIgnoredComponent(mCollisionBox);
 
-	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight)
+	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight && mArmsMesh)
 	{
 		//Disable visibility on meshes not relevant for golfing
 		mLegsMesh->SetVisibility(false);
@@ -169,7 +227,7 @@ void AGolfBall::BeginPlay()
 
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight not initialized"));
+		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight || mArmsMesh not initialized"));
 	
 	//Start camera pan if level is not LevelSelect or secret level
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) != 0
@@ -266,21 +324,26 @@ void AGolfBall::BeginPlay()
 	mWingsMeshRight->CastShadow = false;
 
 	//Fetch particle systems
-	UParticleSystem* LoadTrailParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/TrailParticles.TrailParticles'"));
+	UParticleSystem* LoadTrailParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/TestParticles/TrailParticles.TrailParticles'"));
 
 	if (LoadTrailParticles)
 		trailParticles->SetTemplate(LoadTrailParticles);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Trail particles not found"));
 
-	UParticleSystem* LoadCanLaunchParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/GreenSparksNoLoop.GreenSparksNoLoop'"));
+	UParticleSystem* LoadCanLaunchParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/TestParticles/GreenSparksNoLoop.GreenSparksNoLoop'"));
 
 	if (LoadCanLaunchParticles)
 		canLaunchReadyParticles->SetTemplate(LoadCanLaunchParticles);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Can launch particles not found"));
 
+	UParticleSystem* LoadTransformParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/Particles/Cloud_Poof.Cloud_Poof'"));
 
+	if (LoadTransformParticles)
+		transformParticles->SetTemplate(LoadTransformParticles);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Transform particles not found"));
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
@@ -356,10 +419,9 @@ void AGolfBall::Tick(float DeltaTime)
 			if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f)
 			{
 				canLaunch = true;
-				UE_LOG(LogTemp, Warning, TEXT("Activating launch ready particles"));
 				if (!canLaunchParticlesHaveActivated)
 				{
-					canLaunchReadyParticles->Activate();
+					//canLaunchReadyParticles->Activate();
 					canLaunchParticlesHaveActivated = true;
 				}
 			}
@@ -387,9 +449,9 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
 
-		if (onGround && mMesh->GetLinearDamping() < 19.f)
+		if (onGround && mMesh->GetLinearDamping() < 19.f)// && !onMoveablePlatform)
 			mMesh->SetLinearDamping(20.f);
-		if (!onGround && mMesh->GetLinearDamping() > 1.1f)
+		if (!onGround && mMesh->GetLinearDamping() > 1.1f)// && !onMoveablePlatform)
 			mMesh->SetLinearDamping(0.1f);
 
 		currentRotation = FMath::Lerp(
@@ -400,6 +462,11 @@ void AGolfBall::Tick(float DeltaTime)
 				newRotationTransform.Rotator().Roll),
 			15.f * DeltaTime);
 		
+
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Purple, *linearDampingString);
+
+
 		break;
 
 	case CLIMBING:
@@ -639,6 +706,8 @@ void AGolfBall::levelInit()
 
 void AGolfBall::golfInit()
 {
+	transformParticles->Activate();
+
 	FVector ballVelocity;
 
 	bLerpingPerspective = true;
@@ -667,6 +736,14 @@ void AGolfBall::golfInit()
 		mMesh->RecreatePhysicsState();
 		mMesh->SetPhysicsLinearVelocity(ballVelocity, false);
 		mWorldSettings->GlobalGravityZ = -8000.f;
+
+		if (strokeCounter > 0)
+		{
+			GolfStrokesWidget->SetVisibility(ESlateVisibility::Visible);
+			WalkingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+			FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+			ClimbingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 	if (state == WALKING && mMesh && mMesh->IsValidLowLevel())
 	{
@@ -679,6 +756,14 @@ void AGolfBall::golfInit()
 		mMesh->SetAngularDamping(0.8f);
 
 		mWorldSettings->GlobalGravityZ = -8000.f;
+
+		if (walkingRestarts > 0)
+		{
+			GolfStrokesWidget->SetVisibility(ESlateVisibility::Hidden);
+			WalkingScoreWidget->SetVisibility(ESlateVisibility::Visible);
+			FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+			ClimbingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 
 	setMeshVisibility();
@@ -687,6 +772,8 @@ void AGolfBall::golfInit()
 
 void AGolfBall::climbingInit(AActor* OtherActor)
 {
+	transformParticles->Activate();
+
 	state = CLIMBING;
 	
 	bClimbInAir = false;
@@ -712,10 +799,20 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 	setMeshVisibility();
 	switchDecalVisibility(false);
+
+	if (climbingRestarts > 0)
+	{
+		GolfStrokesWidget->SetVisibility(ESlateVisibility::Hidden);
+		WalkingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		ClimbingScoreWidget->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void AGolfBall::flyingInit(AActor *OtherActor)
 {
+	transformParticles->Activate();
+
 	state = FLYING;
 
 	bLerpingPerspective = true;
@@ -735,6 +832,15 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 
 	setMeshVisibility();
 	switchDecalVisibility(false);
+
+	if (flyingRestarts > 0)
+	{
+		GolfStrokesWidget->SetVisibility(ESlateVisibility::Visible);
+		WalkingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		ClimbingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
+
 }
 
 void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRotator camToRot, float DeltaTime)
@@ -1261,15 +1367,19 @@ void AGolfBall::tickWalking(float DeltaTime)
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (onGround && hitResults[0].GetActor()->GetHumanReadableName().Compare("movingPlatform") >= 0)
+	if (onGround)
+
 	{
-		if(platformOffset.Size() < 2.f && !platformJump)
+		if (hitResults[0].GetActor()->GetHumanReadableName().Compare("movingPlatform") >= 0 || hitResults[0].GetActor()->GetHumanReadableName().Compare("MoveablePlatform") >= 0)
 		{
-			platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
-			onPlatform = true;
+			if (platformOffset.Size() < 2.f && !platformJump)
+			{
+				platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
+				onPlatform = true;
+			}
+			if (platformOffset.Size() > 10.f && !platformJump)
+				SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
 		}
-		if (platformOffset.Size() > 10.f && !platformJump)
-			SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
 	}
 	else
 	{ 

@@ -118,15 +118,36 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> SkipCameraPanWidget_BP;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* FlyingScoreWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> FlyingScoreWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* ClimbingScoreWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> ClimbingScoreWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* WalkingScoreWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> WalkingScoreWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* GolfStrokesWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> GolfStrokesWidget_BP;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkMaxDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkTimer;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Level variable")
-		int strokeCounter = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool climbingCanLaunch = false;
@@ -261,6 +282,20 @@ public:
 	void movementTransformation(float DeltaTime);
 	AWorldSettings* mWorldSettings;
 
+
+	//Scoring
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int flyingRestarts = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int climbingRestarts = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int walkingRestarts = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		int strokeCounter = 0;
+
 	//Death and respawning
 	void respawnAtCheckpoint();
 	void respawnAtCheckpointTick(float deltaTime);
@@ -325,6 +360,8 @@ public:
 
 	void pauseGame();
 
+	//bool onMoveablePlatform = false;
+
 	UFUNCTION(BlueprintImplementableEvent)
 		void switchDecalVisibility(const bool visible);
 
@@ -344,4 +381,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 		UParticleSystemComponent* trailParticles = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+		UParticleSystemComponent* transformParticles = nullptr;
 };

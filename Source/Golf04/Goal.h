@@ -2,10 +2,12 @@
 
 #pragma once
 
+#include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
+#include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
+
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "GolfSaveGame.h"
-
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -69,4 +71,7 @@ public:
 
 	float settleTimer = 0.f;
 	bool startSettleTimer = false;
+
+
+	UParticleSystemComponent* goalParticles = nullptr;
 };
