@@ -62,7 +62,7 @@ void APacmanGhost::Tick(float DeltaTime)
 			break;
 
 		default:
-			break;
+			break;	
 		}
 		directionBuffer = -1;
 
@@ -86,8 +86,9 @@ void APacmanGhost::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult & SweepResult)
 {
-	if (OtherActor->IsA(AGolfBall::StaticClass()))
+	if (OtherActor->IsA(AGolfBall::StaticClass()) && !playerIsHit)
 	{
+		playerIsHit = true;
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->hitGhost();
 	}
 }
@@ -97,4 +98,5 @@ void APacmanGhost::resetGhosts()
 	SetActorLocation(initialPosition);
 	direction = initialDirection;
 	activated = false;
+	playerIsHit = false;
 }

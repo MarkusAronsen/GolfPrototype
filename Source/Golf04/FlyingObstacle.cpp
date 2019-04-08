@@ -63,6 +63,8 @@ void AFlyingObstacle::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActo
 			static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::WALKING;
 			static_cast<AGolfBall*>(OtherActor)->golfInit();
 			static_cast<AGolfBall*>(OtherActor)->respawnAtCheckpoint();
+			Cast<AGolfBall>(OtherActor)->FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+			Cast<AGolfBall>(OtherActor)->flyingRestarts++;
 		}
 	}
 }

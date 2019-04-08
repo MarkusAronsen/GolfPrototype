@@ -32,10 +32,27 @@ struct FLevelData
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		bool bLevelCompleted;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int flyingRestarts;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int climbingRestarts;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int walkingRestarts;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int golfStrokes;
+
+
 	FLevelData()
 	{
 		levelName = TEXT("");
 		starRating = -1;
+		flyingRestarts = -1;
+		climbingRestarts = -1;
+		walkingRestarts = -1;
+		golfStrokes = -1;
 		timeElapsed = -1;
 		currentCheckpoint = -1;
 		bLevelCompleted = false;
@@ -55,7 +72,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save data")
 		int userIndex;
-
 
 	//Cool and smart and sensible code
 	UPROPERTY(BlueprintReadOnly)
