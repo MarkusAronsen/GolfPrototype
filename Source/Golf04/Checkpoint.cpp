@@ -12,7 +12,6 @@ ACheckpoint::ACheckpoint()
 	PrimaryActorTick.bCanEverTick = true;
 
 	checkpointParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Checkpoint"));
-	checkpointParticles->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -20,7 +19,6 @@ void ACheckpoint::BeginPlay()
 {
 	Super::BeginPlay();
 	
-
 	TSet<UActorComponent*> components = GetComponents();
 
 	for (auto &element : components)
@@ -53,15 +51,14 @@ void ACheckpoint::BeginPlay()
 
 	elevateValue = initialZ;
 
-	UParticleSystem* LoadCheckpointParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/Particles/Star_Particle2.Star_Particle2'"));
+	UParticleSystem* LoadCheckpointParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/Particles/Star_Particle.Star_Particle'"));
 
 	if (LoadCheckpointParticles)
 		checkpointParticles->SetTemplate(LoadCheckpointParticles);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Checkpoint particles not found"));
 
-	checkpointParticles->SetWorldLocation(checkpointParticles->GetComponentLocation() + FVector(0, 0, 350));
-
+	checkpointParticles->Deactivate();
 }
 
 // Called every frame
@@ -127,10 +124,16 @@ void ACheckpoint::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent, AAct
 	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 
+	UE_LOG(LogTemp, Warning, TEXT("ascending checkpoint"));
+	elevate = true;
+	descend = false;
 }
 
 void ACheckpoint::OnOverlapEndOuter(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
 	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
 
+	UE_LOG(LogTemp, Warning, TEXT("descending checkpoint"));
+	elevate = false;
+	descend = true;
 }

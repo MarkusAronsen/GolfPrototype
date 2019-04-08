@@ -1709,7 +1709,7 @@ void AGolfBall::printLoadedGame()
 
 	dialogue.Empty();
 
-	dialogue.Add("The Saint Paul River is a river of western Africa. Its headwaters are in southeastern Guinea. Its upper portion in Guinea is known as the Diani River or Niandi River, and forms part of the boundary between Guinea and Liberia.");
+	dialogue.Add("T h e   S a i n t   P a u l   R iv e r   i s  a   r i v e r  o f   w e s t e r n   A f r i c a .\n I t s   h e a d w a t e r s   a r e   i n \n s o u t h e a s t e r n   G u i n e a .");// Its upper portion in Guinea is known as the Diani River or Niandi River, and forms part of the boundary between Guinea and Liberia.");
 
 	dialogue.Add("The river then enters Liberia about 50 km(31 mi) north of Gbarnga and crosses Liberia in a southwesterly direction.It empties into the Atlantic Ocean at Cape Mesurado in Monrovia near Bushrod Island, separating Monrovia from its suburb Brewerville.");
 
