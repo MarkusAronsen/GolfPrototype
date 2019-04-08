@@ -10,6 +10,7 @@
 #include "TransformationObject.h"
 #include "SecretLevelManager.h"
 #include "DirectionIndicator.h"
+#include "DestructableBlock.h"
 
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
@@ -197,6 +198,7 @@ public:
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
 	AClimbObject* currentClimbObject;
+	TArray<AActor*> destroBlocks;
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);

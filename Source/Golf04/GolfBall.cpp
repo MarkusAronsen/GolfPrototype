@@ -1409,6 +1409,21 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	if (timeToCameraFadeEnd >= cameraFadeTimer)
 	{
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+
+		//Resetting position of moved/destroyed actors
+		UGameplayStatics::GetAllActorsOfClass(this, ADestructableBlock::StaticClass(), destroBlocks);
+		if (destroBlocks.Num() > 0)
+		{
+			for (int i = 0; i < destroBlocks.Num(); i++)
+			{
+				//destroBlocks[i]->SetActorLocation(Cast<ADestructableBlock>(destroBlocks[i])->startPos);
+				Cast<ADestructableBlock>(destroBlocks[i])->SetActorHiddenInGame(false);
+				Cast<ADestructableBlock>(destroBlocks[i])->SetActorEnableCollision(true);
+				//destroBlocks[i]->SetActorHiddenInGame(false);
+				//destroBlocks[i]->SetActorEnableCollision(true);
+			}
+		}
+		//-----------------------------------------
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
 					
