@@ -118,12 +118,21 @@ void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherAct
 		settleTimer = 0.f;
 		startSettleTimer = true;
 		goalParticles->Activate();
+
+		UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlap triggered"));
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlap triggered"));
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *OtherActor->GetName());
 }
 
 void AGoal::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
 	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnEndOverlap triggered"));
+
+
 	startSettleTimer = false;
 	settleTimer = 0.f;
 }
@@ -132,6 +141,9 @@ void AGoal::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent,
 	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, 
 	bool bFromSweep, const FHitResult & SweepResult)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlapOuter triggered"));
+
 	elevate = true;
 	descend = false;
 }
@@ -139,6 +151,10 @@ void AGoal::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent,
 void AGoal::OnEndOverlapOuter(UPrimitiveComponent * OverlappedComponent, 
 	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnEndOverlapOuter triggered"));
+
+
 	elevate = false;
 	descend = true;
 }
