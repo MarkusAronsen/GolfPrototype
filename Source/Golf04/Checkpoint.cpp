@@ -116,15 +116,12 @@ void ACheckpoint::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * 
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Invalid level index (Checkpoint)"));
-
 	}
 }
 
 void ACheckpoint::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
 	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-
-	UE_LOG(LogTemp, Warning, TEXT("ascending checkpoint"));
 	elevate = true;
 	descend = false;
 }
@@ -132,8 +129,6 @@ void ACheckpoint::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent, AAct
 void ACheckpoint::OnOverlapEndOuter(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
 	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
-
-	UE_LOG(LogTemp, Warning, TEXT("descending checkpoint"));
 	elevate = false;
 	descend = true;
 }
