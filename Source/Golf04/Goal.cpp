@@ -11,7 +11,6 @@ AGoal::AGoal()
 	PrimaryActorTick.bCanEverTick = true;
 
 	goalParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Goal"));
-	goalParticles->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -67,7 +66,7 @@ void AGoal::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Goal particles not found"));
 
-	goalParticles->SetWorldLocation(goalParticles->GetComponentLocation() + FVector(0, 0, 350));
+	goalParticles->Deactivate();
 }
 
 // Called every frame
@@ -92,6 +91,7 @@ void AGoal::Tick(float DeltaTime)
 	{
 		if (elevateValue < initialZ + 450)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("ascending"));
 			elevateValue += DeltaTime * 1200;
 			Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, elevateValue));
 		}
@@ -101,14 +101,17 @@ void AGoal::Tick(float DeltaTime)
 	{
 		if (elevateValue > initialZ)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("descending"));
 			elevateValue -= DeltaTime * 1200;
 			Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, elevateValue));
 		}
 	}
 
+	//UE_LOG(LogTemp, Warning, TEXT("Elevate: %s, Descend: %s"), elevate ? TEXT("true") : TEXT("false"), descend ? TEXT("true") : TEXT("false"));
+
 	//UE_LOG(LogTemp, Warning, TEXT("ElevateValue: %f, initialZ: %f"), elevateValue, initialZ);
 }
-
+	
 void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
@@ -118,13 +121,7 @@ void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherAct
 		settleTimer = 0.f;
 		startSettleTimer = true;
 		goalParticles->Activate();
-
-		UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlap triggered"));
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlap triggered"));
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *OtherActor->GetName());
 }
 
 void AGoal::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
