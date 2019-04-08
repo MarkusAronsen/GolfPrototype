@@ -776,7 +776,8 @@ void AGolfBall::golfInit()
 
 void AGolfBall::climbingInit(AActor* OtherActor)
 {
-	transformParticles->Activate();
+	if(state != CLIMBING)
+		transformParticles->Activate();
 
 	state = CLIMBING;
 	
@@ -816,7 +817,8 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 void AGolfBall::flyingInit(AActor *OtherActor)
 {
-	transformParticles->Activate();
+	if(state != FLYING)
+		transformParticles->Activate();
 
 	state = FLYING;
 
@@ -1521,6 +1523,17 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	if (timeToCameraFadeEnd >= cameraFadeTimer)
 	{
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+
+		//Resetting position of moved/destroyed actors
+		UGameplayStatics::GetAllActorsOfClass(this, ADestructableBlock::StaticClass(), destroBlocks);
+		if (destroBlocks.Num() > 0)
+		{
+			for (int i = 0; i < destroBlocks.Num(); i++)
+			{
+				Cast<ADestructableBlock>(destroBlocks[i])->resetFunction();
+			}
+		}
+		//-----------------------------------------
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
 					
