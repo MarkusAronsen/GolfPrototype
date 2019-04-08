@@ -68,6 +68,8 @@ void AGoal::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Goal particles not found"));
 
 	goalParticles->SetWorldLocation(goalParticles->GetComponentLocation() + FVector(0, 0, 350));
+
+	goalParticles->Deactivate();
 }
 
 // Called every frame

@@ -39,8 +39,17 @@ void ADestructableBlock::Tick(float DeltaTime)
 	if (hitPoints <= 0.f)
 	{
 		//SetActorLocation(FVector(0.f, 0.f, -1000.f));
-		SetActorHiddenInGame(true);
-		SetActorEnableCollision(false);
+		bDead = true;
+	}
+
+	if (bDead)
+	{
+		if (deadTimer >= 0.05f)
+		{
+			SetActorHiddenInGame(true);
+			SetActorEnableCollision(false);
+		}
+		deadTimer += DeltaTime;
 	}
 }
 
@@ -50,5 +59,14 @@ void ADestructableBlock::OnBeginOverlap(UPrimitiveComponent * OverlappedComponen
 	{
 		hitPoints -= Cast<AGolfBall>(OtherActor)->mMesh->GetPhysicsLinearVelocity().Size();
 	}
+}
+
+void ADestructableBlock::resetFunction()
+{
+	hitPoints = maxHitPoints;
+	bDead = false;
+	deadTimer = 0.f;
+	SetActorHiddenInGame(false);
+	SetActorEnableCollision(true);
 }
 

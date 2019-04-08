@@ -776,7 +776,8 @@ void AGolfBall::golfInit()
 
 void AGolfBall::climbingInit(AActor* OtherActor)
 {
-	transformParticles->Activate();
+	if(state != CLIMBING)
+		transformParticles->Activate();
 
 	state = CLIMBING;
 	
@@ -816,7 +817,8 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 
 void AGolfBall::flyingInit(AActor *OtherActor)
 {
-	transformParticles->Activate();
+	if(state != FLYING)
+		transformParticles->Activate();
 
 	state = FLYING;
 
@@ -1528,11 +1530,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 		{
 			for (int i = 0; i < destroBlocks.Num(); i++)
 			{
-				//destroBlocks[i]->SetActorLocation(Cast<ADestructableBlock>(destroBlocks[i])->startPos);
-				Cast<ADestructableBlock>(destroBlocks[i])->SetActorHiddenInGame(false);
-				Cast<ADestructableBlock>(destroBlocks[i])->SetActorEnableCollision(true);
-				//destroBlocks[i]->SetActorHiddenInGame(false);
-				//destroBlocks[i]->SetActorEnableCollision(true);
+				Cast<ADestructableBlock>(destroBlocks[i])->resetFunction();
 			}
 		}
 		//-----------------------------------------

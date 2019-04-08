@@ -34,11 +34,16 @@ public:
 			bool bFromSweep, const FHitResult &SweepResult);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit Point")
-		float hitPoints = 8000.f;
+		float hitPoints = 6000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hit Point")
 		float maxHitPoints;
 
 	FVector startPos;
+
+	bool bDead = false;
+	float deadTimer = 0.f;
+
+	void resetFunction();
 
 };
