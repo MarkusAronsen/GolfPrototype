@@ -37,7 +37,17 @@ void AKillVolume::OnOverlap(UPrimitiveComponent * OverlappedComponent,
 {
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
+		AGolfBall* playerPtr = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0));
+		
+		if (playerPtr->state == playerPtr->states::GOLF)
+			playerPtr->strokeCounter++;
+		else if (playerPtr->state == playerPtr->states::WALKING)
+			playerPtr->walkingRestarts++;
+		//else if(playerPtr->state == playerPtr->states::CLIMBING)
+			
+		//TODO:: fix different kill cases
+
+		playerPtr->respawnAtCheckpoint();
 	}
 }
 

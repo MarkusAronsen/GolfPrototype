@@ -10,6 +10,8 @@ AGoal::AGoal()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	goalParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Goal"));
+	goalParticles->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -57,6 +59,15 @@ void AGoal::BeginPlay()
 	levelName = UGameplayStatics::GetCurrentLevelName(this);
 
 	elevateValue = initialZ;
+
+	UParticleSystem* LoadGoalParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/Particles/Star_Particle.Star_Particle'"));
+
+	if (LoadGoalParticles)
+		goalParticles->SetTemplate(LoadGoalParticles);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Goal particles not found"));
+
+	goalParticles->SetWorldLocation(goalParticles->GetComponentLocation() + FVector(0, 0, 350));
 }
 
 // Called every frame
@@ -106,12 +117,22 @@ void AGoal::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherAct
 	{
 		settleTimer = 0.f;
 		startSettleTimer = true;
+		goalParticles->Activate();
+
+		UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlap triggered"));
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlap triggered"));
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), *OtherActor->GetName());
 }
 
 void AGoal::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, 
 	UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnEndOverlap triggered"));
+
+
 	startSettleTimer = false;
 	settleTimer = 0.f;
 }
@@ -120,6 +141,9 @@ void AGoal::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent,
 	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex, 
 	bool bFromSweep, const FHitResult & SweepResult)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnOverlapOuter triggered"));
+
 	elevate = true;
 	descend = false;
 }
@@ -127,6 +151,10 @@ void AGoal::OnOverlapOuter(UPrimitiveComponent * OverlappedComponent,
 void AGoal::OnEndOverlapOuter(UPrimitiveComponent * OverlappedComponent, 
 	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
+
+	UE_LOG(LogTemp, Warning, TEXT("Goal OnEndOverlapOuter triggered"));
+
+
 	elevate = false;
 	descend = true;
 }
