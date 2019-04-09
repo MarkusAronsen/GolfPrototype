@@ -350,6 +350,11 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Transform particles not found"));
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
+
+	/*decalShadow = FindComponentByClass<UDecalComponent>();
+
+	if (!decalShadow)
+		UE_LOG(LogTemp, Warning, TEXT("Decal shadow not found"));*/
 }
 
 // Called every frame
@@ -358,6 +363,27 @@ void AGolfBall::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	onGround = sphereTrace();
+
+	/*if (world && mMesh)
+		world->SweepMultiByChannel(
+			decalPosition,
+			mMesh->GetComponentToWorld().GetLocation(),
+			mMesh->GetComponentToWorld().GetLocation() + (FVector(0.f, 0.f, 1.f) * -2000),
+			FQuat::Identity,
+			ECC_Visibility,
+			mCollisionBox->GetCollisionShape(),
+			traceParams);
+
+	if (decalPosition.Num() > 0)
+	{
+		switchDecalVisibility(true);
+		decalShadow->SetWorldLocation(decalPosition[decalPosition.Num() - 1].Location);
+	}
+	else
+		switchDecalVisibility(false);
+
+	decalShadow->SetWorldRotation(FRotator(0, 90, 0));
+	*/
 
 	FString sizeString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 	FString linearDampingString = FString::SanitizeFloat(mMesh->GetLinearDamping());
@@ -842,9 +868,9 @@ void AGolfBall::flyingInit(AActor *OtherActor)
 
 	if (flyingRestarts > 0)
 	{
-		GolfStrokesWidget->SetVisibility(ESlateVisibility::Visible);
+		GolfStrokesWidget->SetVisibility(ESlateVisibility::Hidden);
 		WalkingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
-		FlyingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
+		FlyingScoreWidget->SetVisibility(ESlateVisibility::Visible);
 		ClimbingScoreWidget->SetVisibility(ESlateVisibility::Hidden);
 	}
 
@@ -1579,7 +1605,7 @@ void AGolfBall::cameraPanTick(float deltaTime)
 				target = viewTargets[i];
 		}
 		if (target)
-			GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+			GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 3, true);
 		else
 			UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target0 not found"));
 
@@ -1607,7 +1633,7 @@ void AGolfBall::cameraPanTick(float deltaTime)
 					target = viewTargets[i];
 			}
 			if (target)
-				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 3, true);
 			else
 				UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target1 not found"));
 			break;
@@ -1619,7 +1645,7 @@ void AGolfBall::cameraPanTick(float deltaTime)
 					target = viewTargets[i];
 			}
 			if (target)
-				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 3, true);
 			else
 				UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target2 not found"));
 			break;
@@ -1631,13 +1657,13 @@ void AGolfBall::cameraPanTick(float deltaTime)
 					target = viewTargets[i];
 			}
 			if (target)
-				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+				GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(target, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 3, true);
 			else
 				UE_LOG(LogTemp, Warning, TEXT("view target with tag: Target3 not found"));
 			break;
 
 		case 4:
-			GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_EaseInOut, 3, true);
+			GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, viewTargetBlendTime, EViewTargetBlendFunction::VTBlend_Cubic, 3, true);
 			mCamera->Activate();
 			UE_LOG(LogTemp, Warning, TEXT("Setting view target to player"));
 			SkipCameraPanWidget->RemoveFromParent();
@@ -1709,7 +1735,7 @@ void AGolfBall::printLoadedGame()
 
 	dialogue.Empty();
 
-	dialogue.Add("T h e   S a i n t   P a u l   R iv e r   i s  a   r i v e r  o f   w e s t e r n   A f r i c a .\n I t s   h e a d w a t e r s   a r e   i n \n s o u t h e a s t e r n   G u i n e a .");// Its upper portion in Guinea is known as the Diani River or Niandi River, and forms part of the boundary between Guinea and Liberia.");
+	dialogue.Add("T  h  e    S  a  i  n  t    P  a  u  l   R  i  v  e  r    i  s   a   r  i  v  e  r   o f   w e s t e r n   A f r i c a .\n I t s   h e a d w a t e r s   a r e   i n \n s o u t h e a s t e r n   G u i n e a .");// Its upper portion in Guinea is known as the Diani River or Niandi River, and forms part of the boundary between Guinea and Liberia.");
 
 	dialogue.Add("The river then enters Liberia about 50 km(31 mi) north of Gbarnga and crosses Liberia in a southwesterly direction.It empties into the Atlantic Ocean at Cape Mesurado in Monrovia near Bushrod Island, separating Monrovia from its suburb Brewerville.");
 
