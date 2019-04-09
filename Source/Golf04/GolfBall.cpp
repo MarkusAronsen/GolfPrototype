@@ -734,12 +734,9 @@ void AGolfBall::levelInit()
 	}
 }
 
-void AGolfBall::golfInit()
+void AGolfBall::golfInit(bool playTransformParticles)
 {
 	FVector ballVelocity;
-
-	if(UGameplayStatics::GetRealTimeSeconds(world) > 0.1f)
-		transformParticles->Activate();
 
 	bLerpingPerspective = true;
 	mSpringArm->bEnableCameraLag = true;
@@ -761,6 +758,10 @@ void AGolfBall::golfInit()
 	if(state == GOLF && mMesh && mMesh->IsValidLowLevel())
 	{ 
 		UE_LOG(LogTemp, Warning, TEXT("GOLF INIT"));
+
+		if (playTransformParticles)
+			transformParticles->Activate();
+
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector::ZeroVector;
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 70.f;
 		ballVelocity = mMesh->GetPhysicsLinearVelocity();
@@ -779,6 +780,10 @@ void AGolfBall::golfInit()
 	if (state == WALKING && mMesh && mMesh->IsValidLowLevel())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("WALKING INIT"));
+
+		if (playTransformParticles)
+			transformParticles->Activate();
+
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Center = FVector(0.f, 0.f, -30.f);
 		mMesh->GetStaticMesh()->BodySetup->AggGeom.SphereElems[0].Radius = 105.f;
 		ballVelocity = mMesh->GetPhysicsLinearVelocity();
@@ -801,9 +806,9 @@ void AGolfBall::golfInit()
 	switchDecalVisibility(true);
 }
 
-void AGolfBall::climbingInit(AActor* OtherActor)
+void AGolfBall::climbingInit(AActor* OtherActor, bool playTransformParticles)
 {
-	if(state != CLIMBING)
+	if(playTransformParticles)
 		transformParticles->Activate();
 
 	state = CLIMBING;
@@ -842,9 +847,9 @@ void AGolfBall::climbingInit(AActor* OtherActor)
 	}
 }
 
-void AGolfBall::flyingInit(AActor *OtherActor)
+void AGolfBall::flyingInit(AActor *OtherActor, bool playTransformParticles)
 {
-	if(state != FLYING)
+	if(playTransformParticles)
 		transformParticles->Activate();
 
 	state = FLYING;
