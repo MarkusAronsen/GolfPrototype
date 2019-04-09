@@ -704,7 +704,10 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 	{
 		currentClimbObject = Cast<AClimbObject>(OtherActor);
 		bLerpingPerspective = true;
-		climbingInit(OtherActor);
+		if (state == CLIMBING)
+			climbingInit(OtherActor, false);
+		else
+			climbingInit(OtherActor);
 	}
 }
 
@@ -810,6 +813,17 @@ void AGolfBall::climbingInit(AActor* OtherActor, bool playTransformParticles)
 {
 	if(playTransformParticles)
 		transformParticles->Activate();
+
+	if (state != CLIMBING)
+	{
+		TArray<AActor*> climbingFloor;
+		UGameplayStatics::GetAllActorsOfClass(this, AClimbRisingFloor::StaticClass(), climbingFloor);
+		if (climbingFloor.Num() > 0)
+		{
+			Cast<AClimbRisingFloor>(climbingFloor[0])->SetActorHiddenInGame(false);
+			Cast<AClimbRisingFloor>(climbingFloor[0])->SetActorEnableCollision(true);
+		}
+	}
 
 	state = CLIMBING;
 	

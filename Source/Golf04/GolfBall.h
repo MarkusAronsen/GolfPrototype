@@ -12,6 +12,7 @@
 #include "DirectionIndicator.h"
 #include "DestructableBlock.h"
 #include "FlyingGravitySwitch.h"
+#include "ClimbRisingFloor.h"
 
 
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"

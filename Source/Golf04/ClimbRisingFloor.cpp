@@ -25,6 +25,9 @@ void AClimbRisingFloor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("ClimbRisingFloor no collision box"));
 
 	startPos = GetActorLocation();
+
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
 
 // Called every frame
