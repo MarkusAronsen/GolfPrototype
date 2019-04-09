@@ -650,8 +650,8 @@ void AGolfBall::Tick(float DeltaTime)
 
 	}
 
-	if (world)
-		drawDebugObjectsTick();
+	//if (world)
+		//drawDebugObjectsTick();
 	
 
 	//
