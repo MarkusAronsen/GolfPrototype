@@ -188,9 +188,9 @@ public:
 	AController* mController;
 
 	void levelInit();
-	void golfInit();
-	void climbingInit(AActor *OtherActor);
-	void flyingInit(AActor *OtherActor);
+	void golfInit(bool playTransformParticles = true);
+	void climbingInit(AActor *OtherActor, bool playTransformParticles = true);
+	void flyingInit(AActor *OtherActor, bool playTransformParticles = true);
 
 	bool isCharging = false;
 	bool canLaunch = true;
