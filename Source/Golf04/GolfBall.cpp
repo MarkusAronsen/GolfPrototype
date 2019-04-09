@@ -3,8 +3,6 @@
 #include "GolfBall.h"
 #include "LevelSelecter.h"
 
-
-
 // Sets default values
 AGolfBall::AGolfBall()
 {
@@ -1570,6 +1568,15 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 				Cast<ADestructableBlock>(destroBlocks[i])->resetFunction();
 			}
 		}
+
+		TArray<AActor*> flyingGravitySwitches;
+		UGameplayStatics::GetAllActorsOfClass(this, AFlyingGravitySwitch::StaticClass(), flyingGravitySwitches);
+		if (flyingGravitySwitches.Num() > 0)
+		{
+			for (int i = 0; i < flyingGravitySwitches.Num(); i++)
+				Cast<AFlyingGravitySwitch>(flyingGravitySwitches[i])->mesh->SetVisibility(true);
+		}
+
 		//-----------------------------------------
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
 		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);

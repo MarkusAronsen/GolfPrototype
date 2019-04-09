@@ -11,6 +11,8 @@
 #include "SecretLevelManager.h"
 #include "DirectionIndicator.h"
 #include "DestructableBlock.h"
+#include "FlyingGravitySwitch.h"
+
 
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
