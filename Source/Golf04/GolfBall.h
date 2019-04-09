@@ -341,7 +341,7 @@ public:
 
 	//Non-secret, non-levelselect levels should have four view targets (camera actors), tagged "Target0", "Target1", "Target2", "Target3"
 	TArray<AActor*> viewTargets;
-	float viewTargetBlendTime = 2.f;
+	float viewTargetBlendTime = 2.5f;
 	float blendTimer = 0.f;
 	int currentViewTarget = 0;
 	bool newViewTargetSet = false;
@@ -366,6 +366,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void switchDecalVisibility(const bool visible);
+
+	//UDecalComponent* decalShadow = nullptr;
+
+	//TArray<FHitResult> decalPosition;
 
 	//Dialogue
 	UFUNCTION(BlueprintImplementableEvent)
