@@ -349,6 +349,8 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Transform particles not found"));
 
+	transformParticles->Deactivate();
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 }
 
@@ -710,9 +712,10 @@ void AGolfBall::levelInit()
 
 void AGolfBall::golfInit()
 {
-	transformParticles->Activate();
-
 	FVector ballVelocity;
+
+	if(UGameplayStatics::GetRealTimeSeconds(world) > 0.1f)
+		transformParticles->Activate();
 
 	bLerpingPerspective = true;
 	mSpringArm->bEnableCameraLag = true;
@@ -1375,10 +1378,15 @@ void AGolfBall::tickWalking(float DeltaTime)
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
+	if (GEngine && hitResults.Num() > 0)
+		GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
+
 	if (onGround)
 
 	{
-		if (hitResults[0].GetActor()->GetHumanReadableName().Compare("movingPlatform") >= 0 || hitResults[0].GetActor()->GetHumanReadableName().Compare("MoveablePlatform") >= 0)
+		if (hitResults[0].GetActor()->GetHumanReadableName().Contains("SplinePlatform") || 
+			hitResults[0].GetActor()->GetHumanReadableName().Contains("MoveablePlatform") || 
+			hitResults[0].GetActor()->GetHumanReadableName().Contains("TransformObject"))
 		{
 			if (platformOffset.Size() < 2.f && !platformJump)
 			{
@@ -1386,7 +1394,10 @@ void AGolfBall::tickWalking(float DeltaTime)
 				onPlatform = true;
 			}
 			if (platformOffset.Size() > 10.f && !platformJump)
+			{
 				SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
+				//mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
+			}
 		}
 	}
 	else
