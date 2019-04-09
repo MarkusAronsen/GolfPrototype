@@ -27,35 +27,35 @@ void ATransformationObject::Tick(float DeltaTime)
 	{
 		rotateTimer1 += DeltaTime;
 
-		if (rotateTimer1 >= interval1)
+		if (rotateTimer1 >= nextAxisInterval)
 		{
-			angle1 += DeltaTime * rotationSpeed1;
+			nextAxisStartAngle += DeltaTime * nextAxisRotationSpeed;
 
 			switch (modeSwitch1)
 			{
 			case 1:
-				AddActorLocalRotation(FRotator(0, 0, DeltaTime * rotationSpeed1));
-				if (angle1 > 90.f)
+				AddActorLocalRotation(FRotator(0, 0, DeltaTime * nextAxisRotationSpeed));
+				if (nextAxisStartAngle > 90.f)
 				{
-					angle1 = 0.f;
+					nextAxisStartAngle = 0.f;
 					rotateTimer1 = 0.f;
 					modeSwitch1 = 2;
 				}
 				break;
 			case 2:
-				AddActorLocalRotation(FRotator(0, DeltaTime * rotationSpeed1, 0));
-				if (angle1 > 90.f)
+				AddActorLocalRotation(FRotator(0, DeltaTime * nextAxisRotationSpeed, 0));
+				if (nextAxisStartAngle > 90.f)
 				{
-					angle1 = 0.f;
+					nextAxisStartAngle = 0.f;
 					rotateTimer1 = 0.f;
 					modeSwitch1 = 3;
 				}
 				break;
 			case 3:
-				AddActorLocalRotation(FRotator(DeltaTime * rotationSpeed1, 0, 0));
-				if (angle1 > 90.f)
+				AddActorLocalRotation(FRotator(DeltaTime * nextAxisRotationSpeed, 0, 0));
+				if (nextAxisStartAngle > 90.f)
 				{
-					angle1 = 0.f;
+					nextAxisStartAngle = 0.f;
 					rotateTimer1 = 0.f;
 					modeSwitch1 = 1;
 				}
@@ -66,28 +66,28 @@ void ATransformationObject::Tick(float DeltaTime)
 
 	if (scaleUpAndDownPeriodically)
 	{
-		timeToScale2 += DeltaTime * 0.2f;
+		scaleUpAndDownTime += DeltaTime * 0.2f;
 
-		if (timeToScale2 > interval2 && scaleUp2)
+		if (scaleUpAndDownTime > scaleUpAndDownIntervalLength && interval)
 		{
-			SetActorScale3D(FMath::Lerp(FVector(XYScaleDown2, XYScaleDown2, 1.f), FVector(XYScaleUp2, XYScaleUp2, 1.f), lerpAlpha2));
-			lerpAlpha2 += DeltaTime * scaleSpeed2;
+			SetActorScale3D(FMath::Lerp(FVector(ScaleDownXYMultiplier, ScaleDownXYMultiplier, 1.f), FVector(ScaleUpXYMultiplier, ScaleUpXYMultiplier, 1.f), lerpAlpha2));
+			lerpAlpha2 += DeltaTime * ScaleUpAndDownRate;
 			if (lerpAlpha2 >= 1.f)
 			{
-				scaleUp2 = false;
-				timeToScale2 = 0.f;
+				interval = false;
+				scaleUpAndDownTime = 0.f;
 				lerpAlpha2 = 0.f;
 			}
 		}
 
-		else if (timeToScale2 > interval2 && !scaleUp2)
+		else if (scaleUpAndDownTime > scaleUpAndDownIntervalLength && !interval)
 		{
-			SetActorScale3D(FMath::Lerp(FVector(XYScaleUp2, XYScaleUp2, 1.f), FVector(XYScaleDown2, XYScaleDown2, 1.f), lerpAlpha2));
-			lerpAlpha2 += DeltaTime * scaleSpeed2;
+			SetActorScale3D(FMath::Lerp(FVector(ScaleUpXYMultiplier, ScaleUpXYMultiplier, 1.f), FVector(ScaleDownXYMultiplier, ScaleDownXYMultiplier, 1.f), lerpAlpha2));
+			lerpAlpha2 += DeltaTime * ScaleUpAndDownRate;
 			if (lerpAlpha2 >= 1.f)
 			{
-				scaleUp2 = true;
-				timeToScale2 = 0.f;
+				interval = true;
+				scaleUpAndDownTime = 0.f;
 				lerpAlpha2 = 0.f;
 			}
 		}

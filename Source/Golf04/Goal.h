@@ -56,6 +56,10 @@ public:
 		void OnEndOverlapOuter(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex);
 
+	//remove later
+	UPROPERTY(EditAnywhere)
+		FString levelToOpen;
+
 	bool elevate = false;
 	float elevateValue = 0.f;
 	bool descend = false;

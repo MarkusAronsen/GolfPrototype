@@ -83,7 +83,7 @@ void AGoal::Tick(float DeltaTime)
 			startSettleTimer = false;
 			levelTimeElapsed = UGameplayStatics::GetUnpausedTimeSeconds(this);
 			saveLevelData();
-			UGameplayStatics::OpenLevel(this, "LevelSelect");
+			UGameplayStatics::OpenLevel(this, *levelToOpen);
 		}
 	}
 

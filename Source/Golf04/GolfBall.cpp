@@ -1402,16 +1402,17 @@ void AGolfBall::tickWalking(float DeltaTime)
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (GEngine && hitResults.Num() > 0)
-		GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
-
 	if (onGround)
 
 	{
 		if (hitResults[0].GetActor()->GetHumanReadableName().Contains("SplinePlatform") || 
 			hitResults[0].GetActor()->GetHumanReadableName().Contains("MoveablePlatform") || 
-			hitResults[0].GetActor()->GetHumanReadableName().Contains("TransformObject"))
+			hitResults[0].GetActor()->GetHumanReadableName().Contains("TransformationObject"))
 		{
+
+			if (GEngine && hitResults.Num() > 0)
+				GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
+
 			if (platformOffset.Size() < 2.f && !platformJump)
 			{
 				platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
