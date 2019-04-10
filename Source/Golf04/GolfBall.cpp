@@ -95,7 +95,7 @@ void AGolfBall::BeginPlay()
 		PowerBarWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), PowerBarWidget_BP);
 		if (PowerBarWidget)
 		{
-			PowerBarWidget->AddToViewport();
+			//PowerBarWidget->AddToViewport();
 			PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
@@ -464,10 +464,10 @@ void AGolfBall::Tick(float DeltaTime)
 		else
 			canLaunch = false;
 
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
-		if(GEngine)
-			GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Yellow, *linearDampingString);
+		//if (GEngine)
+			//GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
+		//if(GEngine)
+			//GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Yellow, *linearDampingString);
 		break;
 
 	case WALKING:
@@ -493,8 +493,8 @@ void AGolfBall::Tick(float DeltaTime)
 			15.f * DeltaTime);
 		
 
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Purple, *linearDampingString);
+		//if(GEngine)
+			//GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Purple, *linearDampingString);
 
 
 		break;
@@ -538,7 +538,7 @@ void AGolfBall::Tick(float DeltaTime)
 			float climbingDegree = (acos(dotProduct) * 180)/PI;
 			FString degreeString = FString::SanitizeFloat(dotProduct);
 
-			GEngine->AddOnScreenDebugMessage(11, 0.1f, FColor::Red, *mCamera->GetComponentRotation().ToString());
+			//GEngine->AddOnScreenDebugMessage(11, 0.1f, FColor::Red, *mCamera->GetComponentRotation().ToString());
 
 			if (mousePositionClicked.Y <= mouseX)
 				climbingDegree = climbingDegree * -1;
@@ -563,8 +563,8 @@ void AGolfBall::Tick(float DeltaTime)
 		
 		stringStretch = FString::SanitizeFloat(stretchRatio);
 		
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(5, 0.1f, FColor::Purple, *stringStretch);
+		//if (GEngine)
+			//GEngine->AddOnScreenDebugMessage(5, 0.1f, FColor::Purple, *stringStretch);
 		break;
 
 	case FLYING:
@@ -907,8 +907,8 @@ void AGolfBall::lerpPerspective(FRotator springToRot, float springToLength, FRot
 	if (camToRot.Equals(mCamera->RelativeRotation, 0.5f) && FMath::IsNearlyEqual(springToLength, mSpringArm->TargetArmLength, 2.f) && springToRot.Equals(mSpringArm->RelativeRotation, 0.5f))
 		bLerpingPerspective = false;
 
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(12, 0.1f, FColor::Blue, TEXT("LERPING PERSPECTIVE!"));
+	//if (GEngine)
+		//GEngine->AddOnScreenDebugMessage(12, 0.1f, FColor::Blue, TEXT("LERPING PERSPECTIVE!"));
 }
 
 void AGolfBall::walkFunction(float deltaTime)
@@ -1429,8 +1429,8 @@ void AGolfBall::tickWalking(float DeltaTime)
 			hitResults[0].GetActor()->GetHumanReadableName().Contains("TransformationObject"))
 		{
 
-			if (GEngine && hitResults.Num() > 0)
-				GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
+			//if (GEngine && hitResults.Num() > 0)
+			//Engine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
 
 			if (platformOffset.Size() < 2.f && !platformJump)
 			{
@@ -1475,8 +1475,8 @@ void AGolfBall::movementTransformation(float DeltaTime)
 	float directionDistance = FMath::Clamp((inputVelocityNormalized - XYNormalized).Size() * 0.1f, 0.f, 0.1f);
 	FString distanceString = FString::SanitizeFloat(directionDistance);
 
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Yellow, *distanceString);
+	//if (GEngine)
+		//GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Yellow, *distanceString);
 
 	if (!onGround && XYLength.Size() < 1000.f)
 		mMesh->AddForce((newTranslationTransform.Rotator().Vector() * movementSpeed * 100.f) * DeltaTime, NAME_None, false);
@@ -1719,8 +1719,8 @@ void AGolfBall::debugMouse()
 {
 	debugMouseX = FString::SanitizeFloat(mouseX);
 	debugMouseY = FString::SanitizeFloat(572.f - mouseY);
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
+	//if (GEngine)
+		//GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, TEXT("Mouse X: " + debugMouseX + "\n Mouse Y: " + debugMouseY));
 }
 
 void AGolfBall::drawDebugObjectsTick()
