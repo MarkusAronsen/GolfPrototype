@@ -89,6 +89,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* mArmsMesh = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* mPacManMesh = nullptr;
+
+
+
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		UAnimationAsset* FlyingAnim;*/
 

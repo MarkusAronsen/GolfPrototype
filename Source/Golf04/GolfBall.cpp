@@ -22,6 +22,7 @@ AGolfBall::AGolfBall()
 	mWingsMeshRight = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WingsMeshRight"), true);
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
+	mPacManMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PacManMesh"), true);
 
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
 	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
@@ -45,6 +46,7 @@ AGolfBall::AGolfBall()
 	mWingsMeshRight->SetupAttachment(mMesh);
 	mLegsMesh->SetupAttachment(mMesh);
 	mArmsMesh->SetupAttachment(mMesh);
+	mPacManMesh->SetupAttachment(mMesh);
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
@@ -72,6 +74,9 @@ void AGolfBall::BeginPlay()
 
 	USkeletalMesh* loadedArmsMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/arms_asset.arms_asset'"));
 	mArmsMesh->SetSkeletalMesh(loadedArmsMesh);
+
+	UStaticMesh* loadedPacManMesh = LoadObject <UStaticMesh>(nullptr, TEXT("StaticMesh'/Game/GBH/Models/Props/Dynamic/lo-fi_golfball.lo-fi_golfball'"));
+	mPacManMesh->SetStaticMesh(loadedPacManMesh);
 
 	mWorldSettings = GetWorldSettings();
 	mWorldSettings->bGlobalGravitySet = true;
@@ -197,13 +202,14 @@ void AGolfBall::BeginPlay()
 	traceParams.AddIgnoredComponent(mMesh);
 	traceParams.AddIgnoredComponent(mCollisionBox);
 
-	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight && mArmsMesh)
+	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight && mArmsMesh && mPacManMesh)
 	{
 		//Disable visibility on meshes not relevant for golfing
 		mLegsMesh->SetVisibility(false);
 		mWingsMeshLeft->SetVisibility(false);
 		mWingsMeshRight->SetVisibility(false);
 		mArmsMesh->SetVisibility(false);
+		mPacManMesh->SetVisibility(false);
 		//-
 
 		//Flip left wing to create right wing
@@ -219,10 +225,12 @@ void AGolfBall::BeginPlay()
 		mArmsMesh->SetRelativeRotation(FRotator(0, -90, 0));
 		mArmsMesh->SetRelativeLocation(FVector(0.f, 0.f, -55.f));
 
-
+		mPacManMesh->SetRelativeRotation(FRotator(0, 0, -90));
+		mPacManMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+		mPacManMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight || mArmsMesh not initialized"));
+		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight || mArmsMesh || mPacManMesh not initialized"));
 	
 	//Start camera pan if level is not LevelSelect or secret level
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) != 0
@@ -271,6 +279,8 @@ void AGolfBall::BeginPlay()
 	{
 		state = WALKING;
 	}
+	mSpringArm->TargetArmLength = 1000.f;
+	
 
 	if (mMesh)
 	{
@@ -298,7 +308,11 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Playing secret level"));
 
 		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel04") == 0)
+		{
 			mMesh->SetSimulatePhysics(false);
+			mPacManMesh->SetVisibility(true);
+			mMesh->SetVisibility(false);
+		}
 	}
 
 	//Occlusion outlining
@@ -306,17 +320,20 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->bRenderCustomDepth = true;
 	mWingsMeshRight->bRenderCustomDepth = true;
 	mLegsMesh->bRenderCustomDepth = true;
+	mPacManMesh->bRenderCustomDepth = true;
 
 	mMesh->CustomDepthStencilValue = 1;
 	mWingsMeshLeft->CustomDepthStencilValue = 1;
 	mWingsMeshRight->CustomDepthStencilValue = 1;
 	mLegsMesh->CustomDepthStencilValue = 1;
+	mPacManMesh->CustomDepthStencilValue = 1;
 
 	//Shadows off, custom decal is used
 	mMesh->CastShadow = false;
 	mLegsMesh->CastShadow = false;
 	mWingsMeshLeft->CastShadow = false;
 	mWingsMeshRight->CastShadow = false;
+	mPacManMesh->CastShadow = false;
 
 	//Fetch particle systems
 	UParticleSystem* LoadTrailParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/TestParticles/TrailParticles.TrailParticles'"));
@@ -347,7 +364,10 @@ void AGolfBall::BeginPlay()
 	transformParticles->Deactivate();
 
 	if (Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel)
+	{
 		SetActorLocation(Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition + FVector(200, 200, 50));
+		bCameraShouldPan = false;
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 
@@ -396,7 +416,7 @@ void AGolfBall::Tick(float DeltaTime)
 	{
 	case GOLF:
 		if(bLerpingPerspective)
-			lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+			lerpPerspective(FRotator(-30.f, 0.f, 0.f), mSpringArm->TargetArmLength, FRotator(10.f, 0.f, 0.f), DeltaTime);
 
 		mouseCameraPitch();
 		mouseCameraYaw();
@@ -472,7 +492,7 @@ void AGolfBall::Tick(float DeltaTime)
 
 	case WALKING:
 		if(bLerpingPerspective)
-			lerpPerspective(FRotator(-30.f, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+			lerpPerspective(FRotator(-30.f, 0.f, 0.f), mSpringArm->TargetArmLength, FRotator(10.f, 0.f, 0.f), DeltaTime);
 
 		lineTraceHit = lineTrace();
 		mouseCameraPitch();
@@ -625,7 +645,7 @@ void AGolfBall::Tick(float DeltaTime)
 
 	case AWAITING_LEVELSELECT_INPUT:
 		if(bLerpingPerspective)
-			lerpPerspective(FRotator(-30, 0.f, 0.f), 1000.f, FRotator(10.f, 0.f, 0.f), DeltaTime);
+			lerpPerspective(FRotator(-30, 0.f, 0.f), mSpringArm->TargetArmLength, FRotator(10.f, 0.f, 0.f), DeltaTime);
 		mMesh->SetLinearDamping(100.f);
 		mouseCameraPitch();
 		mouseCameraYaw();
