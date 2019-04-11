@@ -302,6 +302,7 @@ public:
 		int strokeCounter = 0;
 
 	//Death and respawning
+
 	void respawnAtCheckpoint();
 	void respawnAtCheckpointTick(float deltaTime);
 	FVector SpawnPosition;

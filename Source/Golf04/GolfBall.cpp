@@ -108,7 +108,7 @@ void AGolfBall::BeginPlay()
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("PauseWidget not initialized"));
-	
+
 	if (SkipCameraPanWidget_BP)
 	{
 		SkipCameraPanWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), SkipCameraPanWidget_BP);
@@ -178,9 +178,6 @@ void AGolfBall::BeginPlay()
 	world = GetWorld();
 
 	mController = GetWorld()->GetFirstPlayerController();
-
-
-
 
 	GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.1f, 0.f), cameraFadeTimer);
 
@@ -348,6 +345,9 @@ void AGolfBall::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Transform particles not found"));
 
 	transformParticles->Deactivate();
+
+	if (Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel)
+		SetActorLocation(Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition + FVector(200, 200, 50));
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 
