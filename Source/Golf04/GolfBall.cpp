@@ -994,6 +994,8 @@ void AGolfBall::stopStrike()
 		currentLaunchPower = 0.f;
 
 		PowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
+		if(dirIndicator)
+			dirIndicator->Destroy();
 	}
 }
 void AGolfBall::spacebarPressed()
