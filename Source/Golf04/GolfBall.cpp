@@ -179,6 +179,19 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("GolfStrokesWidget not initialized"));
 
+	if (RunnerTimerWidget_BP)
+	{
+		RunnerTimerWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), RunnerTimerWidget_BP);
+
+		if (RunnerTimerWidget)
+		{
+			RunnerTimerWidget->AddToViewport();
+			RunnerTimerWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("RunnerTimerWidget not initialized"));
+
 	walkMaxDuration = 30.f;
 	world = GetWorld();
 
@@ -312,6 +325,10 @@ void AGolfBall::BeginPlay()
 			mMesh->SetSimulatePhysics(false);
 			mPacManMesh->SetVisibility(true);
 			mMesh->SetVisibility(false);
+		}
+		else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel05") == 0)
+		{
+			RunnerTimerWidget->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
@@ -471,7 +488,7 @@ void AGolfBall::Tick(float DeltaTime)
 				canLaunch = true;
 				if (!canLaunchParticlesHaveActivated)
 				{
-					//canLaunchReadyParticles->Activate();
+					canLaunchReadyParticles->Activate();
 					canLaunchParticlesHaveActivated = true;
 				}
 			}
@@ -481,9 +498,10 @@ void AGolfBall::Tick(float DeltaTime)
 				canLaunchParticlesHaveActivated = false;
 			}
 		}
-		else
-			canLaunch = false;
+		//else
+			//canLaunch = false;
 
+		UE_LOG(LogTemp, Warning, TEXT("Physics linear velocity: %s"), *mMesh->GetPhysicsLinearVelocity().ToString());
 		//if (GEngine)
 			//GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
 		//if(GEngine)
@@ -509,7 +527,7 @@ void AGolfBall::Tick(float DeltaTime)
 			FRotator(
 				newRotationTransform.Rotator().Pitch,
 				walkingDirection,
-				newRotationTransform.Rotator().Roll),
+				newRotationTransform.Rotator().Roll),	
 			15.f * DeltaTime);
 		
 
@@ -1162,6 +1180,8 @@ void AGolfBall::setLMBPressed()
 					dirIndicator = world->SpawnActor<ADirectionIndicator>(ToSpawn, GetActorLocation() +
 						FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall,
 						FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f), spawnInfo);
+
+					UE_LOG(LogTemp, Warning, TEXT("Spawning direction indicator"));
 				}
 			}
 			break;
@@ -1185,8 +1205,6 @@ void AGolfBall::setLMBReleased()
 {
 	if (!bCameraShouldPan)
 	{
-
-
 		LMBPressed = false;
 		switch (state)
 		{
@@ -1616,6 +1634,12 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 			for (int i = 0; i < flyingGravitySwitches.Num(); i++)
 				Cast<AFlyingGravitySwitch>(flyingGravitySwitches[i])->mesh->SetVisibility(true);
 		}
+			
+		TArray<AActor*> plinkoBlocker;
+		UGameplayStatics::GetAllActorsOfClass(this, APlinkoBlocker::StaticClass(), plinkoBlocker);
+
+		if (plinkoBlocker.Num() > 0)
+			Cast<APlinkoBlocker>(plinkoBlocker[0])->reset();
 
 		//-----------------------------------------
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
@@ -1633,6 +1657,8 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 		{
 			secretLevelManagerInstance->bBallIsThrown = false;
 			canLaunch = true;
+
+			UE_LOG(LogTemp, Warning, TEXT("Playing secret level 01"));
 		}
 	}
 }

@@ -63,6 +63,9 @@ public:
 
 	void secretLevelFinished(bool lostTo8Ball = false);
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void setGamePaused();
+
 	//Bowling---------------------------------------------------------
 	TArray<AActor*> bowlingPins;
 
@@ -156,6 +159,13 @@ public:
 	int getPacmanScore();
 
 	void pacmanFinished();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void setPacmanAntiAliasing();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void resetPacmanAntiAliasing();
+
 	//----------------------------------------------------------------
 
 	//Runner----------------------------------------------------------
@@ -166,6 +176,11 @@ public:
 	float runnerScore = 0;
 
 	float getRunnerScore();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float runnerTimer = 0.f;
+
+	bool incrementRunnerTimer = false;
 
 	void runnerFinished();
 	//----------------------------------------------------------------

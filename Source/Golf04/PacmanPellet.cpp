@@ -47,7 +47,11 @@ void APacmanPellet::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->pacmanScore += 10;
 		secretLevelManagerInstance->pellets.Remove(this);
 		if (secretLevelManagerInstance->pellets.Num() == 0)
+		{
+			secretLevelManagerInstance->resetPacmanAntiAliasing();
 			secretLevelManagerInstance->secretLevelFinished();
+		}
+			
 		Destroy();
 	}
 }
