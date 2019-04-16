@@ -68,7 +68,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class UCameraComponent* mCamera = nullptr;
 
-	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* mSpringArm = nullptr;
 
 	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -174,12 +174,13 @@ public:
 		PACMAN = 7,
 		RUNNER = 8
 	};
-	int state;
+	UPROPERTY(BlueprintReadOnly)
+		int state;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
-		float maxLaunchPower = 10000.f;
+		float maxLaunchPower = 11000.f;
 
 	ADirectionIndicator* dirIndicator = nullptr;
 	FActorSpawnParameters spawnInfo;
@@ -345,7 +346,9 @@ public:
 		bool bClimbInAir = false;
 
 	//Enter level camera pan
-	bool bCameraShouldPan;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bCameraShouldPan;
+
 	void cameraPanTick(float deltaTime);
 
 	//Non-secret, non-levelselect levels should have four view targets (camera actors), tagged "Target0", "Target1", "Target2", "Target3"
