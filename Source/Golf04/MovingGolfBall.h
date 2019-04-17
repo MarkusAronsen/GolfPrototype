@@ -38,6 +38,6 @@ public:
 		float launchInterval = 4.f;
 
 	UPROPERTY(EditAnywhere)
-		float launchForce = 1000.f;
+		float launchForce = 10000.f;
 
 };

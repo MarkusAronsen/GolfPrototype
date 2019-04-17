@@ -8,7 +8,7 @@ AMovingGolfBall::AMovingGolfBall()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	//mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 }
 
 // Called when the game starts or when spawned
@@ -36,9 +36,17 @@ void AMovingGolfBall::Tick(float DeltaTime)
 
 	if (launchTimer >= launchInterval)
 	{
+		mesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+
 		launchTimer = 0.f;
 
-		mesh->AddImpulse(FVector(rand() % 10, rand() % 10, 0) * launchForce);
+		FVector launchVector = FVector(FMath::RandRange(-1, 1), FMath::RandRange(-1, 1), 0);
+		launchVector.Normalize();
+		launchVector *= launchForce;
+
+		mesh->AddImpulse(launchVector);
+		UE_LOG(LogTemp, Warning, TEXT("Linear velocity: %s, launchVector: %s"), *mesh->GetPhysicsLinearVelocity().ToString(), *launchVector.ToString());
+
 	}
 }
 

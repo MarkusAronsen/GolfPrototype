@@ -365,7 +365,7 @@ int ASecretLevelManager::getSecretLevelPerformance()
 void ASecretLevelManager::secretLevelFinished(bool lostTo8Ball)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s is finished"), *UGameplayStatics::GetCurrentLevelName(this));
-	setGamePaused();
+	UGameplayStatics::SetGamePaused(this, true),
 	SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
@@ -394,13 +394,6 @@ void ASecretLevelManager::removeFallenPins()
 	}
 
 }
-
-/*void ASecretLevelManager::bowlingFinished()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Bowling finished"));
-
-	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}*/
 
 int ASecretLevelManager::getBowlingScore()
 {
@@ -437,24 +430,10 @@ void ASecretLevelManager::plinkoLaunch()
 	PlinkoPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-/*void ASecretLevelManager::plinkoFinished()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Plinko finished"));
-
-	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}*/
-
 void ASecretLevelManager::registerBilliards()
 {
 	billiardsScore++;
 }
-
-/*void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Billiards finished. %s"), lostTo8Ball ? TEXT("Player lost to 8Ball") : TEXT("Player did not lose to 8Ball"));
-
-	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}*/
 
 int ASecretLevelManager::getBilliardsScore()
 {
@@ -516,17 +495,7 @@ int ASecretLevelManager::getPacmanScore()
 	return pacmanScore;
 }
 
-void ASecretLevelManager::pacmanFinished()
-{
-	//etc
-}
-
 float ASecretLevelManager::getRunnerScore()
 {
 	return runnerScore;
-}
-
-void ASecretLevelManager::runnerFinished()
-{
-	//.
 }

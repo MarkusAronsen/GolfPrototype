@@ -179,19 +179,6 @@ void AGolfBall::BeginPlay()
 	else
 		UE_LOG(LogTemp, Warning, TEXT("GolfStrokesWidget not initialized"));
 
-	if (RunnerTimerWidget_BP)
-	{
-		RunnerTimerWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), RunnerTimerWidget_BP);
-
-		if (RunnerTimerWidget)
-		{
-			RunnerTimerWidget->AddToViewport();
-			RunnerTimerWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("RunnerTimerWidget not initialized"));
-
 	walkMaxDuration = 30.f;
 	world = GetWorld();
 
@@ -325,10 +312,6 @@ void AGolfBall::BeginPlay()
 			mMesh->SetSimulatePhysics(false);
 			mPacManMesh->SetVisibility(true);
 			mMesh->SetVisibility(false);
-		}
-		else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel05") == 0)
-		{
-			RunnerTimerWidget->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 
