@@ -56,5 +56,6 @@ void APlinkoBlocker::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 void APlinkoBlocker::reset()
 {
 	ascend = false;
+	ascendValue = initialLocationZ;
 	Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, initialLocationZ));
 }

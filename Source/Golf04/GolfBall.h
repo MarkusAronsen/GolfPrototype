@@ -13,7 +13,7 @@
 #include "DestructableBlock.h"
 #include "FlyingGravitySwitch.h"
 #include "ClimbRisingFloor.h"
-
+#include "PlinkoBlocker.h"
 
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
@@ -150,6 +150,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> GolfStrokesWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* RunnerTimerWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> RunnerTimerWidget_BP;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")

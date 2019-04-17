@@ -23,7 +23,6 @@ void AMovingGolfBall::BeginPlay()
 	if (!mesh)
 		UE_LOG(LogTemp, Warning, TEXT("Moving golfball no mesh"));
 	
-
 	mesh->SetSimulatePhysics(true);
 
 }

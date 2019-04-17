@@ -39,6 +39,14 @@ void AKillVolume::OnOverlap(UPrimitiveComponent * OverlappedComponent,
 	{
 		AGolfBall* playerPtr = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0));
 		
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel05", ESearchCase::IgnoreCase) == 0)
+		{
+			playerPtr->secretLevelManagerInstance->incrementRunnerTimer = false;
+			playerPtr->secretLevelManagerInstance->runnerScore = playerPtr->secretLevelManagerInstance->runnerTimer;
+			playerPtr->secretLevelManagerInstance->secretLevelFinished();
+		}
+
+
 		if (playerPtr->state == playerPtr->states::GOLF)
 			playerPtr->strokeCounter++;
 		else if (playerPtr->state == playerPtr->states::WALKING)
