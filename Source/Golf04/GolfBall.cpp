@@ -430,7 +430,7 @@ void AGolfBall::Tick(float DeltaTime)
 			{
 				if (currentLaunchPower <= maxLaunchPower)
 				{
-					indicatorStretch += DeltaTime;
+					indicatorStretch += DeltaTime * 3;
 					dirIndicator->SetActorRelativeScale3D(FVector(1.f + indicatorStretch, 1.f, 1.f));
 				}
 				dirIndicator->SetActorLocation(GetActorLocation() + FRotator(0.f, world->GetFirstPlayerController()->GetControlRotation().Yaw, 0.f).Vector() * distanceFromBall);
@@ -513,6 +513,15 @@ void AGolfBall::Tick(float DeltaTime)
 				newRotationTransform.Rotator().Roll),	
 			15.f * DeltaTime);
 		
+		if (jumpingNotReady)
+		{
+			jumpingCooldown += DeltaTime;
+			if (jumpingCooldown > 0.15f)
+			{
+				jumpingNotReady = false;
+				jumpingCooldown = 0.f;
+			}
+		}
 
 		//if(GEngine)
 			//GEngine->AddOnScreenDebugMessage(17, 0.1f, FColor::Purple, *linearDampingString);
@@ -572,10 +581,16 @@ void AGolfBall::Tick(float DeltaTime)
 
 			if (currentClimbObject->bIsEdgeNode)
 			{
-				if(mousePositionClicked.Y <= mouseX && debugMouseLine.Size() > 100.f)
+				if (mousePositionClicked.Y <= mouseX && debugMouseLine.Size() > 100.f)
+				{
 					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree));
+					mSpringArm->SetRelativeRotation(currentClimbObject->GetActorRotation() + FRotator(0.f, 225.f, 0.f));
+				}
 				if (mousePositionClicked.Y > mouseX && debugMouseLine.Size() > 100.f)
+				{
 					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree));
+					mSpringArm->SetRelativeRotation(currentClimbObject->GetActorRotation() + FRotator(0.f, -225.f, 0.f));
+				}
 			}
 
 			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
@@ -944,11 +959,13 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
-	mMesh->AddImpulse(FVector(0.f, 0.f, 5500.f), NAME_None, true);
+	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 6000.f), false);
 	if(WPressed || APressed || SPressed || DPressed)
 		mMesh->SetPhysicsAngularVelocityInDegrees(GetActorRightVector() * 800, false, NAME_None);
 	if (onPlatform)
 		platformJump = true;
+
+	jumpingNotReady = true;
 }
 
 void AGolfBall::applyForce(FVector force)
@@ -1005,8 +1022,11 @@ void AGolfBall::spacebarPressed()
 
 		
 	}
-	if (state == WALKING && lineTraceHit)
+	if (state == WALKING && lineTraceHit && !jumpingNotReady)
+	{
 		jump();
+		jumpingNotReady = true;
+	}
 
 	if (state == PLINKO && secretLevelManagerInstance->plinkoLaunchReady)
 	{
