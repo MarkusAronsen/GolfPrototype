@@ -535,7 +535,7 @@ void AGolfBall::Tick(float DeltaTime)
 		if(bLerpingPerspective)
 			lerpPerspective(GetActorRotation(), 2500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
-		debugMouseLine = debugMouseLine * 2.f;
+		debugMouseLine = debugMouseLine * 2;
 		if (debugMouseLine.Size() < 100.f)
 			debugMouseLine = FVector::ZeroVector;
 		if (debugMouseLine.Size() > 402.f)
@@ -593,8 +593,8 @@ void AGolfBall::Tick(float DeltaTime)
 				}
 			}
 
-			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
-				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
+			if (currentClimbObject && !mMesh->IsSimulatingPhysics())
+				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 1);
 		}
 		
 		stringStretch = FString::SanitizeFloat(stretchRatio);
@@ -736,7 +736,17 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(AClimbObject::StaticClass()))
+	if (OtherActor->IsA(AClimbObject::StaticClass()) && !currentClimbObject)
+	{
+		currentClimbObject = Cast<AClimbObject>(OtherActor);
+		bLerpingPerspective = true;
+		if (state == CLIMBING)
+			climbingInit(OtherActor, false);
+		else
+			climbingInit(OtherActor);
+	}
+
+	else if (OtherActor->IsA(AClimbObject::StaticClass()) && currentClimbObject->GetUniqueID() != Cast<AClimbObject>(OtherActor)->GetUniqueID())
 	{
 		currentClimbObject = Cast<AClimbObject>(OtherActor);
 		bLerpingPerspective = true;
