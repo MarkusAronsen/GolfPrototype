@@ -271,6 +271,8 @@ public:
 	bool DPressed = false;
 	bool LMBPressed = false;
 
+	//WALKING DATA
+
 	bool sphereTrace();
 	bool lineTrace();
 	void constructTransform(FVector hitLocation, FVector impactNormal);
@@ -298,6 +300,8 @@ public:
 	bool platformJump = false;
 	void movementTransformation(float DeltaTime);
 	AWorldSettings* mWorldSettings;
+	bool jumpingNotReady = false;
+	float jumpingCooldown;
 
 
 	//Scoring
