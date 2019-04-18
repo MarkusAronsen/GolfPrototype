@@ -10,7 +10,7 @@
 #include "GolfSaveGame.generated.h"
 
 //class AGolfSaveInstance;
-const int NUM_LEVELS = 13;
+const int NUM_LEVELS = 14;
 
 USTRUCT(BlueprintType)
 struct FLevelData
@@ -79,5 +79,5 @@ public:
 										FLevelData(), FLevelData(), FLevelData(), 
 										FLevelData(), FLevelData(), FLevelData(),
 										FLevelData(), FLevelData(), FLevelData(), 
-										FLevelData()};
+										FLevelData(), FLevelData() };
 };

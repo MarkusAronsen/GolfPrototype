@@ -16,12 +16,12 @@ void AClimbObject::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	TArray<FHitResult> hitResults;
+	/*TArray<FHitResult> hitResults;
 
-	FCollisionShape sphereTrace = FCollisionShape::MakeSphere(50.f);
+	FCollisionShape sphereTrace = FCollisionShape::MakeSphere(32.f);
 	FCollisionQueryParams params = FCollisionQueryParams::DefaultQueryParam;
 	params.AddIgnoredActor(this);
-	params.ClearIgnoredComponents();
+	//params.ClearIgnoredComponents();
 
 	GetWorld()->SweepMultiByChannel(
 		hitResults,
@@ -38,10 +38,42 @@ void AClimbObject::BeginPlay()
 			
 		if(hitResults[i].GetActor()->GetName().Contains("Cube") && !bIsEdgeNode)
 			SetActorRotation(hitResults[i].ImpactNormal.Rotation());
+
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *GetActorLocation().ToString());
 	}
 
         if(!bIsEdgeNode)
-		SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
+			SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
+			*/
+
+	CollisionBox = FindComponentByClass<UShapeComponent>();
+
+	if (CollisionBox)
+	{
+		TSet<AActor*> overlappingActors;
+
+		//Actors should generate overlap events
+		CollisionBox->GetOverlappingActors(overlappingActors);
+		//UE_LOG(LogTemp, Warning, TEXT("%i"), overlappingActors.Num());
+
+
+		if (overlappingActors.Num() > 0)
+		{
+			for (auto &elem : overlappingActors)
+			{
+				if (elem->GetName().Contains("Cube"))
+				{
+					SetActorRotation((elem->GetActorForwardVector() * -1).Rotation());
+					if (!bIsEdgeNode)
+						SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
+
+					DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200, FColor::Red, true, 1, (uint8)'\000', 20);
+
+					UE_LOG(LogTemp, Warning, TEXT("%i"), overlappingActors.Num());
+				}
+			}
+		}
+	}
 
 }
 

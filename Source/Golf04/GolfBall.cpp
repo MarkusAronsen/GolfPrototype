@@ -484,7 +484,7 @@ void AGolfBall::Tick(float DeltaTime)
 		//else
 			//canLaunch = false;
 
-		UE_LOG(LogTemp, Warning, TEXT("Physics linear velocity: %s"), *mMesh->GetPhysicsLinearVelocity().ToString());
+		//UE_LOG(LogTemp, Warning, TEXT("Physics linear velocity: %s"), *mMesh->GetPhysicsLinearVelocity().ToString());
 		//if (GEngine)
 			//GEngine->AddOnScreenDebugMessage(16, 0.1f, FColor::Yellow, *sizeString);
 		//if(GEngine)
