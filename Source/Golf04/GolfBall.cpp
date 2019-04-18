@@ -736,17 +736,12 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(AClimbObject::StaticClass()) && !currentClimbObject)
+	if (OtherActor->IsA(AClimbObject::StaticClass()) && currentClimbObject && currentClimbObject->GetUniqueID() == Cast<AClimbObject>(OtherActor)->GetUniqueID() && currentClimbObject->ignored)
 	{
-		currentClimbObject = Cast<AClimbObject>(OtherActor);
-		bLerpingPerspective = true;
-		if (state == CLIMBING)
-			climbingInit(OtherActor, false);
-		else
-			climbingInit(OtherActor);
+		//IGNORE CASE
 	}
 
-	else if (OtherActor->IsA(AClimbObject::StaticClass()) && currentClimbObject->GetUniqueID() != Cast<AClimbObject>(OtherActor)->GetUniqueID())
+	else if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
 		currentClimbObject = Cast<AClimbObject>(OtherActor);
 		bLerpingPerspective = true;
@@ -1307,7 +1302,7 @@ void AGolfBall::setLMBReleased()
 					mousePositionReleased = FVector::ZeroVector;
 					bLerpingPerspective = true;
 					bClimbInAir = true;
-					//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+					Cast<AClimbObject>(currentClimbObject)->ignored = true;
 
 				}
 				break;
