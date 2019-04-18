@@ -736,7 +736,12 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(AClimbObject::StaticClass()) && currentClimbObject && currentClimbObject->GetUniqueID() == Cast<AClimbObject>(OtherActor)->GetUniqueID() && currentClimbObject->ignored)
+	if (OtherActor->IsA(AClimbObject::StaticClass()) && !mMesh->IsSimulatingPhysics())
+	{
+		//IGNORE CASE
+	}
+	
+	else if (OtherActor->IsA(AClimbObject::StaticClass()) && currentClimbObject && currentClimbObject->GetUniqueID() == Cast<AClimbObject>(OtherActor)->GetUniqueID() && currentClimbObject->ignored)
 	{
 		//IGNORE CASE
 	}
@@ -1294,7 +1299,7 @@ void AGolfBall::setLMBReleased()
 						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
 
 					mMesh->SetSimulatePhysics(true);
-					mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+					mMesh->AddImpulse(mousePositionReleased * 3000.f, NAME_None, false);
 
 					stretchRatio = 0.f;
 					debugMouseLine = FVector::ZeroVector;
@@ -1604,8 +1609,15 @@ void AGolfBall::respawnAtCheckpoint()
 				bStartRespawnCameraFade = true;
 			}
 		}
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
+		else if (levelIndex == -1)
+		{
+			TArray<AActor*> PlayerStart;
+			UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStart);
+			SpawnPosition = PlayerStart[0]->GetActorLocation();
+			bRespawning = true;
+			bStartRespawnCameraFade = true;
+			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));	
+		}
 
 
 
