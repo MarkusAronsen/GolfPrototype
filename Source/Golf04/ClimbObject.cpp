@@ -66,10 +66,6 @@ void AClimbObject::BeginPlay()
 					SetActorRotation((elem->GetActorForwardVector() * -1).Rotation());
 					if (!bIsEdgeNode)
 						SetActorLocation(GetActorLocation() + GetActorForwardVector() * 50);
-
-					DrawDebugLine(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200, FColor::Red, true, 1, (uint8)'\000', 20);
-
-					UE_LOG(LogTemp, Warning, TEXT("%i"), overlappingActors.Num());
 				}
 			}
 		}
