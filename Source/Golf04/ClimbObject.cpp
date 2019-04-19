@@ -78,14 +78,14 @@ void AClimbObject::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*if (ignored)
+	if (ignored)
 	{
 		ignoreTimer += DeltaTime;
-		if (ignoreTimer >= 1.f)
+		if (ignoreTimer >= 0.2f)
 		{
 			ignoreTimer = 0.f;
 			ignored = false;
 		}
-	}*/
+	}
 }
 

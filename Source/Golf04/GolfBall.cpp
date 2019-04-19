@@ -535,7 +535,7 @@ void AGolfBall::Tick(float DeltaTime)
 		if(bLerpingPerspective)
 			lerpPerspective(GetActorRotation(), 2500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		debugMouseLine = FVector(0.f, mouseX, mouseY) - mousePositionClicked;
-		debugMouseLine = debugMouseLine * 2.f;
+		debugMouseLine = debugMouseLine * 2;
 		if (debugMouseLine.Size() < 100.f)
 			debugMouseLine = FVector::ZeroVector;
 		if (debugMouseLine.Size() > 402.f)
@@ -543,7 +543,6 @@ void AGolfBall::Tick(float DeltaTime)
 			ratio = debugMouseLine.Size() / 400.f;
 			debugMouseLine = debugMouseLine / ratio;
 		}
-		debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 
 		if (mousePositionClicked.Size() > 1.f)
 		{
@@ -574,10 +573,16 @@ void AGolfBall::Tick(float DeltaTime)
 				climbingDegree = climbingDegree * -1;
 			
 			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() > 100.f)
+			{
 				SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree));
+				debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			}
 
 			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() <= 100.f)
+			{
 				SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, 0.f));
+				debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			}
 
 			if (currentClimbObject->bIsEdgeNode)
 			{
@@ -585,16 +590,18 @@ void AGolfBall::Tick(float DeltaTime)
 				{
 					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree));
 					mSpringArm->SetRelativeRotation(currentClimbObject->GetActorRotation() + FRotator(0.f, 225.f, 0.f));
+					debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45.f, FVector(0, 0, 1));
 				}
 				if (mousePositionClicked.Y > mouseX && debugMouseLine.Size() > 100.f)
 				{
 					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree));
 					mSpringArm->SetRelativeRotation(currentClimbObject->GetActorRotation() + FRotator(0.f, -225.f, 0.f));
+					debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45.f, FVector(0, 0, 1));
 				}
 			}
 
-			if(currentClimbObject && !mMesh->IsSimulatingPhysics())
-				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.3);
+			if (currentClimbObject && !mMesh->IsSimulatingPhysics())
+				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.5f);
 		}
 		
 		stringStretch = FString::SanitizeFloat(stretchRatio);
@@ -736,7 +743,17 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 	UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex,
 	bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (OtherActor->IsA(AClimbObject::StaticClass()))
+	if (OtherActor->IsA(AClimbObject::StaticClass()) && !mMesh->IsSimulatingPhysics())
+	{
+		//IGNORE CASE
+	}
+	
+	else if (OtherActor->IsA(AClimbObject::StaticClass()) && currentClimbObject && currentClimbObject->GetUniqueID() == Cast<AClimbObject>(OtherActor)->GetUniqueID() && currentClimbObject->ignored)
+	{
+		//IGNORE CASE
+	}
+
+	else if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
 		currentClimbObject = Cast<AClimbObject>(OtherActor);
 		bLerpingPerspective = true;
@@ -1289,7 +1306,7 @@ void AGolfBall::setLMBReleased()
 						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
 
 					mMesh->SetSimulatePhysics(true);
-					mMesh->AddImpulse(mousePositionReleased * 2500.f, NAME_None, false);
+					mMesh->AddImpulse(mousePositionReleased * 2750.f, NAME_None, false);
 
 					stretchRatio = 0.f;
 					debugMouseLine = FVector::ZeroVector;
@@ -1297,7 +1314,7 @@ void AGolfBall::setLMBReleased()
 					mousePositionReleased = FVector::ZeroVector;
 					bLerpingPerspective = true;
 					bClimbInAir = true;
-					//Cast<AClimbObject>(currentClimbObject)->ignored = true;
+					Cast<AClimbObject>(currentClimbObject)->ignored = true;
 
 				}
 				break;
@@ -1604,8 +1621,15 @@ void AGolfBall::respawnAtCheckpoint()
 				bStartRespawnCameraFade = true;
 			}
 		}
-		else
-			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
+		else if (levelIndex == -1)
+		{
+			TArray<AActor*> PlayerStart;
+			UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStart);
+			SpawnPosition = PlayerStart[0]->GetActorLocation();
+			bRespawning = true;
+			bStartRespawnCameraFade = true;
+			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));	
+		}
 
 
 

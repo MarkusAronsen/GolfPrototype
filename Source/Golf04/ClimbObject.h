@@ -31,4 +31,7 @@ public:
 		bool bIsEdgeNode = false;
 
 	UShapeComponent* CollisionBox = nullptr;
+
+	bool ignored = false;
+	float ignoreTimer = 0.f;
 };
