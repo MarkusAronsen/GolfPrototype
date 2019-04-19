@@ -1482,7 +1482,6 @@ void AGolfBall::tickWalking(float DeltaTime)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
 	if (onGround)
-
 	{
 		if (hitResults[0].GetActor()->GetHumanReadableName().Contains("SplinePlatform") || 
 			hitResults[0].GetActor()->GetHumanReadableName().Contains("MoveablePlatform") || 
