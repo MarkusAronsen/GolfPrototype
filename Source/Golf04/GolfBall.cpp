@@ -543,7 +543,6 @@ void AGolfBall::Tick(float DeltaTime)
 			ratio = debugMouseLine.Size() / 400.f;
 			debugMouseLine = debugMouseLine / ratio;
 		}
-		debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
 
 		if (mousePositionClicked.Size() > 1.f)
 		{
@@ -574,10 +573,16 @@ void AGolfBall::Tick(float DeltaTime)
 				climbingDegree = climbingDegree * -1;
 			
 			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() > 100.f)
+			{
 				SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, climbingDegree));
+				debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			}
 
 			if (!currentClimbObject->bIsEdgeNode && debugMouseLine.Size() <= 100.f)
+			{
 				SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f, 0.f));
+				debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw, FVector(0, 0, 1));
+			}
 
 			if (currentClimbObject->bIsEdgeNode)
 			{
@@ -585,16 +590,18 @@ void AGolfBall::Tick(float DeltaTime)
 				{
 					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f + 45.f, climbingDegree));
 					mSpringArm->SetRelativeRotation(currentClimbObject->GetActorRotation() + FRotator(0.f, 225.f, 0.f));
+					debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45.f, FVector(0, 0, 1));
 				}
 				if (mousePositionClicked.Y > mouseX && debugMouseLine.Size() > 100.f)
 				{
 					SetActorRotation(FRotator(0.f, currentClimbObject->GetActorRotation().Yaw + 180.f - 45.f, climbingDegree));
 					mSpringArm->SetRelativeRotation(currentClimbObject->GetActorRotation() + FRotator(0.f, -225.f, 0.f));
+					debugMouseLine = debugMouseLine.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45.f, FVector(0, 0, 1));
 				}
 			}
 
 			if (currentClimbObject && !mMesh->IsSimulatingPhysics())
-				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 1);
+				SetActorLocation((currentClimbObject->GetActorLocation() + OActorForwardVector * 50) + debugMouseLine * -1 * 0.5f);
 		}
 		
 		stringStretch = FString::SanitizeFloat(stretchRatio);
@@ -1299,7 +1306,7 @@ void AGolfBall::setLMBReleased()
 						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
 
 					mMesh->SetSimulatePhysics(true);
-					mMesh->AddImpulse(mousePositionReleased * 3000.f, NAME_None, false);
+					mMesh->AddImpulse(mousePositionReleased * 2750.f, NAME_None, false);
 
 					stretchRatio = 0.f;
 					debugMouseLine = FVector::ZeroVector;
