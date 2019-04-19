@@ -1465,7 +1465,6 @@ void AGolfBall::tickWalking(float DeltaTime)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
 	if (onGround)
-
 	{
 		if (hitResults[0].GetActor()->GetHumanReadableName().Contains("SplinePlatform") || 
 			hitResults[0].GetActor()->GetHumanReadableName().Contains("MoveablePlatform") || 
@@ -1474,15 +1473,18 @@ void AGolfBall::tickWalking(float DeltaTime)
 
 			//if (GEngine && hitResults.Num() > 0)
 			//Engine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
+			onPlatform = true;
+
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *platformOffset.ToString());
+			UE_LOG(LogTemp, Warning, TEXT("%i"), platformOffset.Size());
 
 			if (platformOffset.Size() < 2.f && !platformJump)
 			{
 				platformOffset = GetActorLocation() - hitResults[0].GetActor()->GetActorLocation();
-				onPlatform = true;
 			}
 			if (platformOffset.Size() > 10.f && !platformJump)
 			{
-				SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset);
+				SetActorLocation(hitResults[0].GetActor()->GetActorLocation() + platformOffset, true);
 				//mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
 			}
 		}
@@ -1492,6 +1494,9 @@ void AGolfBall::tickWalking(float DeltaTime)
 		onPlatform = false;
 		platformOffset = FVector::OneVector;
 	}
+
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, *platformOffset.ToString());
 
 }
 
