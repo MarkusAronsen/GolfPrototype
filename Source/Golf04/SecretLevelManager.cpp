@@ -49,14 +49,15 @@ void ASecretLevelManager::BeginPlay()
 		secretState = PACMAN;
 		buffer = FVector::ZeroVector;
 		UGameplayStatics::GetAllActorsOfClass(this, APacmanPellet::StaticClass(), pellets);
+		setPacmanAntiAliasing();
 	}
 	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
 	{
 		secretState = RUNNER;
+		incrementRunnerTimer = true;
 	}
 	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel06"), ESearchCase::IgnoreCase) == 0)
 	{
-
 		secretState = MAZE;
 
 		TArray<AActor*> mazeArr;
@@ -82,7 +83,6 @@ void ASecretLevelManager::BeginPlay()
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
 
-
 	if (SecretLevelFinishedWidget_BP)
 	{
 		SecretLevelFinishedWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), SecretLevelFinishedWidget_BP);
@@ -100,8 +100,6 @@ void ASecretLevelManager::BeginPlay()
 void ASecretLevelManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	UE_LOG(LogTemp, Warning, TEXT("Lives: %i"), pacmanLives);
 
 	FVector playerLocation = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation();
 
@@ -259,6 +257,10 @@ void ASecretLevelManager::Tick(float DeltaTime)
 
 		runnerMoveSpeed += DeltaTime * 7.5f;
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorLocation() + FVector(-1, 0, 0) * DeltaTime * runnerMoveSpeed);
+		
+		if(incrementRunnerTimer)
+			runnerTimer += DeltaTime;
+
 		break;
 
 	case MAZE:
@@ -308,15 +310,16 @@ int ASecretLevelManager::getSecretLevelPerformance()
 	//return bowling performance
 	if (levelName.Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) == 0)
 	{
-
-		if (bowlingScore < 1)
-			return 0;
-		if (bowlingScore < 5)
-			return 1;
-		if (bowlingScore < 7)
-			return 2;
-	    if (bowlingScore == 10)
+		if (bowlingScore == 10)
 			return 3;
+
+		if (bowlingScore > 6)
+			return 2;
+
+		if (bowlingScore > 3)
+			return 1;
+
+		return 0;
 	}
 
 	//return plinko performance
@@ -347,7 +350,13 @@ int ASecretLevelManager::getSecretLevelPerformance()
 	//return runner performance
 	if (levelName.Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
 	{
-
+		if (runnerScore > 180.f)
+			return 3;
+		if (runnerScore > 120.f)
+			return 2;
+		if (runnerScore > 60.f)
+			return 1;
+		return 0;
 	}
 
 	return 0;
@@ -356,6 +365,7 @@ int ASecretLevelManager::getSecretLevelPerformance()
 void ASecretLevelManager::secretLevelFinished(bool lostTo8Ball)
 {
 	UE_LOG(LogTemp, Warning, TEXT("%s is finished"), *UGameplayStatics::GetCurrentLevelName(this));
+	UGameplayStatics::SetGamePaused(this, true),
 	SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
@@ -384,13 +394,6 @@ void ASecretLevelManager::removeFallenPins()
 	}
 
 }
-
-/*void ASecretLevelManager::bowlingFinished()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Bowling finished"));
-
-	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}*/
 
 int ASecretLevelManager::getBowlingScore()
 {
@@ -427,24 +430,10 @@ void ASecretLevelManager::plinkoLaunch()
 	PlinkoPowerBarWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
-/*void ASecretLevelManager::plinkoFinished()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Plinko finished"));
-
-	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}*/
-
 void ASecretLevelManager::registerBilliards()
 {
 	billiardsScore++;
 }
-
-/*void ASecretLevelManager::billiardsFinished(bool lostTo8Ball)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Billiards finished. %s"), lostTo8Ball ? TEXT("Player lost to 8Ball") : TEXT("Player did not lose to 8Ball"));
-
-	//TODO: give player return to level hud? return player to level on timer? display secret level score?
-}*/
 
 int ASecretLevelManager::getBilliardsScore()
 {
@@ -458,6 +447,7 @@ void ASecretLevelManager::hitGhost()
 	{
 		hitGhostEvent();
 		walkForward = false;
+		resetPacmanAntiAliasing();
 		secretLevelFinished();
 	}
 	else
@@ -505,17 +495,7 @@ int ASecretLevelManager::getPacmanScore()
 	return pacmanScore;
 }
 
-void ASecretLevelManager::pacmanFinished()
-{
-	//etc
-}
-
 float ASecretLevelManager::getRunnerScore()
 {
 	return runnerScore;
-}
-
-void ASecretLevelManager::runnerFinished()
-{
-	//.
 }

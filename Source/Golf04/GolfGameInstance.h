@@ -29,4 +29,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	FString secretLevelParentName = TEXT("no name");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool exitingSecretLevel = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		FVector secretLevelEntrancePosition;
 };

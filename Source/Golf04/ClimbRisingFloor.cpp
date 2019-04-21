@@ -25,6 +25,9 @@ void AClimbRisingFloor::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("ClimbRisingFloor no collision box"));
 
 	startPos = GetActorLocation();
+
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
 }
 
 // Called every frame
@@ -33,7 +36,7 @@ void AClimbRisingFloor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	
 	if(Cast<AGolfBall>(GetWorld()->GetFirstPlayerController()->GetPawn())->state == Cast<AGolfBall>(GetWorld()->GetFirstPlayerController()->GetPawn())->CLIMBING)
-		SetActorLocation(FMath::VInterpTo(GetActorLocation(), GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation(), DeltaTime, 0.03f));
+		SetActorLocation(FMath::VInterpTo(GetActorLocation(), GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation(), DeltaTime, 0.05f));
 
 	if (receding)
 	{

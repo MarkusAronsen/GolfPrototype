@@ -25,31 +25,44 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+	//NEXT AXIS PERIODICALLY
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool rotateNextAxisPeriodically;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation interval")
-		float interval1 = 3.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float nextAxisInterval = 3.5f;
 
 	float rotateTimer1 = 0.f;
 	int modeSwitch1 = 1;
-	float angle1 = 0.f;
-	float rotationSpeed1 = 30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float nextAxisStartAngle = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float nextAxisRotationSpeed = 30.f;
+
+	//SCALE UP AND DOWN PERIODICALLY
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		bool scaleUpAndDownPeriodically;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation interval")
-		float interval2 = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float scaleUpAndDownIntervalLength = 3.f;
 
-	bool scaleUp2 = true;
+	bool interval = true;
 	float lerpAlpha2 = 0.f;
-	float XYScaleDown2 = 1.f;
-	float XYScaleUp2 = 2.f;
-	float scaleSpeed2 = 0.02f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ScaleDownXYMultiplier = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ScaleUpXYMultiplier = 2.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float ScaleUpAndDownRate = 0.02f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scaling sequence")
-		float timeToScale2 = 0.f;
+		float scaleUpAndDownTime = 0.f;
+
+	//ROTATE ALL AXIS PERIODICALLY
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Transformation mode")
 		bool rotateAllAxisPeriodically;
@@ -93,7 +106,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Moving platform range")
 		float rangeZ = 12.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Falling platform")
+	UPROPERTY(BlueprintReadWrite, Category = "Falling platform")
 		bool bIsFalling = false;
 
 	FVector startPos;

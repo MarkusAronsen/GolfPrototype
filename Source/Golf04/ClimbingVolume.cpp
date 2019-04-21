@@ -44,9 +44,14 @@ void AClimbingVolume::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent, 
 
 void AClimbingVolume::OnEndOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
 {
-	if (OtherActor->IsA(AGolfBall::StaticClass()))
+	if (OtherActor->IsA(AGolfBall::StaticClass()) && previousState != Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->CLIMBING)
 	{
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = previousState;
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->golfInit(false);
+	}
+	if (OtherActor->IsA(AGolfBall::StaticClass()) && previousState == Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->CLIMBING)
+	{
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->state = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->WALKING;
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->golfInit();
 	}
 }

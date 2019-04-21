@@ -3,6 +3,8 @@
 #pragma once
 
 #include "Engine/World.h"
+#include "Components/ShapeComponent.h"
+#include "DrawDebugHelpers.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -27,4 +29,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Edge node")
 		bool bIsEdgeNode = false;
+
+	UShapeComponent* CollisionBox = nullptr;
+
+	bool ignored = false;
+	float ignoreTimer = 0.f;
 };

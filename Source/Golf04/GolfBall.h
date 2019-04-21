@@ -10,6 +10,10 @@
 #include "TransformationObject.h"
 #include "SecretLevelManager.h"
 #include "DirectionIndicator.h"
+#include "DestructableBlock.h"
+#include "FlyingGravitySwitch.h"
+#include "ClimbRisingFloor.h"
+#include "PlinkoBlocker.h"
 
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
@@ -64,7 +68,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		class UCameraComponent* mCamera = nullptr;
 
-	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* mSpringArm = nullptr;
 
 	//UPROPERTY(Category = "Component")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -84,6 +88,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class USkeletalMeshComponent* mArmsMesh = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		class UStaticMeshComponent* mPacManMesh = nullptr;
+
+
 
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		UAnimationAsset* FlyingAnim;*/
@@ -142,6 +151,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> GolfStrokesWidget_BP;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* RunnerTimerWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> RunnerTimerWidget_BP;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkMaxDuration;
@@ -165,12 +180,13 @@ public:
 		PACMAN = 7,
 		RUNNER = 8
 	};
-	int state;
+	UPROPERTY(BlueprintReadOnly)
+		int state;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
 		float currentLaunchPower = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Golf variable")
-		float maxLaunchPower = 10000.f;
+		float maxLaunchPower = 11000.f;
 
 	ADirectionIndicator* dirIndicator = nullptr;
 	FActorSpawnParameters spawnInfo;
@@ -185,9 +201,9 @@ public:
 	AController* mController;
 
 	void levelInit();
-	void golfInit();
-	void climbingInit(AActor *OtherActor);
-	void flyingInit(AActor *OtherActor);
+	void golfInit(bool playTransformParticles = true);
+	void climbingInit(AActor *OtherActor, bool playTransformParticles = true);
+	void flyingInit(AActor *OtherActor, bool playTransformParticles = true);
 
 	bool isCharging = false;
 	bool canLaunch = true;
@@ -218,6 +234,7 @@ public:
 	FVector climbingCameraPosition;
 	FRotator climbingCameraRotation;
 	AClimbObject* currentClimbObject;
+	TArray<AActor*> destroBlocks;
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);
@@ -254,6 +271,8 @@ public:
 	bool DPressed = false;
 	bool LMBPressed = false;
 
+	//WALKING DATA
+
 	bool sphereTrace();
 	bool lineTrace();
 	void constructTransform(FVector hitLocation, FVector impactNormal);
@@ -281,6 +300,8 @@ public:
 	bool platformJump = false;
 	void movementTransformation(float DeltaTime);
 	AWorldSettings* mWorldSettings;
+	bool jumpingNotReady = false;
+	float jumpingCooldown;
 
 
 	//Scoring
@@ -297,6 +318,7 @@ public:
 		int strokeCounter = 0;
 
 	//Death and respawning
+
 	void respawnAtCheckpoint();
 	void respawnAtCheckpointTick(float deltaTime);
 	FVector SpawnPosition;
@@ -334,12 +356,14 @@ public:
 		bool bClimbInAir = false;
 
 	//Enter level camera pan
-	bool bCameraShouldPan;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		bool bCameraShouldPan;
+
 	void cameraPanTick(float deltaTime);
 
 	//Non-secret, non-levelselect levels should have four view targets (camera actors), tagged "Target0", "Target1", "Target2", "Target3"
 	TArray<AActor*> viewTargets;
-	float viewTargetBlendTime = 2.f;
+	float viewTargetBlendTime = 2.5f;
 	float blendTimer = 0.f;
 	int currentViewTarget = 0;
 	bool newViewTargetSet = false;
@@ -364,6 +388,10 @@ public:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void switchDecalVisibility(const bool visible);
+
+	//UDecalComponent* decalShadow = nullptr;
+
+	//TArray<FHitResult> decalPosition;
 
 	//Dialogue
 	UFUNCTION(BlueprintImplementableEvent)

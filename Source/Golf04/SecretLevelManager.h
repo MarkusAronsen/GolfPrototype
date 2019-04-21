@@ -70,7 +70,6 @@ public:
 
 	void incrementBowlingThrow();
 	void removeFallenPins();
-	//void bowlingFinished();
 	int getBowlingScore();
 
 	float ballThrownTimer = 0.f;
@@ -110,9 +109,6 @@ public:
 	void registerPlinkoScore(int value);
 
 	int plinkoAttempts = 0;
-
-	//void plinkoFinished();
-
 	//----------------------------------------------------------------	
 	
 	//Billiards-------------------------------------------------------
@@ -155,7 +151,12 @@ public:
 
 	int getPacmanScore();
 
-	void pacmanFinished();
+	UFUNCTION(BlueprintImplementableEvent)
+		void setPacmanAntiAliasing();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void resetPacmanAntiAliasing();
+
 	//----------------------------------------------------------------
 
 	//Runner----------------------------------------------------------
@@ -167,7 +168,10 @@ public:
 
 	float getRunnerScore();
 
-	void runnerFinished();
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		float runnerTimer = 0.f;
+
+	bool incrementRunnerTimer = false;
 	//----------------------------------------------------------------
 
 	//Maze------------------------------------------------------------

@@ -16,12 +16,21 @@ void AFlyingObstacle::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CollisionBox = this->FindComponentByClass<UBoxComponent>();
+	CollisionBox = FindComponentByClass<UStaticMeshComponent>();
 
 	if (CollisionBox)
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFlyingObstacle::OnOverlap);
 	else
 		UE_LOG(LogTemp, Warning, TEXT("FlyingObstacle no collision box"));
+
+
+
+	/*CollisionBox = this->FindComponentByClass<UBoxComponent>();
+
+	if (CollisionBox)
+		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AFlyingObstacle::OnOverlap);
+	else
+		UE_LOG(LogTemp, Warning, TEXT("FlyingObstacle no collision box"));*/
 	
 	initialPosition = GetActorLocation();
 	initialRotation = GetActorRotation();
