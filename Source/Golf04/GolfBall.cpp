@@ -1,7 +1,21 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "GolfBall.h"
+
 #include "LevelSelecter.h"
+#include "ClimbObject.h"
+#include "Goal.h"
+#include "GolfSaveGame.h"
+#include "Checkpoint.h"
+#include "GolfGameInstance.h"
+#include "TransformationObject.h"
+#include "SecretLevelManager.h"
+#include "DirectionIndicator.h"
+#include "DestructableBlock.h"
+#include "FlyingGravitySwitch.h"
+#include "ClimbRisingFloor.h"
+#include "PlinkoBlocker.h"
+
 
 // Sets default values
 AGolfBall::AGolfBall()
@@ -409,7 +423,7 @@ void AGolfBall::Tick(float DeltaTime)
 	FString linearDampingString = FString::SanitizeFloat(mMesh->GetLinearDamping());
 	FString velocityString = FString::SanitizeFloat(mMesh->GetPhysicsLinearVelocity().Size());
 
-	FString angularVelocityString = mMesh->GetPhysicsAngularVelocity().ToString();
+	FString angularVelocityString = mMesh->GetPhysicsAngularVelocityInDegrees().ToString();
 	FString stringStretch;
 
 	switch (state)
@@ -1677,7 +1691,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 
 		//-----------------------------------------
 		mMesh->SetPhysicsLinearVelocity(FVector(0.f, 0.f, 0.f), false);
-		mMesh->SetPhysicsAngularVelocity(FVector(0.f, 0.f, 0.f), false, NAME_None);
+		mMesh->SetPhysicsAngularVelocityInDegrees(FVector(0.f, 0.f, 0.f), false, NAME_None);
 					
 		GetWorld()->GetFirstPlayerController()->ClientSetCameraFade(true, FColor::Black, FVector2D(1.f, 0.f), cameraFadeTimer / 10);
 

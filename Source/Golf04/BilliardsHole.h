@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "BilliardBall.h"
-
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
@@ -11,7 +9,8 @@
 #include "GameFramework/Actor.h"
 #include "BilliardsHole.generated.h"
 
-class AGOlfBall;
+class AGolfBall;
+class ABilliardBall;
 
 UCLASS()
 class GOLF04_API ABilliardsHole : public AActor

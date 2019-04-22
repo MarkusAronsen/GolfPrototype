@@ -2,6 +2,7 @@
 
 #include "BilliardsHole.h"
 #include "GolfBall.h"
+#include "BilliardBall.h"
 
 // Sets default values
 ABilliardsHole::ABilliardsHole()
@@ -28,7 +29,7 @@ void ABilliardsHole::BeginPlay()
 void ABilliardsHole::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+/*
 	if (startSettleTimer)
 	{
 		settleTimer += DeltaTime;
@@ -48,6 +49,7 @@ void ABilliardsHole::Tick(float DeltaTime)
 		}
 
 	}
+	*/
 }
 
 void ABilliardsHole::OnOverlap(UPrimitiveComponent * OverlappedComponent, 

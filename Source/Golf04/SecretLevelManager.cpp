@@ -6,6 +6,12 @@
 #include "PacmanGhost.h"
 #include "PacmanPellet.h"
 
+#include "BowlingPin.h"
+#include "RunnerFloor.h"
+//#include "PhysicsMaze.h"
+#include "PhysicsMazeRotator.h"
+
+
 // Sets default values
 ASecretLevelManager::ASecretLevelManager()
 {
@@ -56,7 +62,7 @@ void ASecretLevelManager::BeginPlay()
 		secretState = RUNNER;
 		incrementRunnerTimer = true;
 	}
-	else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel06"), ESearchCase::IgnoreCase) == 0)
+	/*else if (UGameplayStatics::GetCurrentLevelName(this).Compare(TEXT("SecretLevel06"), ESearchCase::IgnoreCase) == 0)
 	{
 		secretState = MAZE;
 
@@ -78,7 +84,7 @@ void ASecretLevelManager::BeginPlay()
 			
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Maze rotators not initialized"));
-	}
+	}*/
 
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
@@ -266,7 +272,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 	case MAZE:
 
 		//mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + (mouseY * cameraSpeed), -10.f, 30.f);
-
+		/*
 		if (mazeRotateW)
 		{
 			mazePtr->SetActorRotation(FRotator(FMath::Clamp(mazePtr->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazePtr->GetActorRotation().Yaw, mazePtr->GetActorRotation().Roll));
@@ -293,7 +299,7 @@ void ASecretLevelManager::Tick(float DeltaTime)
 			mazeRotator1->SetActorRelativeRotation(FRotator(FMath::Clamp(mazeRotator1->GetActorRotation().Pitch - mazeRotateValue, -mazeMinMaxValue, mazeMinMaxValue), mazeRotator1->GetActorRotation().Yaw, mazeRotator1->GetActorRotation().Roll));
 
 		}
-
+		*/
 		break;
 
 

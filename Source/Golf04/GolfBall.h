@@ -2,19 +2,6 @@
 
 #pragma once
 
-#include "ClimbObject.h"
-#include "Goal.h"
-#include "GolfSaveGame.h"
-#include "Checkpoint.h"
-#include "GolfGameInstance.h"
-#include "TransformationObject.h"
-#include "SecretLevelManager.h"
-#include "DirectionIndicator.h"
-#include "DestructableBlock.h"
-#include "FlyingGravitySwitch.h"
-#include "ClimbRisingFloor.h"
-#include "PlinkoBlocker.h"
-
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
 #include "Runtime/UMG/Public/UMG.h"
@@ -31,12 +18,23 @@
 #include "Runtime/Engine/Classes/Kismet/KismetSystemLibrary.h"
 #include "Engine/GameEngine.h"
 
-
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "GolfBall.generated.h"
 
 class ALevelSelecter;
+class AClimbObject;
+class AGoal;
+class AGolfSaveGame;
+class ACheckpoint;
+class AGolfGameInstance;
+class ATransformationObject;
+class ASecretLevelManager;
+class ADirectionIndicator;
+class ADestructableBlock;
+class AFlyingGravitySwitch;
+class AClimbRisingFloor;
+class APlinkoBlocker;
 
 UCLASS()
 class GOLF04_API AGolfBall : public APawn

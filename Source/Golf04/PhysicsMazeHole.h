@@ -1,8 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
+/*
 #pragma once
-
-#include "PhysicsMaze.h"
 
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Engine/EngineTypes.h"
@@ -10,6 +8,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PhysicsMazeHole.generated.h"
+
+class APhysicsMaze;
 
 UCLASS()
 class GOLF04_API APhysicsMazeHole : public AActor
@@ -31,3 +31,4 @@ public:
 	class APhysicsMaze* mazePtr = nullptr;
 
 };
+*/

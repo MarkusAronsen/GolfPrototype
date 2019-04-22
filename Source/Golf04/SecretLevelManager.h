@@ -8,11 +8,6 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 
-#include "BowlingPin.h"
-#include "RunnerFloor.h"
-#include "PhysicsMaze.h"
-#include "PhysicsMazeRotator.h"
-
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "SecretLevelManager.generated.h"
@@ -21,6 +16,9 @@ class AGolfBall;
 class APacmanPathNode;
 class APacmanGhost;
 class APacmanPellet;
+class ABowlingPin;
+class ARunnerFloor;
+class APhysicsMazeRotator;
 
 enum SecretLevelState
 {

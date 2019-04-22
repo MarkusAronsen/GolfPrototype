@@ -1,6 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+/*// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PhysicsMazeHole.h"
+#include "PhysicsMaze.h"
 
 // Sets default values
 APhysicsMazeHole::APhysicsMazeHole()
@@ -33,4 +34,4 @@ void APhysicsMazeHole::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
+*/
