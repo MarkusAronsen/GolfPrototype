@@ -652,7 +652,11 @@ void AGolfBall::Tick(float DeltaTime)
 		else
 			gravity = FVector(0, 0, gravityZ);
 
-		applyForce(gravity);
+
+		if (hoverInAir)
+			applyForce(gravity * 0.01f);
+		else
+			applyForce(gravity);
 
 		/*if (flyingGravityFlipped)
 		{
@@ -1006,7 +1010,7 @@ void AGolfBall::applyForce(FVector force)
 
 void AGolfBall::updatePosition(float DeltaTime)
 {
-	if (!easeGravityShift)
+	if (!easeGravityShift && !hoverInAir)
 	{
 		velocity += acceleration;
 
@@ -1037,20 +1041,27 @@ void AGolfBall::spacebarPressed()
 	
 	if (state == FLYING)
 	{
-		velocity = FVector::ZeroVector;
-
-		if (!easeGravityShift)
+		if (hoverInAir)
 		{
-			//if (!flyingGravityFlipped)
-			applyForce(FVector(0, 0, 30));
-			//else
-				//applyForce(FVector(0, 0, -30));
-
-			bRestartFlyingAnim = true;
+			hoverInAir = false;
 		}
-		else
-			bRestartFlyingAnim = true;
 
+		if(!hoverInAir)
+		{
+			velocity = FVector::ZeroVector;
+
+			if (!easeGravityShift)
+			{
+				//if (!flyingGravityFlipped)
+				applyForce(FVector(0, 0, 30));
+				//else
+					//applyForce(FVector(0, 0, -30));
+
+				bRestartFlyingAnim = true;
+			}
+			else
+				bRestartFlyingAnim = true;
+		}
 		
 	}
 	if (state == WALKING && lineTraceHit && !jumpingNotReady)
@@ -1069,7 +1080,6 @@ void AGolfBall::spacebarPressed()
 
 void AGolfBall::spacebarReleased()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Spacebar released"));
 	if (state == PLINKO)
 		secretLevelManagerInstance->plinkoLaunch();
 }
@@ -1526,8 +1536,8 @@ void AGolfBall::tickWalking(float DeltaTime)
 		platformOffset = FVector::OneVector;
 	}
 
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, *platformOffset.ToString());
+	//if (GEngine)
+		//GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, *platformOffset.ToString());
 
 }
 
@@ -1682,6 +1692,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 			for (int i = 0; i < flyingGravitySwitches.Num(); i++)
 				Cast<AFlyingGravitySwitch>(flyingGravitySwitches[i])->mesh->SetVisibility(true);
 		}
+		//hoverInAir = true;
 			
 		TArray<AActor*> plinkoBlocker;
 		UGameplayStatics::GetAllActorsOfClass(this, APlinkoBlocker::StaticClass(), plinkoBlocker);

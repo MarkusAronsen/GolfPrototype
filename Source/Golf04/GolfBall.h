@@ -217,6 +217,7 @@ public:
 	FVector acceleration;
 	FVector gravity = FVector(0, 0, 0);
 	float gravityZ = -1.5;
+	bool hoverInAir = true;
 
 	//FVector gravitation = FVector(0.f, 0.f, -400000.f);
 	bool flyingGravityFlipped = false;
