@@ -385,6 +385,18 @@ void AGolfBall::BeginPlay()
 
 		//UE_LOG(LogTemp, Warning, TEXT("%s")
 	}
+	else
+	{
+		TArray<AActor*> playerStart;
+
+		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), playerStart);
+
+		if (playerStart.Num() > 0)
+		{
+			SetActorLocation(playerStart[0]->GetActorLocation());
+			mMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		}
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 
@@ -393,16 +405,6 @@ void AGolfBall::BeginPlay()
 	if (!decalShadow)
 		UE_LOG(LogTemp, Warning, TEXT("Decal shadow not found"));*/
 
-
-	TArray<AActor*> playerStart;
-
-	UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), playerStart);
-
-	if (playerStart.Num() > 0)
-	{
-		SetActorLocation(playerStart[0]->GetActorLocation());
-		mMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
-	}
 }
 
 // Called every frame
@@ -742,6 +744,13 @@ void AGolfBall::Tick(float DeltaTime)
 
 	if (bCameraShouldPan)
 		cameraPanTick(DeltaTime);
+
+	
+	if (Cast<UGolfGameInstance>(GetGameInstance()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("%s"), Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel ? TEXT("true") : TEXT("false"));
+	}
 }
 
 
@@ -1405,10 +1414,13 @@ void AGolfBall::leftShiftPressed()
 
 void AGolfBall::enterPressed()
 {
-	GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
-	bCameraShouldPan = false;
-	mCamera->Activate();
-	SkipCameraPanWidget->RemoveFromParent();
+	if (SkipCameraPanWidget->GetVisibility() == ESlateVisibility::Visible)
+	{
+		GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
+		bCameraShouldPan = false;
+		mCamera->Activate();
+		SkipCameraPanWidget->RemoveFromParent();
+	}
 }
 
 void AGolfBall::scrollUp()
