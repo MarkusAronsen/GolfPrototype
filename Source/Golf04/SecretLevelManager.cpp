@@ -173,6 +173,8 @@ void ASecretLevelManager::Tick(float DeltaTime)
 				plinkoLaunchPower += 15000 * DeltaTime;
 		}
 
+		UE_LOG(LogTemp, Warning, TEXT("%s"), plinkoLaunchReady ? TEXT("launch ready") : TEXT("launch not ready"));
+
 		break;
 
 	case BILLIARDS:
@@ -411,7 +413,7 @@ void ASecretLevelManager::registerPlinkoScore(int value)
 	plinkoScore += value;
 	plinkoAttempts++;
 	Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->respawnAtCheckpoint();
-	plinkoLaunchReady = true;
+	plinkoLaunchReady = true;	
 
 	//UE_LOG(LogTemp, Warning, TEXT("Plinko score: %i, attempt %i"), plinkoScore, plinkoAttempts);
 	if (plinkoAttempts == 3)
@@ -448,18 +450,18 @@ int ASecretLevelManager::getBilliardsScore()
 
 void ASecretLevelManager::hitGhost()
 {
-	pacmanLives--;
-	if (pacmanLives == 0)
-	{
+	//pacmanLives--;
+	//if (pacmanLives == 0)
+	//{
 		hitGhostEvent();
 		walkForward = false;
 		resetPacmanAntiAliasing();
 		secretLevelFinished();
-	}
-	else
-	{
-		hitGhostEvent();
-		walkForward = false;
+	//}
+	//else
+	//{
+		//hitGhostEvent();
+		//walkForward = false;
 		/*Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorLocation(FVector(-1067, 0, 113));
 		TArray<AActor*> ghosts;
 		UGameplayStatics::GetAllActorsOfClass(this, APacmanGhost::StaticClass(), ghosts);
@@ -468,8 +470,8 @@ void ASecretLevelManager::hitGhost()
 		{
 			Cast<APacmanGhost>(ghosts[i])->reset();
 		}*/
-	}
-	activateTimer = 0.f;
+	//}
+	//activateTimer = 0.f;
 }
 
 void ASecretLevelManager::pacmanSwitchDirection()

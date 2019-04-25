@@ -45,6 +45,6 @@ void ASecretLevelEntrance::OnOverlap(UPrimitiveComponent * OverlappedComponent, 
 	{
 		Cast<UGolfGameInstance>(GetGameInstance())->secretLevelParentName = secretLevelParentName;
 		Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition = GetActorLocation();
-		UGameplayStatics::OpenLevel(this, FName(*SecretLevelName));
+		UGameplayStatics::OpenLevel(this, FName(*SecretLevelName), true);
 	}
 }

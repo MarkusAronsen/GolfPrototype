@@ -381,6 +381,9 @@ void AGolfBall::BeginPlay()
 	{
 		SetActorLocation(Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition + FVector(200, 200, 50));
 		bCameraShouldPan = false;
+		Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel = false;
+
+		//UE_LOG(LogTemp, Warning, TEXT("%s")
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
@@ -389,6 +392,17 @@ void AGolfBall::BeginPlay()
 
 	if (!decalShadow)
 		UE_LOG(LogTemp, Warning, TEXT("Decal shadow not found"));*/
+
+
+	TArray<AActor*> playerStart;
+
+	UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), playerStart);
+
+	if (playerStart.Num() > 0)
+	{
+		SetActorLocation(playerStart[0]->GetActorLocation());
+		mMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
+	}
 }
 
 // Called every frame
@@ -654,7 +668,10 @@ void AGolfBall::Tick(float DeltaTime)
 
 
 		if (hoverInAir)
+		{
 			applyForce(gravity * 0.01f);
+			bRestartFlyingAnim = true;
+		}
 		else
 			applyForce(gravity);
 

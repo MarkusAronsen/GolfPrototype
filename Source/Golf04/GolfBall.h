@@ -217,6 +217,8 @@ public:
 	FVector acceleration;
 	FVector gravity = FVector(0, 0, 0);
 	float gravityZ = -1.5;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	bool hoverInAir = true;
 
 	//FVector gravitation = FVector(0.f, 0.f, -400000.f);
@@ -295,6 +297,8 @@ public:
 	bool shouldLaunch = false;
 
 	float movementSpeed = 2000000.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bValidInput = false;
 	bool platformJump = false;
 	void movementTransformation(float DeltaTime);
