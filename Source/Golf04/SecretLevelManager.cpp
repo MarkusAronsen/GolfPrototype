@@ -173,8 +173,6 @@ void ASecretLevelManager::Tick(float DeltaTime)
 				plinkoLaunchPower += 15000 * DeltaTime;
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("%s"), plinkoLaunchReady ? TEXT("launch ready") : TEXT("launch not ready"));
-
 		break;
 
 	case BILLIARDS:
@@ -476,24 +474,24 @@ void ASecretLevelManager::hitGhost()
 
 void ASecretLevelManager::pacmanSwitchDirection()
 {
-	if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5 && buffer.X < -0.5)
+	if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X > 0.5f && buffer.X < -0.5f)
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(-1.f, 0.f, 0.f).Rotation());
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(-1, 0, 0).Rotation());
 		buffer = FVector::ZeroVector;
 	}
-	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5 && buffer.X > 0.5)
+	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().X < -0.5f && buffer.X > 0.5f)
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(1.f, 0.f, 0.f).Rotation());
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(1, 0, 0).Rotation());
 		buffer = FVector::ZeroVector;
 	}
-	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5 && buffer.Y < -0.5)
+	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y > 0.5f && buffer.Y < -0.5f)
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0.f, -1.f, 0.f).Rotation());
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0, -1, 0).Rotation());
 		buffer = FVector::ZeroVector;
 	}
-	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5 && buffer.Y > 0.5)
+	else if (Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->GetActorForwardVector().Y < -0.5f && buffer.Y > 0.5f)
 	{
-		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0.f, 1.f, 0.f).Rotation());
+		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->SetActorRotation(FVector(0, 1, 0).Rotation());
 		buffer = FVector::ZeroVector;
 	}
 }

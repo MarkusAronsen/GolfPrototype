@@ -1534,12 +1534,12 @@ void AGolfBall::tickWalking(float DeltaTime)
 	if (platformJump)
 		platformJump = timerFunction(0.2f, DeltaTime);
 
-	if (hitResults.Num() > 0)
+	/*if (hitResults.Num() > 0)
 	{
 		if (GEngine && hitResults.Num() > 0)
 		GEngine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
 
-	}
+	}*/
 
 
 	if (onGround)

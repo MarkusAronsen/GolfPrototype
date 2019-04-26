@@ -18,13 +18,9 @@ void APlinkoStartResetter::BeginPlay()
 	
 	CollisionBox = FindComponentByClass<UShapeComponent>();
 	if (CollisionBox)
-	{
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &APlinkoStartResetter::OnOverlap);
-	}
 	else
-	{
 		UE_LOG(LogTemp, Warning, TEXT("PlinkoStartResetter no collision box"));
-	}
 }
 
 // Called every frame
@@ -39,9 +35,7 @@ void APlinkoStartResetter::OnOverlap(UPrimitiveComponent * OverlappedComponent, 
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
 		if (Cast<AGolfBall>(OtherActor)->secretLevelManagerInstance)
-		{
 			Cast<AGolfBall>(OtherActor)->secretLevelManagerInstance->plinkoLaunchReady = true;
-		}	
 	}
 }
 
