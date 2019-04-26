@@ -1388,6 +1388,7 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
+	/*
 	//lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
@@ -1410,6 +1411,7 @@ void AGolfBall::leftShiftPressed()
 
 
 	walkTimer = walkMaxDuration;
+	*/
 }
 
 void AGolfBall::enterPressed()
