@@ -390,6 +390,12 @@ public:
 
 	void pauseGame();
 
+	void openLevelOne();
+	void openLevelTwo();
+	void openLevelThree();
+	void openLevelFour();
+	void openLevelFive();
+
 	//bool onMoveablePlatform = false;
 
 	UFUNCTION(BlueprintImplementableEvent)
