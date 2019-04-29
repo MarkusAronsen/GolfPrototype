@@ -581,6 +581,8 @@ void AGolfBall::Tick(float DeltaTime)
 			FVector A = FVector(0, 255, 0);
 			FVector B = FVector(255, 155, 155);
 
+			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine * 100.f, FColor::Red, false, 0.f, '\000', 0.1f);
+
 			FVector lineColorVector = A + FVector((debugMouseLine.Size() / 400.f), (debugMouseLine.Size() / 400.f), 0) * (B - A);
 
 			FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
@@ -781,6 +783,12 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("Left Mouse Button", IE_Pressed, this, &AGolfBall::setLMBPressed);
 	InputComponent->BindAction("Left Mouse Button", IE_Released, this, &AGolfBall::setLMBReleased);
 	InputComponent->BindAction("Right Mouse Button", IE_Pressed, this, &AGolfBall::stopStrike);
+
+	InputComponent->BindAction("1", IE_Pressed, this, &AGolfBall::openLevelOne);
+	InputComponent->BindAction("2", IE_Pressed, this, &AGolfBall::openLevelTwo);
+	InputComponent->BindAction("3", IE_Pressed, this, &AGolfBall::openLevelThree);
+	InputComponent->BindAction("4", IE_Pressed, this, &AGolfBall::openLevelFour);
+	InputComponent->BindAction("5", IE_Pressed, this, &AGolfBall::openLevelFive);
 }
 
 void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -1987,4 +1995,29 @@ void AGolfBall::pauseGame()
 	PauseWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+}
+
+void AGolfBall::openLevelOne()
+{
+	UGameplayStatics::OpenLevel(world, "Level01");
+}
+
+void AGolfBall::openLevelTwo()
+{
+	UGameplayStatics::OpenLevel(world, "Level02");
+}
+
+void AGolfBall::openLevelThree()
+{
+	UGameplayStatics::OpenLevel(world, "ClimbingTutorial");
+}
+
+void AGolfBall::openLevelFour()
+{
+	UGameplayStatics::OpenLevel(world, "TestWalking03");
+}
+
+void AGolfBall::openLevelFive()
+{
+	UGameplayStatics::OpenLevel(world, "TestWalking02");
 }
