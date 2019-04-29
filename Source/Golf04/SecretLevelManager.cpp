@@ -315,30 +315,26 @@ int ASecretLevelManager::getSecretLevelPerformance()
 	//return bowling performance
 	if (levelName.Compare(TEXT("SecretLevel01"), ESearchCase::IgnoreCase) == 0)
 	{
-		if (bowlingScore == 10)
+		if (bowlingScore == bowlingPar[2])
 			return 3;
 
-		if (bowlingScore > 6)
+		if (bowlingScore > bowlingPar[1])
 			return 2;
 
-		if (bowlingScore > 3)
+		if (bowlingScore > bowlingPar[0])
 			return 1;
-
-		return 0;
 	}
 
 	//return plinko performance
 	if (levelName.Compare(TEXT("SecretLevel02"), ESearchCase::IgnoreCase) == 0)
 	{
-		if (plinkoScore < 350)
-			return 0;
-		if (plinkoScore < 500)
-			return 1;
-		if (plinkoScore < 1000)
-			return 2;
-		if (plinkoScore == 1500)
+		if (plinkoScore == plinkoPar[2])
 			return 3;
-	}
+		if (plinkoScore > plinkoPar[1])
+			return 2;
+		if (plinkoScore > plinkoPar[0])
+			return 1;
+		}
 
 	//return billiards performance
 	if (levelName.Compare(TEXT("SecretLevel03"), ESearchCase::IgnoreCase) == 0)
@@ -349,19 +345,23 @@ int ASecretLevelManager::getSecretLevelPerformance()
 	//return pacman performance
 	if (levelName.Compare(TEXT("SecretLevel04"), ESearchCase::IgnoreCase) == 0)
 	{
-
+		if (pacmanScore == pacmanPar[2])
+			return 3;
+		if (pacmanScore > pacmanPar[1])
+			return 2;
+		if (pacmanScore > pacmanPar[0])
+			return 1;
 	}
 
 	//return runner performance
 	if (levelName.Compare(TEXT("SecretLevel05"), ESearchCase::IgnoreCase) == 0)
 	{
-		if (runnerScore > 180.f)
+		if (runnerScore > runnerPar[2])
 			return 3;
-		if (runnerScore > 120.f)
+		if (runnerScore > runnerPar[1])
 			return 2;
-		if (runnerScore > 60.f)
+		if (runnerScore > runnerPar[0])
 			return 1;
-		return 0;
 	}
 
 	return 0;
@@ -406,8 +406,8 @@ void ASecretLevelManager::saveSecretLevelData()
 			SaveGameInstance->levelData[levelIndex].secretLevelPerformance = getSecretLevelPerformance();
 		}
 		SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
-		//SaveGameInstance->levelData
-
+		SaveGameInstance->levelData[levelIndex].bLevelCompleted = true;
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 		/*if (LoadGameInstance->levelData[levelIndex].timeElapsed > levelTimeElapsed || LoadGameInstance->levelData[levelIndex].timeElapsed < 0)
 		{
 			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));

@@ -83,6 +83,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	int bowlingScore = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		TArray<int> bowlingPar = { 3, 6, 10 };
+
 	//----------------------------------------------------------------
 
 
@@ -110,6 +114,11 @@ public:
 	void registerPlinkoScore(int value);
 
 	int plinkoAttempts = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		TArray<int> plinkoPar = { 500, 1000, 1500 };
+
+
 	//----------------------------------------------------------------	
 	
 	//Billiards-------------------------------------------------------
@@ -158,6 +167,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void resetPacmanAntiAliasing();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		TArray<int> pacmanPar = { 3, 6, 10 };
+
 	//----------------------------------------------------------------
 
 	//Runner----------------------------------------------------------
@@ -173,6 +185,10 @@ public:
 		float runnerTimer = 0.f;
 
 	bool incrementRunnerTimer = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		TArray<float> runnerPar = { 60.f, 100.f, 140.f };
+
 	//----------------------------------------------------------------
 
 	//Maze------------------------------------------------------------
