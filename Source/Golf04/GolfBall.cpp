@@ -251,6 +251,7 @@ void AGolfBall::BeginPlay()
 
 		mVisibleMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		mVisibleMesh->AttachTo(mLegsMesh, TEXT("body_JNT"), EAttachLocation::SnapToTarget);
+		//mVisibleMesh->AttachToComponent(mLegsMesh, FAttachmentTransformRules::KeepRelativeTransform, TEXT("body_JNT"));
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight || mArmsMesh || mPacManMesh || mVisibleMesh not initialized"));

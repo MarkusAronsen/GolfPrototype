@@ -392,7 +392,7 @@ void ASecretLevelManager::saveSecretLevelData()
 
 	for (int i = 0; i < NUM_LEVELS; i++)
 	{
-		if (SaveGameInstance->levelData[i].levelName.Compare(levelName, ESearchCase::IgnoreCase) == 0)
+		if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
 		{
 			levelIndex = i;
 		}
@@ -400,18 +400,26 @@ void ASecretLevelManager::saveSecretLevelData()
 
 	if (levelIndex != -1)
 	{
-		if (LoadGameInstance->levelData[levelIndex].timeElapsed > levelTimeElapsed || LoadGameInstance->levelData[levelIndex].timeElapsed < 0)
+		if (LoadGameInstance->levelData[levelIndex].secretLevelPerformance > getSecretLevelPerformance() || LoadGameInstance->levelData[levelIndex].secretLevelPerformance < 0)
+		{
+			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+			SaveGameInstance->levelData[levelIndex].secretLevelPerformance = getSecretLevelPerformance();
+		}
+		SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+		//SaveGameInstance->levelData
+
+		/*if (LoadGameInstance->levelData[levelIndex].timeElapsed > levelTimeElapsed || LoadGameInstance->levelData[levelIndex].timeElapsed < 0)
 		{
 			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
 			SaveGameInstance->levelData[levelIndex].timeElapsed = levelTimeElapsed;
 			SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
 			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
-		}
+		}*/
 
-		SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+		/*SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
 		SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
 		SaveGameInstance->levelData[levelIndex].bLevelCompleted = true;
-		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);*/
 	}
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
