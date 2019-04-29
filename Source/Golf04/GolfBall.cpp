@@ -37,6 +37,7 @@ AGolfBall::AGolfBall()
 	mLegsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("LegsMesh"), true);
 	mArmsMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ArmsMesh"), true);
 	mPacManMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("PacManMesh"), true);
+	mVisibleMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisibleMesh"), true);
 
 	topDownCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopDownCamera"), true);
 	topDownCamera->SetWorldRotation(FRotator(-90, 0, 0));
@@ -44,7 +45,6 @@ AGolfBall::AGolfBall()
 	trailParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Trail"));
 	canLaunchReadyParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CanLaunch"));
 	transformParticles = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Transform"));
-
 
 	RootComponent = mMesh;
 	mCollisionBox->SetupAttachment(mMesh);
@@ -61,6 +61,7 @@ AGolfBall::AGolfBall()
 	mLegsMesh->SetupAttachment(mMesh);
 	mArmsMesh->SetupAttachment(mMesh);
 	mPacManMesh->SetupAttachment(mMesh);
+	mVisibleMesh->SetupAttachment(mMesh);
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
@@ -77,6 +78,9 @@ void AGolfBall::BeginPlay()
 
 	UStaticMesh* loadedPlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/Game/GBH/Models/Characters/GolfBall_body_asset_static.GolfBall_body_asset_static'"));
 	mMesh->SetStaticMesh(loadedPlayerMesh);
+
+	UStaticMesh* loadedVisiblePlayerMesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/Game/GBH/Models/Characters/GolfBall_body_asset_static.GolfBall_body_asset_static'"));
+	mVisibleMesh->SetStaticMesh(loadedVisiblePlayerMesh);
 
 	USkeletalMesh* loadedLeftWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/WingsSkeletalMesh.WingsSkeletalMesh'"));
 	USkeletalMesh* loadedRightWingMesh = LoadObject<USkeletalMesh>(nullptr, TEXT("SkeletalMesh'/Game/GBH/Models/Characters/WingsSkeletalMesh.WingsSkeletalMesh'"));
@@ -216,7 +220,7 @@ void AGolfBall::BeginPlay()
 	traceParams.AddIgnoredComponent(mMesh);
 	traceParams.AddIgnoredComponent(mCollisionBox);
 
-	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight && mArmsMesh && mPacManMesh)
+	if (mLegsMesh && mWingsMeshLeft && mWingsMeshRight && mArmsMesh && mPacManMesh && mVisibleMesh)
 	{
 		//Disable visibility on meshes not relevant for golfing
 		mLegsMesh->SetVisibility(false);
@@ -224,6 +228,8 @@ void AGolfBall::BeginPlay()
 		mWingsMeshRight->SetVisibility(false);
 		mArmsMesh->SetVisibility(false);
 		mPacManMesh->SetVisibility(false);
+		mMesh->SetVisibility(false);
+		mVisibleMesh->SetVisibility(false);
 		//-
 
 		//Flip left wing to create right wing
@@ -242,9 +248,12 @@ void AGolfBall::BeginPlay()
 		mPacManMesh->SetRelativeRotation(FRotator(0, 0, -90));
 		mPacManMesh->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
 		mPacManMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		mVisibleMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		mVisibleMesh->AttachTo(mLegsMesh, TEXT("body_JNT"), EAttachLocation::SnapToTarget);
 	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight || mArmsMesh || mPacManMesh not initialized"));
+		UE_LOG(LogTemp, Warning, TEXT("mLegMesh || mWingsMeshLeft || mWingsMeshRight || mArmsMesh || mPacManMesh || mVisibleMesh not initialized"));
 	
 	//Start camera pan if level is not LevelSelect or secret level
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) != 0
@@ -335,12 +344,14 @@ void AGolfBall::BeginPlay()
 	mWingsMeshRight->bRenderCustomDepth = true;
 	mLegsMesh->bRenderCustomDepth = true;
 	mPacManMesh->bRenderCustomDepth = true;
+	mVisibleMesh->bRenderCustomDepth = true;
 
 	mMesh->CustomDepthStencilValue = 1;
 	mWingsMeshLeft->CustomDepthStencilValue = 1;
 	mWingsMeshRight->CustomDepthStencilValue = 1;
 	mLegsMesh->CustomDepthStencilValue = 1;
 	mPacManMesh->CustomDepthStencilValue = 1;
+	mVisibleMesh->CustomDepthStencilValue = 1;
 
 	//Shadows off, custom decal is used
 	mMesh->CastShadow = false;
@@ -348,13 +359,13 @@ void AGolfBall::BeginPlay()
 	mWingsMeshLeft->CastShadow = false;
 	mWingsMeshRight->CastShadow = false;
 	mPacManMesh->CastShadow = false;
+	mVisibleMesh->CastShadow = false;
 
 	//Fetch particle systems
 	UParticleSystem* LoadTrailParticles = LoadObject<UParticleSystem>(nullptr, TEXT("ParticleSystem'/Game/GBH/Particles/TestParticles/TrailParticles.TrailParticles'"));
 
 	if (LoadTrailParticles)
 		trailParticles->SetTemplate(LoadTrailParticles);
-
 	else
 		UE_LOG(LogTemp, Warning, TEXT("Trail particles not found"));
 
@@ -1388,7 +1399,7 @@ void AGolfBall::mouseCameraYaw()
 
 void AGolfBall::leftShiftPressed()
 {
-	/*
+	
 	//lerpTimer = 0.f;
 	if (!mMesh->IsSimulatingPhysics())
 		mMesh->SetSimulatePhysics(true);
@@ -1409,9 +1420,8 @@ void AGolfBall::leftShiftPressed()
 		golfInit();
 	}
 
-
 	walkTimer = walkMaxDuration;
-	*/
+	
 }
 
 void AGolfBall::enterPressed()
@@ -1938,6 +1948,8 @@ void AGolfBall::setMeshVisibility()
 			mWingsMeshRight->SetVisibility(false);
 			mLegsMesh->SetVisibility(false);
 			mArmsMesh->SetVisibility(false);
+			mMesh->SetVisibility(true);
+			mVisibleMesh->SetVisibility(false);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
@@ -1949,6 +1961,8 @@ void AGolfBall::setMeshVisibility()
 			mWingsMeshRight->SetVisibility(false);
 			mLegsMesh->SetVisibility(true);
 			mArmsMesh->SetVisibility(false);
+			mMesh->SetVisibility(false);
+			mVisibleMesh->SetVisibility(true);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
@@ -1960,6 +1974,8 @@ void AGolfBall::setMeshVisibility()
 			mWingsMeshRight->SetVisibility(false);
 			mLegsMesh->SetVisibility(false);
 			mArmsMesh->SetVisibility(true);
+			mMesh->SetVisibility(true);
+			mVisibleMesh->SetVisibility(false);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));
@@ -1971,6 +1987,8 @@ void AGolfBall::setMeshVisibility()
 			mWingsMeshRight->SetVisibility(true);
 			mLegsMesh->SetVisibility(false);
 			mArmsMesh->SetVisibility(false);
+			mMesh->SetVisibility(true);
+			mVisibleMesh->SetVisibility(false);
 		}
 		else
 			UE_LOG(LogTemp, Warning, TEXT("Null pointer at setMeshVisibility()"));

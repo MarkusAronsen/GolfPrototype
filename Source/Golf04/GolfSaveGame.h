@@ -10,7 +10,7 @@
 #include "GolfSaveGame.generated.h"
 
 //class AGolfSaveInstance;
-const int NUM_LEVELS = 15;
+const int NUM_LEVELS = 11;
 
 USTRUCT(BlueprintType)
 struct FLevelData
@@ -25,6 +25,9 @@ struct FLevelData
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		float timeElapsed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int secretLevelPerformance;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int currentCheckpoint;
@@ -54,6 +57,7 @@ struct FLevelData
 		walkingRestarts = -1;
 		golfStrokes = -1;
 		timeElapsed = -1;
+		secretLevelPerformance = -1;
 		currentCheckpoint = -1;
 		bLevelCompleted = false;
 	}
@@ -66,7 +70,7 @@ class GOLF04_API UGolfSaveGame : public USaveGame
 	
 public:
 	UGolfSaveGame();
-
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save data")
 		FString slotName;
 
@@ -78,6 +82,5 @@ public:
 		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData(), 
 										FLevelData(), FLevelData(), FLevelData(), 
 										FLevelData(), FLevelData(), FLevelData(),
-										FLevelData(), FLevelData(), FLevelData(), 
-										FLevelData(), FLevelData(), FLevelData() };
+										FLevelData(), FLevelData(), };
 };

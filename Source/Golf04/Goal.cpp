@@ -170,7 +170,7 @@ void AGoal::saveLevelData()
 
 	for (int i = 0; i < NUM_LEVELS; i++)
 	{
-		if (SaveGameInstance->levelData[i].levelName.Compare(levelName, ESearchCase::CaseSensitive) == 0)
+		if (SaveGameInstance->levelData[i].levelName.Compare(levelName, ESearchCase::IgnoreCase) == 0)
 		{
 			levelIndex = i;
 		}

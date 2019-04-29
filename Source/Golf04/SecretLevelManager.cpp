@@ -5,12 +5,11 @@
 #include "PacmanPathNode.h"
 #include "PacmanGhost.h"
 #include "PacmanPellet.h"
-
 #include "BowlingPin.h"
 #include "RunnerFloor.h"
 //#include "PhysicsMaze.h"
 #include "PhysicsMazeRotator.h"
-
+#include "GolfSaveGame.h"
 
 // Sets default values
 ASecretLevelManager::ASecretLevelManager()
@@ -370,11 +369,52 @@ int ASecretLevelManager::getSecretLevelPerformance()
 
 void ASecretLevelManager::secretLevelFinished(bool lostTo8Ball)
 {
+	saveSecretLevelData();
+
 	UE_LOG(LogTemp, Warning, TEXT("%s is finished"), *UGameplayStatics::GetCurrentLevelName(this));
 	UGameplayStatics::SetGamePaused(this, true),
 	SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+}
+
+void ASecretLevelManager::saveSecretLevelData()
+{
+	UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+	UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+	if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+	LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+	int levelIndex = -1;
+
+	for (int i = 0; i < NUM_LEVELS; i++)
+	{
+		if (SaveGameInstance->levelData[i].levelName.Compare(levelName, ESearchCase::IgnoreCase) == 0)
+		{
+			levelIndex = i;
+		}
+	}
+
+	if (levelIndex != -1)
+	{
+		if (LoadGameInstance->levelData[levelIndex].timeElapsed > levelTimeElapsed || LoadGameInstance->levelData[levelIndex].timeElapsed < 0)
+		{
+			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+			SaveGameInstance->levelData[levelIndex].timeElapsed = levelTimeElapsed;
+			SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+		}
+
+		SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+		SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
+		SaveGameInstance->levelData[levelIndex].bLevelCompleted = true;
+		UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));
 }
 
 void ASecretLevelManager::incrementBowlingThrow()

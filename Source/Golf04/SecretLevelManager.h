@@ -19,6 +19,7 @@ class APacmanPellet;
 class ABowlingPin;
 class ARunnerFloor;
 class APhysicsMazeRotator;
+class AGolfSaveGame;
 
 enum SecretLevelState
 {
@@ -60,6 +61,8 @@ public:
 	int getSecretLevelPerformance();
 
 	void secretLevelFinished(bool lostTo8Ball = false);
+
+	void saveSecretLevelData();
 
 	//Bowling---------------------------------------------------------
 	TArray<AActor*> bowlingPins;
