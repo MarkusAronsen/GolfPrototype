@@ -1327,8 +1327,11 @@ void AGolfBall::setLMBReleased()
 
 				}*/
 				else
+				{
 					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
-
+					strokeCounter++;
+				}
+					
 			}
 			else
 			{
@@ -1574,8 +1577,8 @@ void AGolfBall::tickWalking(float DeltaTime)
 			//Engine->AddOnScreenDebugMessage(2, 0.1f, FColor::Red, hitResults[0].GetActor()->GetHumanReadableName());
 			onPlatform = true;
 
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *platformOffset.ToString());
-			UE_LOG(LogTemp, Warning, TEXT("%i"), platformOffset.Size());
+			//UE_LOG(LogTemp, Warning, TEXT("%s"), *platformOffset.ToString());
+			//UE_LOG(LogTemp, Warning, TEXT("%i"), platformOffset.Size());
 
 			if (platformOffset.Size() < 2.f && !platformJump)
 			{

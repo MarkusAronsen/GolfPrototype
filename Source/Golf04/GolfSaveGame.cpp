@@ -12,7 +12,15 @@ UGolfSaveGame::UGolfSaveGame()
 
 	//Main levels
 	levelData[0].levelName = TEXT("Level01");
+	levelData[0].golfPar.Add(1);
+	levelData[0].golfPar.Add(2);
+	levelData[0].golfPar.Add(3);
+
 	levelData[1].levelName = TEXT("Level02");
+	levelData[1].golfPar.Add(2);
+	levelData[1].golfPar.Add(3);
+	levelData[1].golfPar.Add(4);
+
 	levelData[2].levelName = TEXT("Level03");
 	levelData[3].levelName = TEXT("Level04");
 	levelData[4].levelName = TEXT("Level05");

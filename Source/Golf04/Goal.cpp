@@ -186,6 +186,15 @@ void AGoal::saveLevelData()
 			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 		}
 
+		if (LoadGameInstance->levelData[levelIndex].golfStrokes > Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->strokeCounter
+			|| LoadGameInstance->levelData[levelIndex].golfStrokes < 0)
+		{
+			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+			SaveGameInstance->levelData[levelIndex].golfStrokes = Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->strokeCounter;
+			UE_LOG(LogTemp, Warning, TEXT("Saved %i golfstrokes"), Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->strokeCounter);
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+		}
+
 			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
 			SaveGameInstance->levelData[levelIndex].currentCheckpoint = -1;
 			SaveGameInstance->levelData[levelIndex].bLevelCompleted = true;

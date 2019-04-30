@@ -47,6 +47,18 @@ struct FLevelData
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int golfStrokes;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		TArray<int> golfPar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		TArray<int> walkingPar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		TArray<int> climbingPar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		TArray<int> flyingPar;
+
 
 	FLevelData()
 	{
@@ -60,6 +72,10 @@ struct FLevelData
 		secretLevelPerformance = -1;
 		currentCheckpoint = -1;
 		bLevelCompleted = false;
+		golfPar = {};
+		walkingPar = {};
+		climbingPar = {};
+		flyingPar = {};
 	}
 };
 
