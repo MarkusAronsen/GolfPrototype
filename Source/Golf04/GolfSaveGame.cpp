@@ -22,10 +22,30 @@ UGolfSaveGame::UGolfSaveGame()
 	levelData[1].golfPar.Add(4);
 
 	levelData[2].levelName = TEXT("Level03");
+	levelData[2].golfPar.Add(4);
+	levelData[2].golfPar.Add(6);
+	levelData[2].golfPar.Add(7);
+
 	levelData[3].levelName = TEXT("Level04");
+	levelData[3].golfPar.Add(10);
+	levelData[3].golfPar.Add(11);
+	levelData[3].golfPar.Add(12);
+
 	levelData[4].levelName = TEXT("Level05");
+	levelData[4].golfPar.Add(10);
+	levelData[4].golfPar.Add(11);
+	levelData[4].golfPar.Add(12);
+
 	levelData[5].levelName = TEXT("Level06");
+	levelData[5].golfPar.Add(10);
+	levelData[5].golfPar.Add(11);
+	levelData[5].golfPar.Add(12);
+
 	levelData[6].levelName = TEXT("Level07");
+	levelData[6].golfPar.Add(10);
+	levelData[6].golfPar.Add(11);
+	levelData[6].golfPar.Add(12);
+
 	//Secret levels
 	levelData[7].levelName = TEXT("SecretLevel01");
 	levelData[8].levelName = TEXT("SecretLevel02");
@@ -38,6 +58,7 @@ UGolfSaveGame::UGolfSaveGame()
 	levelData[13].levelName = TEXT("ClimbingTest02");
 	levelData[14].levelName = TEXT("TestWalking03");
 	*/
+	
 	UE_LOG(LogTemp, Warning, TEXT("Save game initialized"));
 	//UE_LOG(LogTemp, Warning, TEXT("Save game initialized, allocated level data is %i, num_levels * sizeof(FLevelData) is %i"), levelData.GetAllocatedSize(), NUM_LEVELS * sizeof(FLevelData)
 }

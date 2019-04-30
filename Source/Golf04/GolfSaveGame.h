@@ -59,6 +59,11 @@ struct FLevelData
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		TArray<int> flyingPar;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int golfPersonalBest;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		int secretPersonalBest;
 
 	FLevelData()
 	{
@@ -76,6 +81,9 @@ struct FLevelData
 		walkingPar = {};
 		climbingPar = {};
 		flyingPar = {};
+
+		golfPersonalBest = -1;
+		secretPersonalBest = -1;
 	}
 };
 
