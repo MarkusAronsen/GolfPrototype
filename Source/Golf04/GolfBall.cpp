@@ -593,8 +593,6 @@ void AGolfBall::Tick(float DeltaTime)
 			FVector A = FVector(0, 255, 0);
 			FVector B = FVector(255, 155, 155);
 
-			DrawDebugLine(world, GetActorLocation(), GetActorLocation() + debugMouseLine * 100.f, FColor::Red, false, 0.f, '\000', 0.1f);
-
 			FVector lineColorVector = A + FVector((debugMouseLine.Size() / 400.f), (debugMouseLine.Size() / 400.f), 0) * (B - A);
 
 			FColor lineColor = FColor(lineColorVector.X, lineColorVector.Y, lineColorVector.Z);
@@ -610,6 +608,13 @@ void AGolfBall::Tick(float DeltaTime)
 			float dotProduct = FVector::DotProduct(climbRotation, downVector);
 			float climbingDegree = (acos(dotProduct) * 180)/PI;
 			FString degreeString = FString::SanitizeFloat(dotProduct);
+
+			if (dirIndicator)
+			{
+				dirIndicator->SetActorRotation(GetActorRotation());
+				dirIndicator->AddActorLocalRotation(FRotator(90.f, 0.f, 0.f));
+				dirIndicator->SetActorRelativeScale3D(FVector(debugMouseLine.Size() / 65.f, 1.f, 1.f));
+			}
 
 			//GEngine->AddOnScreenDebugMessage(11, 0.1f, FColor::Red, *mCamera->GetComponentRotation().ToString());
 
@@ -820,6 +825,7 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 	else if (OtherActor->IsA(AClimbObject::StaticClass()))
 	{
 		currentClimbObject = Cast<AClimbObject>(OtherActor);
+		dirIndicatorLocation = OtherActor->GetActorLocation();
 		bLerpingPerspective = true;
 		if (state == CLIMBING)
 			climbingInit(OtherActor, false);
@@ -1282,9 +1288,14 @@ void AGolfBall::setLMBPressed()
 			break;
 		case CLIMBING:
 			LMBPressed = true;
-			UE_LOG(LogTemp, Warning, TEXT("LMBPressed!"));
 			if (!mMesh->IsSimulatingPhysics())
+			{ 
 				mousePositionClicked = FVector(0.f, mouseX, mouseY);
+
+				spawnInfo.Owner = this;
+				spawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+				dirIndicator = world->SpawnActor<ADirectionIndicator>(ToSpawn, dirIndicatorLocation, GetActorRotation(), spawnInfo);
+			}
 			break;
 		case FLYING:
 			LMBPressed = true;
@@ -1374,6 +1385,8 @@ void AGolfBall::setLMBReleased()
 						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw - 45, FVector(0, 0, 1));
 					if (currentClimbObject->bIsEdgeNode && mousePositionClicked.Y < mouseX)
 						mousePositionReleased = mousePositionReleased.RotateAngleAxis(OActorForwardVector.Rotation().Yaw + 45, FVector(0, 0, 1));
+					if (dirIndicator)
+						dirIndicator->Destroy();
 
 					mMesh->SetSimulatePhysics(true);
 					mMesh->AddImpulse(mousePositionReleased * 2750.f, NAME_None, false);

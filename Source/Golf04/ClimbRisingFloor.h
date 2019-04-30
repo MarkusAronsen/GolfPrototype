@@ -3,6 +3,7 @@
 #pragma once
 
 #include "Components/ShapeComponent.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -39,5 +40,9 @@ public:
 	float timer = 0.f;
 
 	bool receding = false;
+	bool reseting = false;
+	bool oceanActivated = false;
+
+	AGolfBall *GolfBallPtr = nullptr;
 
 };

@@ -239,6 +239,7 @@ public:
 	FRotator climbingCameraRotation;
 	AClimbObject* currentClimbObject;
 	TArray<AActor*> destroBlocks;
+	FVector dirIndicatorLocation;
 
 	void walkFunction(float deltaTime);
 	void tickWalking(float DeltaTime);
