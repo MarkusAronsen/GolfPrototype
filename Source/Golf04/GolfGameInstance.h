@@ -35,4 +35,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 		FVector secretLevelEntrancePosition;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		int gameInstanceStrokeCounter = 0;
 };

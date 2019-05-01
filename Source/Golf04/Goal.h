@@ -14,6 +14,7 @@
 #include "Goal.generated.h"
 
 class AGolfBall;
+class AGolfGameInstance;
 
 UCLASS()
 class GOLF04_API AGoal : public AActor

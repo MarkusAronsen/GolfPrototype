@@ -2,7 +2,7 @@
 
 #include "Goal.h"
 #include "GolfBall.h"
-
+#include "GolfGameInstance.h"
 
 // Sets default values
 AGoal::AGoal()
@@ -83,6 +83,7 @@ void AGoal::Tick(float DeltaTime)
 			startSettleTimer = false;
 			levelTimeElapsed = UGameplayStatics::GetUnpausedTimeSeconds(this);
 			saveLevelData();
+			Cast<UGolfGameInstance>(GetGameInstance())->gameInstanceStrokeCounter = 0;
 
 			if (LevelFinishedWidget_BP)
 			{

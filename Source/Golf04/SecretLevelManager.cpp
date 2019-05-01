@@ -87,18 +87,6 @@ void ASecretLevelManager::BeginPlay()
 
 	if (secretState == -1)
 		UE_LOG(LogTemp, Warning, TEXT("no secret state was set (begin play)"));
-
-	if (SecretLevelFinishedWidget_BP)
-	{
-		SecretLevelFinishedWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), SecretLevelFinishedWidget_BP);
-		if (SecretLevelFinishedWidget)
-		{
-			SecretLevelFinishedWidget->AddToViewport();
-			SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Hidden);
-		}
-	}
-	else
-		UE_LOG(LogTemp, Warning, TEXT("SecretLevelFinishedWidget not initialized"));
 }
 
 // Called every frame
@@ -371,9 +359,17 @@ void ASecretLevelManager::secretLevelFinished(bool lostTo8Ball)
 {
 	saveSecretLevelData();
 
+	if (SecretLevelFinishedWidget_BP)
+	{
+		SecretLevelFinishedWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), SecretLevelFinishedWidget_BP);
+		if (SecretLevelFinishedWidget)
+			SecretLevelFinishedWidget->AddToViewport();
+	}
+	else
+		UE_LOG(LogTemp, Warning, TEXT("SecretLevelFinishedWidget not initialized"));
+
 	UE_LOG(LogTemp, Warning, TEXT("%s is finished"), *UGameplayStatics::GetCurrentLevelName(this));
 	UGameplayStatics::SetGamePaused(this, true),
-	SecretLevelFinishedWidget->SetVisibility(ESlateVisibility::Visible);
 	GetWorld()->GetFirstPlayerController()->bShowMouseCursor = true;
 	GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 }

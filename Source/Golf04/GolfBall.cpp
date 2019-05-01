@@ -392,6 +392,7 @@ void AGolfBall::BeginPlay()
 	if (Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel)
 	{
 		SetActorLocation(Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition + FVector(200, 200, 50));
+		strokeCounter = Cast<UGolfGameInstance>(GetGameInstance())->gameInstanceStrokeCounter;
 		bCameraShouldPan = false;
 		Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel = false;
 
@@ -1341,6 +1342,7 @@ void AGolfBall::setLMBReleased()
 				{
 					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 					strokeCounter++;
+					Cast<UGolfGameInstance>(GetGameInstance())->gameInstanceStrokeCounter++;
 				}
 					
 			}
