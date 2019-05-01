@@ -299,6 +299,7 @@ public:
 	FRotator currentRotation;
 
 	bool shouldLaunch = false;
+	float readyToLaunchTimer;
 
 	float movementSpeed = 2000000.f;
 
@@ -309,6 +310,8 @@ public:
 	AWorldSettings* mWorldSettings;
 	bool jumpingNotReady = false;
 	float jumpingCooldown;
+	bool coyoteJumpAvailable = false;
+	float coyoteTimer;
 
 
 	//Scoring

@@ -511,8 +511,15 @@ void AGolfBall::Tick(float DeltaTime)
 		{
 			if (mMesh->GetPhysicsLinearVelocity().Size() < 50.f)
 			{
-				canLaunch = true;
-				if (!canLaunchParticlesHaveActivated)
+				readyToLaunchTimer += DeltaTime;
+
+				if (readyToLaunchTimer > 0.4f)
+				{
+					canLaunch = true;
+					readyToLaunchTimer = 0.f;
+				}
+
+				if (!canLaunchParticlesHaveActivated && canLaunch)
 				{
 					canLaunchReadyParticles->Activate();
 					canLaunchParticlesHaveActivated = true;
@@ -522,6 +529,7 @@ void AGolfBall::Tick(float DeltaTime)
 			{
 				canLaunch = false;
 				canLaunchParticlesHaveActivated = false;
+				readyToLaunchTimer = 0.f;
 			}
 		}
 		//else
@@ -559,10 +567,21 @@ void AGolfBall::Tick(float DeltaTime)
 		if (jumpingNotReady)
 		{
 			jumpingCooldown += DeltaTime;
-			if (jumpingCooldown > 0.15f)
+			if (jumpingCooldown > 0.2f)
 			{
 				jumpingNotReady = false;
 				jumpingCooldown = 0.f;
+			}
+		}
+
+		if (coyoteJumpAvailable)
+		{
+			coyoteTimer += DeltaTime;
+
+			if (coyoteTimer > 0.2f)
+			{
+				coyoteJumpAvailable = false;
+				coyoteTimer = 0.f;
 			}
 		}
 
@@ -1123,6 +1142,12 @@ void AGolfBall::spacebarPressed()
 		jumpingNotReady = true;
 	}
 
+	if (state == WALKING && !lineTraceHit && coyoteJumpAvailable)
+	{
+		jump();
+		jumpingNotReady = true;
+	}
+
 	if (state == PLINKO && secretLevelManagerInstance->plinkoLaunchReady)
 	{
 		secretLevelManagerInstance->startChargingPlinko();
@@ -1511,6 +1536,9 @@ bool AGolfBall::lineTrace()
 		constructTransform(GetActorLocation(), FVector(0.f, 0.f, 1.f));
 	}
 
+	if (lineTraceHit && lineTraceResults.Num() == 0 && !jumpingNotReady)
+		coyoteJumpAvailable = true;
+
 	return lineTraceResults.Num() > 0;
 }
 
@@ -1769,6 +1797,11 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 				Cast<AFlyingGravitySwitch>(flyingGravitySwitches[i])->mesh->SetVisibility(true);
 		}
 		//hoverInAir = true;
+
+		TArray<AActor*> climbRisingFloorActors;
+		UGameplayStatics::GetAllActorsOfClass(this, AClimbRisingFloor::StaticClass(), climbRisingFloorActors);
+		if (climbRisingFloorActors.Num() > 0)
+			Cast<AClimbRisingFloor>(climbRisingFloorActors[0])->SetActorLocation(Cast<AClimbRisingFloor>(climbRisingFloorActors[0])->startPos);
 			
 		TArray<AActor*> plinkoBlocker;
 		UGameplayStatics::GetAllActorsOfClass(this, APlinkoBlocker::StaticClass(), plinkoBlocker);
