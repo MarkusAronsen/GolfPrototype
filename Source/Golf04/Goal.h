@@ -56,8 +56,13 @@ public:
 		void OnEndOverlapOuter(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
 			UPrimitiveComponent *OtherComponent, int32 OtherBodyIndex);
 
-	//remove later
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		UUserWidget* LevelFinishedWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
+		TSubclassOf<class UUserWidget> LevelFinishedWidget_BP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FString levelToOpen;
 
 	bool elevate = false;

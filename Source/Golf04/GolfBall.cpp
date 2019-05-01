@@ -784,11 +784,11 @@ void AGolfBall::Tick(float DeltaTime)
 		cameraPanTick(DeltaTime);
 
 	
-	if (Cast<UGolfGameInstance>(GetGameInstance()))
+	/*if (Cast<UGolfGameInstance>(GetGameInstance()))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition.ToString());
 		UE_LOG(LogTemp, Warning, TEXT("%s"), Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel ? TEXT("true") : TEXT("false"));
-	}
+	}*/
 }
 
 

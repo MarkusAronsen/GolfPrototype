@@ -394,6 +394,9 @@ public:
 
 	void pauseGame();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool orbitCamera = false;
+
 	void openLevelOne();
 	void openLevelTwo();
 	void openLevelThree();

@@ -83,7 +83,17 @@ void AGoal::Tick(float DeltaTime)
 			startSettleTimer = false;
 			levelTimeElapsed = UGameplayStatics::GetUnpausedTimeSeconds(this);
 			saveLevelData();
-			UGameplayStatics::OpenLevel(this, *levelToOpen);
+
+			if (LevelFinishedWidget_BP)
+			{
+				LevelFinishedWidget = CreateWidget<UUserWidget>(GetWorld()->GetFirstPlayerController(), LevelFinishedWidget_BP);
+				if (LevelFinishedWidget)
+					LevelFinishedWidget->AddToViewport();
+			}
+			else
+				UE_LOG(LogTemp, Warning, TEXT("LevelFinishedWidget not initialized"));
+
+			//UGameplayStatics::OpenLevel(this, *levelToOpen);
 		}
 	}
 
@@ -91,7 +101,7 @@ void AGoal::Tick(float DeltaTime)
 	{
 		if (elevateValue < initialZ + 450)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("ascending"));
+			//UE_LOG(LogTemp, Warning, TEXT("ascending"));
 			elevateValue += DeltaTime * 1200;
 			Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, elevateValue));
 		}
@@ -101,7 +111,7 @@ void AGoal::Tick(float DeltaTime)
 	{
 		if (elevateValue > initialZ)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("descending"));
+			//UE_LOG(LogTemp, Warning, TEXT("descending"));
 			elevateValue -= DeltaTime * 1200;
 			Mesh->SetWorldLocation(FVector(Mesh->GetComponentLocation().X, Mesh->GetComponentLocation().Y, elevateValue));
 		}

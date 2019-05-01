@@ -400,10 +400,12 @@ void ASecretLevelManager::saveSecretLevelData()
 
 	if (levelIndex != -1)
 	{
-		if (LoadGameInstance->levelData[levelIndex].secretLevelPerformance > getSecretLevelPerformance() || LoadGameInstance->levelData[levelIndex].secretLevelPerformance < 0)
+		if (LoadGameInstance->levelData[levelIndex].secretLevelPerformance < getSecretLevelPerformance() || LoadGameInstance->levelData[levelIndex].secretLevelPerformance < 0)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("Saving secret level performance of %i"), getSecretLevelPerformance());
 			SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
 			SaveGameInstance->levelData[levelIndex].secretLevelPerformance = getSecretLevelPerformance();
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
 		}
 		SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
 		SaveGameInstance->levelData[levelIndex].bLevelCompleted = true;
