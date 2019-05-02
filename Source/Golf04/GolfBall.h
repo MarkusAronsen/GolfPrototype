@@ -332,6 +332,7 @@ public:
 	void respawnAtCheckpoint();
 	void respawnAtCheckpointTick(float deltaTime);
 	FVector SpawnPosition;
+	FRotator SpawnRotation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bRespawning = false;

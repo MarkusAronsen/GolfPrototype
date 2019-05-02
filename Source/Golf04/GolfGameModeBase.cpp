@@ -22,23 +22,20 @@ void AGolfGameModeBase::BeginPlay()
 		}
 	}
 	*/
-	targetWords.Add(TEXT("SAMPLE TEXT"));
-	targetWords.Add(TEXT("Unintelligible gibberish"));
+
 	targetWords.Add(TEXT("Rootlads"));
 	targetWords.Add(TEXT("Sander Platou Aaseth"));
 	targetWords.Add(TEXT("Julie Kristoffersen"));
 	targetWords.Add(TEXT("Simon Pettersen"));
 	targetWords.Add(TEXT("Markus Strand Aronsen"));
-	//targetWords.Add(TEXT("Jan Erik Haug"));
+	targetWords.Add(TEXT("Jan Erik Haug"));
 
-	targetRoles.Add(TEXT("PRESS SOME KEYS, HUMAN"));
-	targetRoles.Add(TEXT("NOW TRY AGAIN"));
 	targetRoles.Add(TEXT("A game made by"));
 	targetRoles.Add(TEXT("Project manager"));
 	targetRoles.Add(TEXT("Graphics and concept artist"));
 	targetRoles.Add(TEXT("3D modeler and animator"));
 	targetRoles.Add(TEXT("Programmer"));
-	//targetRoles.Add(TEXT("Team supervisor"));
+	targetRoles.Add(TEXT("Team supervisor"));
 }
 
 void AGolfGameModeBase::Tick(float DeltaTime)
