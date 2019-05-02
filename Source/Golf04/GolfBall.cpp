@@ -405,6 +405,7 @@ void AGolfBall::BeginPlay()
 		strokeCounter = Cast<UGolfGameInstance>(GetGameInstance())->gameInstanceStrokeCounter;
 		bCameraShouldPan = false;
 		Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel = false;
+		mouseInputEnabled = true;
 
 		//UE_LOG(LogTemp, Warning, TEXT("%s")
 	}

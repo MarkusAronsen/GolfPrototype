@@ -19,9 +19,12 @@ void ASpringarmEnabledVolume::BeginPlay()
 	CollisionBox = FindComponentByClass<UShapeComponent>();
 
 	if (CollisionBox)
+	{
 		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &ASpringarmEnabledVolume::OnBeginOverlap);
+		CollisionBox->OnComponentEndOverlap.AddDynamic(this, &ASpringarmEnabledVolume::OnEndOverlap);
+	}
 	else
-		UE_LOG(LogTemp, Warning, TEXT("Pacman ghost no collision box"));
+		UE_LOG(LogTemp, Warning, TEXT("Spring Arm Volume no collison box!"));
 
 }
 
@@ -39,7 +42,14 @@ void ASpringarmEnabledVolume::OnBeginOverlap(UPrimitiveComponent * OverlappedCom
 	{
 		Cast<AGolfBall>(OtherActor)->mSpringArm->bDoCollisionTest = true;
 	}
+}
 
-
+void ASpringarmEnabledVolume::OnEndOverlap(UPrimitiveComponent * OverlappedComponent,
+	AActor * OtherActor, UPrimitiveComponent * OtherComponent, int32 OtherBodyIndex)
+{
+	if (OtherActor->IsA(AGolfBall::StaticClass()))
+	{
+		Cast<AGolfBall>(OtherActor)->mSpringArm->bDoCollisionTest = false;
+	}
 }
 
