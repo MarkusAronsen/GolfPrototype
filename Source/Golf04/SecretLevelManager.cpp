@@ -444,7 +444,6 @@ void ASecretLevelManager::removeFallenPins()
 			bowlingScore++;
 		}
 	}
-
 }
 
 int ASecretLevelManager::getBowlingScore()
@@ -497,10 +496,10 @@ void ASecretLevelManager::hitGhost()
 	//pacmanLives--;
 	//if (pacmanLives == 0)
 	//{
-		hitGhostEvent();
-		walkForward = false;
-		resetPacmanAntiAliasing();
-		secretLevelFinished();
+	hitGhostEvent();
+	walkForward = false;
+	resetPacmanAntiAliasing();
+	secretLevelFinished();
 	//}
 	//else
 	//{

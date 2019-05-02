@@ -1376,7 +1376,7 @@ void AGolfBall::setLMBReleased()
 				{
 
 				}*/
-				else
+				else if(canLaunch)
 				{
 					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 					strokeCounter++;
