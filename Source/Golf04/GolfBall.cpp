@@ -1757,6 +1757,7 @@ void AGolfBall::respawnAtCheckpoint()
 			if (checkpoint)
 			{
 				SpawnPosition = checkpoint->GetActorLocation();
+				SpawnRotation = checkpoint->GetActorRotation();
 				bRespawning = true;
 				bStartRespawnCameraFade = true;
 			}
@@ -1765,6 +1766,7 @@ void AGolfBall::respawnAtCheckpoint()
 				TArray<AActor*> PlayerStart;
 				UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStart);
 				SpawnPosition = PlayerStart[0]->GetActorLocation();
+				SpawnRotation = PlayerStart[0]->GetActorRotation();
 				bRespawning = true;
 				bStartRespawnCameraFade = true;
 			}
@@ -1774,6 +1776,7 @@ void AGolfBall::respawnAtCheckpoint()
 			TArray<AActor*> PlayerStart;
 			UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(), PlayerStart);
 			SpawnPosition = PlayerStart[0]->GetActorLocation();
+			SpawnRotation = PlayerStart[0]->GetActorRotation();
 			bRespawning = true;
 			bStartRespawnCameraFade = true;
 			UE_LOG(LogTemp, Warning, TEXT("Invalid level index"));	
@@ -1798,6 +1801,7 @@ void AGolfBall::respawnAtCheckpointTick(float deltaTime)
 	if (timeToCameraFadeEnd >= cameraFadeTimer)
 	{
 		SetActorLocation(SpawnPosition + FVector(50.f, 50.f, 300.f));
+		SetActorRotation(FRotator(0.f, SpawnRotation.Yaw, 0.f));
 
 		//Resetting position of moved/destroyed actors
 		UGameplayStatics::GetAllActorsOfClass(this, ADestructableBlock::StaticClass(), destroBlocks);
