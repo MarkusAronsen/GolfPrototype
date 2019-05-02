@@ -4,6 +4,8 @@
 
 #include "Runtime/Engine/Classes/Particles/ParticleSystemComponent.h"
 #include "Runtime/Engine/Classes/Particles/ParticleSystem.h"
+#include "Camera/CameraComponent.h"
+
 
 #include "Components/SphereComponent.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
@@ -36,7 +38,6 @@ public:
 
 	USphereComponent* CollisionBox = nullptr;
 	USphereComponent* OuterCollisionBox = nullptr;
-
 	UStaticMeshComponent* Mesh = nullptr;
 
 	UFUNCTION()

@@ -168,7 +168,7 @@ public:
 		void resetPacmanAntiAliasing();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-		TArray<int> pacmanPar = { 3, 6, 10 };
+		TArray<int> pacmanPar = { 700, 1000, 1340 };
 
 	//----------------------------------------------------------------
 

@@ -93,7 +93,6 @@ void AGoal::Tick(float DeltaTime)
 			}
 			else
 				UE_LOG(LogTemp, Warning, TEXT("LevelFinishedWidget not initialized"));
-
 			//UGameplayStatics::OpenLevel(this, *levelToOpen);
 		}
 	}

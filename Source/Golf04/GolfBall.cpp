@@ -331,12 +331,22 @@ void AGolfBall::BeginPlay()
 		bPlayingSecretLevel = true;
 		UE_LOG(LogTemp, Warning, TEXT("Playing secret level"));
 
-		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel04") == 0)
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01") == 0)
+			mouseInputEnabled = true;
+
+		else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel02") == 0)
+			mouseInputEnabled = false;
+
+		else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel04") == 0)
 		{
 			mMesh->SetSimulatePhysics(false);
 			mPacManMesh->SetVisibility(true);
 			mMesh->SetVisibility(false);
+			mouseInputEnabled = false;
 		}
+
+		else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel05") == 0)
+			mouseInputEnabled = false;
 	}
 
 	//Occlusion outlining
@@ -461,8 +471,9 @@ void AGolfBall::Tick(float DeltaTime)
 		if(bLerpingPerspective)
 			lerpPerspective(FRotator(-30.f, 0.f, 0.f), mSpringArm->TargetArmLength, FRotator(10.f, 0.f, 0.f), DeltaTime);
 
-		mouseCameraPitch();
-		mouseCameraYaw();
+			mouseCameraPitch();
+			mouseCameraYaw();
+
 		if (currentLaunchPower > maxLaunchPower)
 			currentLaunchPower = maxLaunchPower;
 
@@ -547,8 +558,10 @@ void AGolfBall::Tick(float DeltaTime)
 			lerpPerspective(FRotator(-30.f, 0.f, 0.f), mSpringArm->TargetArmLength, FRotator(10.f, 0.f, 0.f), DeltaTime);
 
 		lineTraceHit = lineTrace();
+
 		mouseCameraPitch();
 		mouseCameraYaw();
+
 		tickWalking(DeltaTime);
 
 		if (onGround && mMesh->GetLinearDamping() < 19.f)// && !onMoveablePlatform)
@@ -1439,14 +1452,20 @@ void AGolfBall::setLMBReleased()
 }
 void AGolfBall::mouseCameraPitch()
 {
-	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
-	mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + (mouseY * cameraSpeed), -10.f, 30.f);
+	if (mouseInputEnabled)
+	{
+		world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
+		mCamera->RelativeRotation.Pitch = FMath::Clamp(mCamera->RelativeRotation.Pitch + (mouseY * cameraSpeed), -10.f, 30.f);
+	}
 }
 
 void AGolfBall::mouseCameraYaw()
 {
-	world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
-	world->GetFirstPlayerController()->AddYawInput(mouseX * cameraSpeed);
+	if (mouseInputEnabled)
+	{
+		world->GetFirstPlayerController()->GetInputMouseDelta(mouseX, mouseY);
+		world->GetFirstPlayerController()->AddYawInput(mouseX * cameraSpeed);
+	}
 }
 
 void AGolfBall::leftShiftPressed()
@@ -1483,6 +1502,7 @@ void AGolfBall::enterPressed()
 		GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
 		bCameraShouldPan = false;
 		mCamera->Activate();
+		mouseInputEnabled = true;
 		SkipCameraPanWidget->RemoveFromParent();
 	}
 }
@@ -1919,6 +1939,7 @@ void AGolfBall::cameraPanTick(float deltaTime)
 			mCamera->Activate();
 			UE_LOG(LogTemp, Warning, TEXT("Setting view target to player"));
 			SkipCameraPanWidget->RemoveFromParent();
+			mouseInputEnabled = true;
 			break;
 		}
 		blendTimer = 0.f;

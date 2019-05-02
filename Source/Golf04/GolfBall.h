@@ -394,6 +394,8 @@ public:
 
 	void pauseGame();
 
+	bool mouseInputEnabled = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool orbitCamera = false;
 
