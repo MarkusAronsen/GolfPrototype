@@ -38,4 +38,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		int gameInstanceStrokeCounter = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float musicVolume = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		float soundEffectVolume = 1.f;
 };

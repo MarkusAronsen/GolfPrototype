@@ -168,6 +168,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing variable")
 		bool climbingCanLaunch = false;
 
+	//Sound effects
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+		USoundCue* jumpSound = nullptr;
 
 	enum states
 	{
