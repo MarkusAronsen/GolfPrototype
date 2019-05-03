@@ -63,6 +63,9 @@ AGolfBall::AGolfBall()
 	mPacManMesh->SetupAttachment(mMesh);
 	mVisibleMesh->SetupAttachment(mMesh);
 
+	if (!jumpSound)
+		UE_LOG(LogTemp, Warning, TEXT("Jump sound missing"));
+
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
 
@@ -1080,6 +1083,8 @@ void AGolfBall::walkFunction(float deltaTime)
 
 void AGolfBall::jump()
 {
+	UGameplayStatics::PlaySound2D(this, jumpSound, Cast<UGolfGameInstance>(GetGameInstance())->soundEffectVolume, 0.85f);
+
 	mMesh->SetPhysicsLinearVelocity(FVector(mMesh->GetPhysicsLinearVelocity().X, mMesh->GetPhysicsLinearVelocity().Y, 6000.f), false);
 	if(WPressed || APressed || SPressed || DPressed)
 		mMesh->SetPhysicsAngularVelocityInDegrees(GetActorRightVector() * 800, false, NAME_None);
@@ -1125,47 +1130,48 @@ void AGolfBall::spacebarPressed()
 	{
 
 	
-	if (state == FLYING)
-	{
-		if (hoverInAir)
-		{
-			hoverInAir = false;
-		}
+		if (state == FLYING)
+			{
+				if (hoverInAir)
+				{
+					hoverInAir = false;
+				}
 
 		if(!hoverInAir)
-		{
-			velocity = FVector::ZeroVector;
-
-			if (!easeGravityShift)
 			{
-				//if (!flyingGravityFlipped)
-				applyForce(FVector(0, 0, 30));
-				//else
-					//applyForce(FVector(0, 0, -30));
+				velocity = FVector::ZeroVector;
 
-				bRestartFlyingAnim = true;
-			}
+				if (!easeGravityShift)
+				{
+					//if (!flyingGravityFlipped)
+					UGameplayStatics::PlaySound2D(this, jumpSound, Cast<UGolfGameInstance>(GetGameInstance())->soundEffectVolume, 0.01f);	
+					applyForce(FVector(0, 0, 30));
+					//else
+						//applyForce(FVector(0, 0, -30));
+
+					bRestartFlyingAnim = true;
+				}
 			else
 				bRestartFlyingAnim = true;
-		}
+			}
 		
 	}
 	if (state == WALKING && lineTraceHit && !jumpingNotReady)
-	{
-		jump();
-		jumpingNotReady = true;
-	}
+		{
+			jump();
+			jumpingNotReady = true;
+		}
 
 	if (state == WALKING && !lineTraceHit && coyoteJumpAvailable)
-	{
-		jump();
-		jumpingNotReady = true;
-	}
-
+		{
+			jump();
+			jumpingNotReady = true;
+		}
+	
 	if (state == PLINKO && secretLevelManagerInstance->plinkoLaunchReady)
-	{
-		secretLevelManagerInstance->startChargingPlinko();
-	}
+		{
+			secretLevelManagerInstance->startChargingPlinko();
+		}
 	}
 
 }
