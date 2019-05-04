@@ -1507,6 +1507,9 @@ void AGolfBall::enterPressed()
 	if (SkipCameraPanWidget->GetVisibility() == ESlateVisibility::Visible)
 	{
 		GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01") || UGameplayStatics::GetCurrentLevelName(this).Compare("Level02"))
+			if(bCameraShouldPan)
+				printLoadedGame();
 		bCameraShouldPan = false;
 		mCamera->Activate();
 		mouseInputEnabled = true;
@@ -1904,6 +1907,8 @@ void AGolfBall::cameraPanTick(float deltaTime)
 		if (currentViewTarget == 5)
 		{
 			bCameraShouldPan = false;
+			if (UGameplayStatics::GetCurrentLevelName(this).Contains("Level01") == 0 || UGameplayStatics::GetCurrentLevelName(this).Contains("Level02") == 0)
+					printLoadedGame();
 			return;
 		}
 
