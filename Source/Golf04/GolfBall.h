@@ -393,6 +393,7 @@ public:
 	float clock = 0.f;
 	
 	void printLoadedGame();
+	bool dialogue = true;
 
 	void setMeshVisibility();
 

@@ -424,6 +424,8 @@ void AGolfBall::BeginPlay()
 			mMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		}
 	}
+	
+	dialogue = true;
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 
@@ -468,6 +470,12 @@ void AGolfBall::Tick(float DeltaTime)
 
 	FString angularVelocityString = mMesh->GetPhysicsAngularVelocityInDegrees().ToString();
 	FString stringStretch;
+
+	if (!bCameraShouldPan && dialogue)
+	{
+		printLoadedGame();
+		dialogue = false;
+	}
 
 	switch (state)
 	{
@@ -1991,42 +1999,29 @@ bool AGolfBall::timerFunction(float timerLength, float DeltaTime)
 
 void AGolfBall::printLoadedGame()
 {
-	UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
-
-	if (UGameplayStatics::DoesSaveGameExist(LoadGameInstance->slotName, LoadGameInstance->userIndex))
-	{
-		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
-
-		for (int i = 0; i < NUM_LEVELS; i++)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Level with index %i and name %s has recorded level data:" 
-				"time elapsed(%f), -star rating(%i), current checkpoint(%i), level completed(%b)")
-				, 
-				i, 
-				*LoadGameInstance->levelData[i].levelName, 
-				LoadGameInstance->levelData[i].timeElapsed, 
-				LoadGameInstance->levelData[i].starRating, 
-				LoadGameInstance->levelData[i].currentCheckpoint,
-				LoadGameInstance->levelData[i].bLevelCompleted);
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Save slot not found"));
-	}
-
 	TArray<FString> dialogue;
 
 	dialogue.Empty();
 
-	dialogue.Add("T  h  e    S  a  i  n  t    P  a  u  l   R  i  v  e  r    i  s   a   r  i  v  e  r   o f   w e s t e r n   A f r i c a .\n I t s   h e a d w a t e r s   a r e   i n \n s o u t h e a s t e r n   G u i n e a .");// Its upper portion in Guinea is known as the Diani River or Niandi River, and forms part of the boundary between Guinea and Liberia.");
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Welcome to the trials! To be victorious you must reach the RED FLAG of every course. Search within you and find the MOUSE.");
+		dialogue.Add("Hold the left button and release to shoot, or click the right button to stay still and chill, if that's what you're about.");
+		printDialogue(dialogue);
+	}
 
-	dialogue.Add("The river then enters Liberia about 50 km(31 mi) north of Gbarnga and crosses Liberia in a southwesterly direction.It empties into the Atlantic Ocean at Cape Mesurado in Monrovia near Bushrod Island, separating Monrovia from its suburb Brewerville.");
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level02", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("It is important to view different perspectives in life. Try rolling the WHEEL on the MOUSE and see what it's like!");
+		printDialogue(dialogue);
+	}
 
-	dialogue.Add("Line 3");
-	
-	printDialogue(dialogue);
-
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Welcome to the trials! To be victorious you must reach the RED FLAG of every course. Search within you and find the MOUSE.");
+		dialogue.Add("Hold the left button and release to shoot, or click the right button to stay still and chill, if that's what you're about.");
+		printDialogue(dialogue);
+	}
 }
 
 void AGolfBall::setMeshVisibility()
