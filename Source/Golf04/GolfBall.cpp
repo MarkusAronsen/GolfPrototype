@@ -424,8 +424,6 @@ void AGolfBall::BeginPlay()
 			mMesh->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		}
 	}
-	
-	dialogue = true;
 
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball initialized"));
 
@@ -470,12 +468,6 @@ void AGolfBall::Tick(float DeltaTime)
 
 	FString angularVelocityString = mMesh->GetPhysicsAngularVelocityInDegrees().ToString();
 	FString stringStretch;
-
-	if (!bCameraShouldPan && dialogue)
-	{
-		printLoadedGame();
-		dialogue = false;
-	}
 
 	switch (state)
 	{
@@ -2016,10 +2008,24 @@ void AGolfBall::printLoadedGame()
 		printDialogue(dialogue);
 	}
 
-	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01", ESearchCase::IgnoreCase) == 0)
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level04", ESearchCase::IgnoreCase) == 0)
 	{
-		dialogue.Add("Welcome to the trials! To be victorious you must reach the RED FLAG of every course. Search within you and find the MOUSE.");
-		dialogue.Add("Hold the left button and release to shoot, or click the right button to stay still and chill, if that's what you're about.");
+		dialogue.Add("Figured a pair of arms would be useful here. Why don't you try these on?");
+		dialogue.Add("Try to CLICK, DRAG and RELEASE to give that ball a good slinging.");
+		printDialogue(dialogue);
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level05", ESearchCase::IgnoreCase) == 0 && state == WALKING)
+	{
+		dialogue.Add("Nice legs. I might have mixed your legs with a toddlers, but you'll manage. I believe in you.");
+		dialogue.Add("The legs respond to W A S D and SPACEBAR to waddle around and jump. You didn't use limbs for a while, so play around some.");
+		printDialogue(dialogue);
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level05", ESearchCase::IgnoreCase) == 0 && state == FLYING)
+	{
+		dialogue.Add("I got this idea from a friend. Big fan of mobile games. He wouldn't do much else after the tanning incident.");
+		dialogue.Add("Wings are tricky to handle. Hit SPACEBAR to fly. You'll be a myth just like my friend in no time!");
 		printDialogue(dialogue);
 	}
 }
