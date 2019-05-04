@@ -828,7 +828,7 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("D", IE_Released, this, &AGolfBall::DReleased);
 	InputComponent->BindAction("ScrollUp", IE_Pressed, this, &AGolfBall::scrollUp);
 	InputComponent->BindAction("ScrollDown", IE_Pressed, this, &AGolfBall::scrollDown);
-	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::printLoadedGame);
+	InputComponent->BindAction("L", IE_Pressed, this, &AGolfBall::displayDialogue);
 	InputComponent->BindAction("R", IE_Pressed, this, &AGolfBall::respawnAtCheckpoint);
 	InputComponent->BindAction("Y", IE_Pressed, this, &AGolfBall::confirmLevelSelection);
 	InputComponent->BindAction("P", IE_Pressed, this, &AGolfBall::pauseGame);
@@ -867,7 +867,14 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 		if (state == CLIMBING)
 			climbingInit(OtherActor, false);
 		else
+		{
 			climbingInit(OtherActor);
+			if (!dialogueHasPlayed)
+			{
+				displayDialogue();
+				dialogueHasPlayed = true;
+			}
+		}
 	}
 }
 
@@ -1507,9 +1514,8 @@ void AGolfBall::enterPressed()
 	if (SkipCameraPanWidget->GetVisibility() == ESlateVisibility::Visible)
 	{
 		GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
-		if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01") || UGameplayStatics::GetCurrentLevelName(this).Compare("Level02"))
-			if(bCameraShouldPan)
-				printLoadedGame();
+		if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01") == 0 || UGameplayStatics::GetCurrentLevelName(this).Compare("Level02") == 0)
+				displayDialogue();
 		bCameraShouldPan = false;
 		mCamera->Activate();
 		mouseInputEnabled = true;
@@ -1907,8 +1913,8 @@ void AGolfBall::cameraPanTick(float deltaTime)
 		if (currentViewTarget == 5)
 		{
 			bCameraShouldPan = false;
-			if (UGameplayStatics::GetCurrentLevelName(this).Contains("Level01") == 0 || UGameplayStatics::GetCurrentLevelName(this).Contains("Level02") == 0)
-					printLoadedGame();
+			if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01") == 0 || UGameplayStatics::GetCurrentLevelName(this).Compare("Level02") == 0)
+					displayDialogue();
 			return;
 		}
 
@@ -1994,7 +2000,7 @@ bool AGolfBall::timerFunction(float timerLength, float DeltaTime)
 		return true;
 }
 
-void AGolfBall::printLoadedGame()
+void AGolfBall::displayDialogue()
 {
 	TArray<FString> dialogue;
 

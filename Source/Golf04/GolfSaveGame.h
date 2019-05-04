@@ -62,6 +62,18 @@ struct FLevelData
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
 		int secretPersonalBest;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		bool golfDialoguePlayed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		bool walkingDialoguePlayed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		bool climbDialoguePlayed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level data")
+		bool flyingDialoguePlayed;
+
 	FLevelData()
 	{
 		levelName = TEXT("");
@@ -78,6 +90,10 @@ struct FLevelData
 		walkingPar = {};
 		climbingPar = {};
 		flyingPar = {};
+		golfDialoguePlayed = false;
+		walkingDialoguePlayed = false;
+		climbDialoguePlayed = false;
+		flyingDialoguePlayed = false;
 
 		secretPersonalBest = -1;
 	}

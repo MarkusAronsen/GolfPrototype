@@ -392,8 +392,8 @@ public:
 	bool timerFunction(float timerLength, float DeltaTime);
 	float clock = 0.f;
 	
-	void printLoadedGame();
-	bool dialogueStarted = false;
+	void displayDialogue();
+	bool dialogueHasPlayed = false;
 
 	void setMeshVisibility();
 
