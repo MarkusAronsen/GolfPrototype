@@ -2192,6 +2192,13 @@ void AGolfBall::displayDialogue()
 		printDialogue(dialogue);
 	}
 
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level07", ESearchCase::IgnoreCase) == 0 && state == FLYING)
+	{
+		dialogue.Add("Nesten ferdig tekst her");
+		dialogue.Add("Golf time :)");
+		printDialogue(dialogue);
+	}
+
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
 	{
 		dialogue.Add("Bowling time :)");
