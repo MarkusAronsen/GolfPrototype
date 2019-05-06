@@ -350,6 +350,35 @@ void AGolfBall::BeginPlay()
 
 		else if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel05") == 0)
 			mouseInputEnabled = false;
+
+		UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+		UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+		if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+		int levelIndex = -1;
+
+		for (int i = 0; i < NUM_LEVELS; i++)
+		{
+			if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
+			{
+				levelIndex = i;
+			}
+		}
+
+		if (levelIndex != -1)
+		{
+			if (!LoadGameInstance->levelData[levelIndex].golfDialoguePlayed)
+			{
+				SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+				SaveGameInstance->levelData[levelIndex].golfDialoguePlayed = true;
+				UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+				displayDialogue();
+			}
+		}
 	}
 
 	//Occlusion outlining
@@ -869,10 +898,34 @@ void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor 
 		else
 		{
 			climbingInit(OtherActor);
-			if (!dialogueHasPlayed)
+
+			UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+			UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+			if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+				UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+			LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+			int levelIndex = -1;
+
+			for (int i = 0; i < NUM_LEVELS; i++)
 			{
-				displayDialogue();
-				dialogueHasPlayed = true;
+				if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
+				{
+					levelIndex = i;
+				}
+			}
+
+			if (levelIndex != -1)
+			{
+				if (!LoadGameInstance->levelData[levelIndex].climbDialoguePlayed)
+				{
+					SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+					SaveGameInstance->levelData[levelIndex].climbDialoguePlayed = true;
+					UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+					displayDialogue();
+				}
 			}
 		}
 	}
@@ -1514,8 +1567,38 @@ void AGolfBall::enterPressed()
 	if (SkipCameraPanWidget->GetVisibility() == ESlateVisibility::Visible)
 	{
 		GetWorld()->GetFirstPlayerController()->SetViewTargetWithBlend(this, 2, EViewTargetBlendFunction::VTBlend_Cubic, 0, true);
-		if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01") == 0 || UGameplayStatics::GetCurrentLevelName(this).Compare("Level02") == 0)
-				displayDialogue();
+		if (!UGameplayStatics::GetCurrentLevelName(this).Contains("Secret"))
+		{
+			UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+			UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+			if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+				UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+			LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+			int levelIndex = -1;
+
+			for (int i = 0; i < NUM_LEVELS; i++)
+			{
+				if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
+				{
+					levelIndex = i;
+				}
+			}
+
+			if (levelIndex != -1)
+			{
+				if (!LoadGameInstance->levelData[levelIndex].golfDialoguePlayed)
+				{
+					SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+					SaveGameInstance->levelData[levelIndex].golfDialoguePlayed = true;
+					UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+					displayDialogue();
+				}
+			}
+		}
+
 		bCameraShouldPan = false;
 		mCamera->Activate();
 		mouseInputEnabled = true;
@@ -1913,8 +1996,37 @@ void AGolfBall::cameraPanTick(float deltaTime)
 		if (currentViewTarget == 5)
 		{
 			bCameraShouldPan = false;
-			if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01") == 0 || UGameplayStatics::GetCurrentLevelName(this).Compare("Level02") == 0)
-					displayDialogue();
+			if (!UGameplayStatics::GetCurrentLevelName(this).Contains("Secret"))
+			{
+				UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+				UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+				if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+					UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+				LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+				int levelIndex = -1;
+
+				for (int i = 0; i < NUM_LEVELS; i++)
+				{
+					if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
+					{
+						levelIndex = i;
+					}
+				}
+
+				if (levelIndex != -1)
+				{
+					if (!LoadGameInstance->levelData[levelIndex].golfDialoguePlayed)
+					{
+						SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+						SaveGameInstance->levelData[levelIndex].golfDialoguePlayed = true;
+						UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+						displayDialogue();
+					}
+				}
+			}
 			return;
 		}
 
@@ -2011,18 +2123,42 @@ void AGolfBall::displayDialogue()
 		dialogue.Add("Welcome to the trials! To be victorious you must reach the RED FLAG of every course. Search within you and find the MOUSE.");
 		dialogue.Add("Hold the left button and release to shoot, or click the right button to stay still and chill, if that's what you're about.");
 		printDialogue(dialogue);
+		playGolfTutorial();
 	}
 
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level02", ESearchCase::IgnoreCase) == 0)
 	{
 		dialogue.Add("It is important to view different perspectives in life. Try rolling the WHEEL on the MOUSE and see what it's like!");
 		printDialogue(dialogue);
+		playZoomTutorial();
 	}
 
-	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level04", ESearchCase::IgnoreCase) == 0)
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level03", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Some intro dialogue for level 3");
+		dialogue.Add("Golf time :)");
+		printDialogue(dialogue);
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level04", ESearchCase::IgnoreCase) == 0 && state == GOLF)
+	{
+		dialogue.Add("Some intro dialogue for level 4");
+		dialogue.Add("Golf time :)");
+		printDialogue(dialogue);
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level04", ESearchCase::IgnoreCase) == 0 && state == CLIMBING)
 	{
 		dialogue.Add("Figured a pair of arms would be useful here. Why don't you try these on?");
 		dialogue.Add("Try to CLICK, DRAG and RELEASE to give that ball a good slinging.");
+		printDialogue(dialogue);
+		playClimbTutorial();
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level05", ESearchCase::IgnoreCase) == 0 && state == GOLF)
+	{
+		dialogue.Add("Some intro dialogue for level 5");
+		dialogue.Add("Golf time :)");
 		printDialogue(dialogue);
 	}
 
@@ -2031,6 +2167,7 @@ void AGolfBall::displayDialogue()
 		dialogue.Add("Nice legs. I might have mixed your legs with a toddlers, but you'll manage. I believe in you.");
 		dialogue.Add("The legs respond to W A S D and SPACEBAR to waddle around and jump. You didn't use limbs for a while, so play around some.");
 		printDialogue(dialogue);
+		playWalkTutorial();
 	}
 
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level05", ESearchCase::IgnoreCase) == 0 && state == FLYING)
@@ -2038,6 +2175,49 @@ void AGolfBall::displayDialogue()
 		dialogue.Add("I got this idea from a friend. Big fan of mobile games. He wouldn't do much else after the tanning incident.");
 		dialogue.Add("Wings are tricky to handle. Hit SPACEBAR to fly. You'll be a myth just like my friend in no time!");
 		printDialogue(dialogue);
+		playFlyTutorial();
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level06", ESearchCase::IgnoreCase) == 0 && state == GOLF)
+	{
+		dialogue.Add("Some intro dialogue for level 6");
+		dialogue.Add("Golf time :)");
+		printDialogue(dialogue);
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level07", ESearchCase::IgnoreCase) == 0 && state == GOLF)
+	{
+		dialogue.Add("Some intro dialogue for level 7");
+		dialogue.Add("Golf time :)");
+		printDialogue(dialogue);
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel01", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Bowling time :)");
+		printDialogue(dialogue);
+		playGolfTutorial();
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel02", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Plinko time :)");
+		printDialogue(dialogue);
+		playFlyTutorial();
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel04", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Pacman time :)");
+		printDialogue(dialogue);
+		playPacmanTutorial();
+	}
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel05", ESearchCase::IgnoreCase) == 0)
+	{
+		dialogue.Add("Running time :)");
+		printDialogue(dialogue);
+		playWalkTutorial();
 	}
 }
 

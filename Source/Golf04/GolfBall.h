@@ -415,6 +415,24 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void switchDecalVisibility(const bool visible);
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void playGolfTutorial();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void playWalkTutorial();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void playClimbTutorial();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void playFlyTutorial();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void playZoomTutorial();
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void playPacmanTutorial();
+
 	//UDecalComponent* decalShadow = nullptr;
 
 	//TArray<FHitResult> decalPosition;

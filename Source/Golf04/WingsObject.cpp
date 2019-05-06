@@ -2,6 +2,8 @@
 
 #include "WingsObject.h"
 #include "FlyingObstacle.h"
+#include "GolfBall.h"
+#include "GolfSaveGame.h"
 
 // Sets default values
 AWingsObject::AWingsObject()
@@ -40,12 +42,40 @@ void AWingsObject::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor *
 		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::FLYING;
 		static_cast<AGolfBall*>(OtherActor)->flyingInit(this);
 
-
 		TArray<AActor*> obstacles;
 
 		UGameplayStatics::GetAllActorsOfClass(this, AFlyingObstacle::StaticClass(), obstacles);
 
 		for (int i = 0; i < obstacles.Num(); i++)
 			Cast<AFlyingObstacle>(obstacles[i])->startResetTimer = true;
+
+		UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+		UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+		if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+		int levelIndex = -1;
+
+		for (int i = 0; i < NUM_LEVELS; i++)
+		{
+			if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
+			{
+				levelIndex = i;
+			}
+		}
+
+		if (levelIndex != -1)
+		{
+			if (!LoadGameInstance->levelData[levelIndex].flyingDialoguePlayed)
+			{
+				SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+				SaveGameInstance->levelData[levelIndex].flyingDialoguePlayed = true;
+				UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+				Cast<AGolfBall>(OtherActor)->displayDialogue();
+			}
+		}
 	}
 }

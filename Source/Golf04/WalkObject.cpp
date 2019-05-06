@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "WalkObject.h"
+#include "GolfSaveGame.h"
+#include "GolfBall.h"
 
 // Sets default values
 AWalkObject::AWalkObject()
@@ -39,10 +41,33 @@ void AWalkObject::OnOverlap(UPrimitiveComponent * OverlappedComponent, AActor * 
 		static_cast<AGolfBall*>(OtherActor)->state = static_cast<AGolfBall*>(OtherActor)->states::WALKING;
 		static_cast<AGolfBall*>(OtherActor)->golfInit();
 
-		if (!static_cast<AGolfBall*>(OtherActor)->dialogueHasPlayed)
+		UGolfSaveGame* SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+		UGolfSaveGame* LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::CreateSaveGameObject(UGolfSaveGame::StaticClass()));
+
+		if (!UGameplayStatics::DoesSaveGameExist(SaveGameInstance->slotName, SaveGameInstance->userIndex))
+			UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+
+		LoadGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->slotName, LoadGameInstance->userIndex));
+
+		int levelIndex = -1;
+
+		for (int i = 0; i < NUM_LEVELS; i++)
 		{
-			static_cast<AGolfBall*>(OtherActor)->displayDialogue();
-			static_cast<AGolfBall*>(OtherActor)->dialogueHasPlayed = true;
+			if (SaveGameInstance->levelData[i].levelName.Compare(UGameplayStatics::GetCurrentLevelName(this), ESearchCase::IgnoreCase) == 0)
+			{
+				levelIndex = i;
+			}
+		}
+
+		if (levelIndex != -1)
+		{
+			if (!LoadGameInstance->levelData[levelIndex].walkingDialoguePlayed)
+			{
+				SaveGameInstance = Cast<UGolfSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveGameInstance->slotName, SaveGameInstance->userIndex));
+				SaveGameInstance->levelData[levelIndex].walkingDialoguePlayed = true;
+				UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->slotName, SaveGameInstance->userIndex);
+				Cast<AGolfBall>(OtherActor)->displayDialogue();
+			}
 		}
 	}
 }

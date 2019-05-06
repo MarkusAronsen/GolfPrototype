@@ -3,11 +3,13 @@
 #pragma once
 
 #include "Components/BoxComponent.h"
-#include "GolfBall.h"
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "WalkObject.generated.h"
+
+class AGolfSaveGame;
+class AGolfBall;
 
 UCLASS()
 class GOLF04_API AWalkObject : public AActor
