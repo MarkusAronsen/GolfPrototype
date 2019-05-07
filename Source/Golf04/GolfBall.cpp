@@ -1996,7 +1996,8 @@ void AGolfBall::cameraPanTick(float deltaTime)
 
 		currentViewTarget++;
 
-		SkipCameraPanWidget->SetVisibility(ESlateVisibility::Visible);
+		if(UGameplayStatics::GetCurrentLevelName(this).Compare("Outro") != 0)
+			SkipCameraPanWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 
 	blendTimer += deltaTime;

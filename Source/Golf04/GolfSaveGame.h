@@ -113,6 +113,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Save data")
 		int userIndex;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+		bool gameCompleted = false;
+
 	//Cool and smart and sensible code
 	UPROPERTY(BlueprintReadOnly)
 		TArray<FLevelData> levelData = { FLevelData(), FLevelData(), FLevelData(), 
