@@ -261,7 +261,8 @@ void AGolfBall::BeginPlay()
 	
 	//Start camera pan if level is not LevelSelect or secret level
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("LevelSelect", ESearchCase::IgnoreCase) != 0
-		&& !UGameplayStatics::GetCurrentLevelName(this).Contains("SecretLevel", ESearchCase::IgnoreCase))
+		&& !UGameplayStatics::GetCurrentLevelName(this).Contains("SecretLevel", ESearchCase::IgnoreCase)
+		&& !UGameplayStatics::GetCurrentLevelName(this).Contains("Credits", ESearchCase::IgnoreCase))
 	{
 		bCameraShouldPan = true;
 
@@ -796,7 +797,16 @@ void AGolfBall::Tick(float DeltaTime)
 		mouseCameraYaw();
 		tickWalking(DeltaTime);
 		break;
+
+	case CREDITS:
+		if (bLerpingPerspective)
+			lerpPerspective(FRotator(-15.f, 0.f, 0.f), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
+		world->GetFirstPlayerController()->AddYawInput(6.f * DeltaTime);
+		break;
 	};
+
+	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Credits") == 0)
+		state = CREDITS;
 
 	//Playing billiards
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("SecretLevel03", ESearchCase::IgnoreCase) == 0)

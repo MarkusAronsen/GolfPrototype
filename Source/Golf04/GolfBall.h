@@ -182,7 +182,8 @@ public:
 		AWAITING_LEVELSELECT_INPUT = 5,
 		PLINKO = 6,
 		PACMAN = 7,
-		RUNNER = 8
+		RUNNER = 8,
+		CREDITS = 9
 	};
 	UPROPERTY(BlueprintReadOnly)
 		int state;
