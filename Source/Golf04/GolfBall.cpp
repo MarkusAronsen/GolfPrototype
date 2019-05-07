@@ -1996,7 +1996,7 @@ void AGolfBall::cameraPanTick(float deltaTime)
 
 		currentViewTarget++;
 
-		if(UGameplayStatics::GetCurrentLevelName(this).Compare("Outro") != 0)
+		if(UGameplayStatics::GetCurrentLevelName(this).Compare("Outro") != 0 && UGameplayStatics::GetCurrentLevelName(this).Compare("Intro") != 0)
 			SkipCameraPanWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 

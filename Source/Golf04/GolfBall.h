@@ -93,8 +93,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mesh")//, EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		class UStaticMeshComponent* mPacManMesh = nullptr;
 
-
-
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation")
 		UAnimationAsset* FlyingAnim;*/
 
@@ -158,7 +156,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widget")
 		TSubclassOf<class UUserWidget> RunnerTimerWidget_BP;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Walking variable")
 		float walkMaxDuration;
 
@@ -171,6 +168,9 @@ public:
 	//Sound effects
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 		USoundCue* jumpSound = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+		USoundCue* pacmanPickupSound = nullptr;
 
 	enum states
 	{
