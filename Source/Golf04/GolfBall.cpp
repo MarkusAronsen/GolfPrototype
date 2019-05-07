@@ -2131,8 +2131,9 @@ void AGolfBall::displayDialogue()
 
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level01", ESearchCase::IgnoreCase) == 0)
 	{
-		dialogue.Add("Welcome to the trials! To be victorious you must reach the RED FLAG of every course. Search within you and find the MOUSE.");
-		dialogue.Add("Hold the left button and release to shoot, or click the right button to stay still and chill, if that's what you're about.");
+		dialogue.Add("What a cute golfball. Welcome to the trials! To be victorious you must reach the RED FLAG of every course.");
+		dialogue.Add("Hold the left mouse button and release to shoot, or click the right button to stay still and chill, if that's what you're about.");
+		dialogue.Add("You can stay forever if you want, but I think we would both rather you WIN and get your regular old body back, right? Chop chop!");
 		printDialogue(dialogue);
 		playGolfTutorial();
 	}
@@ -2191,22 +2192,20 @@ void AGolfBall::displayDialogue()
 
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level06", ESearchCase::IgnoreCase) == 0 && state == GOLF)
 	{
-		dialogue.Add("Some intro dialogue for level 6");
-		dialogue.Add("Golf time :)");
+		dialogue.Add("You're doing pretty good, kid. Let's see how you handle this.");
 		printDialogue(dialogue);
 	}
 
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level07", ESearchCase::IgnoreCase) == 0 && state == GOLF)
 	{
-		dialogue.Add("Some intro dialogue for level 7");
-		dialogue.Add("Golf time :)");
+		dialogue.Add("Okayokayokay. You're just going to go ahead and complete the entire trial like that, huh?");
+		dialogue.Add("This is it. Pull this trial off and you will stand above all the noobs that never made it all the way. Don't let me down.");
 		printDialogue(dialogue);
 	}
 
 	if (UGameplayStatics::GetCurrentLevelName(this).Compare("Level07", ESearchCase::IgnoreCase) == 0 && state == FLYING)
 	{
-		dialogue.Add("Nesten ferdig tekst her");
-		dialogue.Add("Golf time :)");
+		dialogue.Add("The final goal is on the other side, but it's not over yet. I've left another suprise for you.");
 		printDialogue(dialogue);
 	}
 
