@@ -23,6 +23,7 @@ void AGolfGameModeBase::BeginPlay()
 	}
 	*/
 
+	targetWords.Add(TEXT(""));
 	targetWords.Add(TEXT("Rootlads"));
 	targetWords.Add(TEXT("Sander Platou Aaseth"));
 	targetWords.Add(TEXT("Julie Kristoffersen"));
@@ -30,6 +31,7 @@ void AGolfGameModeBase::BeginPlay()
 	targetWords.Add(TEXT("Markus Strand Aronsen"));
 	targetWords.Add(TEXT("Jan Erik Haug"));
 
+	targetRoles.Add(TEXT(""));
 	targetRoles.Add(TEXT("A game made by"));
 	targetRoles.Add(TEXT("Project manager"));
 	targetRoles.Add(TEXT("Graphics and concept artist"));
