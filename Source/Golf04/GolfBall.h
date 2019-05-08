@@ -410,7 +410,10 @@ public:
 	void openLevelThree();
 	void openLevelFour();
 	void openLevelFive();
-
+	void openLevelSix();
+	void openLevelSeven();
+	void openLevelEight();
+	void openLevelNine();
 	//bool onMoveablePlatform = false;
 
 	UFUNCTION(BlueprintImplementableEvent)

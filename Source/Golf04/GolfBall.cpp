@@ -882,6 +882,11 @@ void AGolfBall::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	InputComponent->BindAction("3", IE_Pressed, this, &AGolfBall::openLevelThree);
 	InputComponent->BindAction("4", IE_Pressed, this, &AGolfBall::openLevelFour);
 	InputComponent->BindAction("5", IE_Pressed, this, &AGolfBall::openLevelFive);
+	InputComponent->BindAction("6", IE_Pressed, this, &AGolfBall::openLevelSix);
+	InputComponent->BindAction("7", IE_Pressed, this, &AGolfBall::openLevelSeven);
+	InputComponent->BindAction("8", IE_Pressed, this, &AGolfBall::openLevelEight);
+	InputComponent->BindAction("9", IE_Pressed, this, &AGolfBall::openLevelNine);
+
 }
 
 void AGolfBall::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor *OtherActor,
@@ -2320,15 +2325,38 @@ void AGolfBall::openLevelTwo()
 
 void AGolfBall::openLevelThree()
 {
-	UGameplayStatics::OpenLevel(world, "ClimbingTutorial");
+	UGameplayStatics::OpenLevel(world, "Level04");
 }
 
 void AGolfBall::openLevelFour()
 {
-	UGameplayStatics::OpenLevel(world, "TestWalking03");
+	UGameplayStatics::OpenLevel(world, "Level06");
 }
 
 void AGolfBall::openLevelFive()
 {
-	UGameplayStatics::OpenLevel(world, "TestWalking02");
+	UGameplayStatics::OpenLevel(world, "Level07");
+}
+
+void AGolfBall::openLevelSix()
+{
+	UGameplayStatics::OpenLevel(world, "SecretLevel01");
+
+}
+
+void AGolfBall::openLevelSeven()
+{
+	UGameplayStatics::OpenLevel(world, "SecretLevel02");
+
+}
+
+void AGolfBall::openLevelEight()
+{
+	UGameplayStatics::OpenLevel(world, "SecretLevel04");
+
+}
+
+void AGolfBall::openLevelNine()
+{
+	UGameplayStatics::OpenLevel(world, "SecretLevel05");
 }
