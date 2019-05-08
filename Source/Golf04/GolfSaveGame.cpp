@@ -27,9 +27,9 @@ UGolfSaveGame::UGolfSaveGame()
 	levelData[2].golfPar.Add(7);
 
 	levelData[3].levelName = TEXT("Level04");
-	levelData[3].golfPar.Add(10);
-	levelData[3].golfPar.Add(11);
-	levelData[3].golfPar.Add(12);
+	levelData[3].golfPar.Add(4);
+	levelData[3].golfPar.Add(6);
+	levelData[3].golfPar.Add(8);
 
 	levelData[4].levelName = TEXT("Level05");
 	levelData[4].golfPar.Add(10);

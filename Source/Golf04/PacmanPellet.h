@@ -11,6 +11,7 @@
 
 class AGolfBall;
 class ASecretLevelManager;
+class AGolfGameInstance;
 
 UCLASS()
 class GOLF04_API APacmanPellet : public AActor

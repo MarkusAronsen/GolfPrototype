@@ -3,6 +3,7 @@
 #include "PacmanPellet.h"
 #include "GolfBall.h"
 #include "SecretLevelManager.h"
+#include "GolfGameInstance.h"
 
 // Sets default values
 APacmanPellet::APacmanPellet()
@@ -45,13 +46,14 @@ void APacmanPellet::OnBeginOverlap(UPrimitiveComponent * OverlappedComponent,
 	if (OtherActor->IsA(AGolfBall::StaticClass()))
 	{
 		Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->secretLevelManagerInstance->pacmanScore += 10;
+		//UGameplayStatics::PlaySound2D(this, Cast<AGolfBall>(UGameplayStatics::GetPlayerPawn(this, 0))->pacmanPickupSound, Cast<UGolfGameInstance>(GetGameInstance())->soundEffectVolume, 1);
+
 		secretLevelManagerInstance->pellets.Remove(this);
 		if (secretLevelManagerInstance->pellets.Num() == 0)
 		{
 			secretLevelManagerInstance->resetPacmanAntiAliasing();
 			secretLevelManagerInstance->secretLevelFinished();
 		}
-			
 		Destroy();
 	}
 }
