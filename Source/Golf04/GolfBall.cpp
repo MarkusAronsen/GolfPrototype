@@ -63,9 +63,6 @@ AGolfBall::AGolfBall()
 	mPacManMesh->SetupAttachment(mMesh);
 	mVisibleMesh->SetupAttachment(mMesh);
 
-	if (!jumpSound)
-		UE_LOG(LogTemp, Warning, TEXT("Jump sound missing"));
-
 	UE_LOG(LogTemp, Warning, TEXT("Golf ball constructed"));
 }
 
@@ -434,7 +431,10 @@ void AGolfBall::BeginPlay()
 
 	if (Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel)
 	{
-		SetActorLocation(Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition + FVector(200, 200, 50));
+		state = Cast<UGolfGameInstance>(GetGameInstance())->previousState;
+		golfInit();
+		UE_LOG(LogTemp, Warning, TEXT("state: %i"), Cast<UGolfGameInstance>(GetGameInstance())->previousState);
+		SetActorLocation(Cast<UGolfGameInstance>(GetGameInstance())->secretLevelEntrancePosition + FVector(250, 250, 250));
 		strokeCounter = Cast<UGolfGameInstance>(GetGameInstance())->gameInstanceStrokeCounter;
 		bCameraShouldPan = false;
 		Cast<UGolfGameInstance>(GetGameInstance())->exitingSecretLevel = false;
@@ -1450,6 +1450,7 @@ void AGolfBall::setLMBReleased()
 					if (canLaunch)
 					{
 						secretLevelManagerInstance->incrementBowlingThrow();
+						UGameplayStatics::PlaySound2D(this, golfHitSound, Cast<UGolfGameInstance>(GetGameInstance())->soundEffectVolume, 1.f);
 						mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 						canLaunch = false;
 					}
@@ -1462,6 +1463,7 @@ void AGolfBall::setLMBReleased()
 				{
 					mMesh->AddImpulse(FRotator(0.f, mController->GetControlRotation().Yaw, 0.f).Vector() * currentLaunchPower * 350.f, NAME_None, false);
 					strokeCounter++;
+					UGameplayStatics::PlaySound2D(this, golfHitSound, Cast<UGolfGameInstance>(GetGameInstance())->soundEffectVolume, 1.f);
 					Cast<UGolfGameInstance>(GetGameInstance())->gameInstanceStrokeCounter++;
 				}
 					

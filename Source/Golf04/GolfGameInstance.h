@@ -27,7 +27,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float cameraSpeed = 1.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString secretLevelParentName = TEXT("no name");
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -44,4 +44,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		float soundEffectVolume = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int previousState;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		int currentSong = 0;
 };

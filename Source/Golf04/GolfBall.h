@@ -168,9 +168,13 @@ public:
 	//Sound effects
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 		USoundCue* jumpSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+		USoundCue* golfHitSound = nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 		USoundCue* pacmanPickupSound = nullptr;
+
 
 	enum states
 	{
