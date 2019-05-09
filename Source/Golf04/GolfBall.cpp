@@ -802,6 +802,7 @@ void AGolfBall::Tick(float DeltaTime)
 		if (bLerpingPerspective)
 			lerpPerspective(FRotator(-15.f, 0.f, 0.f), 1500.f, FRotator(0.f, 0.f, 0.f), DeltaTime);
 		world->GetFirstPlayerController()->AddYawInput(6.f * DeltaTime);
+		mCamera->SetRelativeRotation(FRotator(15.f, 0.f, 0.f));
 		break;
 	};
 

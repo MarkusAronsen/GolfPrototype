@@ -46,7 +46,7 @@ public:
 		FString targetWord = "";
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
-		int triesLeft = 8;
+		int triesLeft = 16;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hangman variable")
 		int count = -1;
